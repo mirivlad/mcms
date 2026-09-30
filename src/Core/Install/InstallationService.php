@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace MCMS\Core\Install;
 
 use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Events\Events;
 use CodeIgniter\Shield\Entities\User;
+use MCMS\Core\Events\CoreEvents;
 use RuntimeException;
 
 final class InstallationService
@@ -76,6 +78,8 @@ final class InstallationService
         $settings = service('settings');
         $settings->set('Core.siteName', $siteName);
         $settings->set('Auth.allowRegistration', $allowRegistration);
+
+        Events::trigger(CoreEvents::USER_CREATED, $created);
 
         return $created;
     }
