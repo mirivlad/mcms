@@ -40,23 +40,30 @@
 
                         <div class="mb-3">
                             <label class="form-label">Permissions</label>
-                            <div class="border rounded p-3" style="max-height: 20rem; overflow:auto">
-                                <?php foreach ($permissions as $permission => $description): ?>
-                                    <label class="form-check mb-2">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            name="permissions[]"
-                                            value="<?= esc($permission) ?>"
-                                            <?= in_array($permission, $matrix[$id] ?? [], true) ? 'checked' : '' ?>
-                                        >
-                                        <span class="form-check-label">
-                                            <code><?= esc($permission) ?></code>
-                                            <span class="d-block text-secondary"><?= esc($description) ?></span>
-                                        </span>
-                                    </label>
-                                <?php endforeach ?>
-                            </div>
+                            <?php if ($id === 'superadmin'): ?>
+                                <div class="alert alert-info mb-0">
+                                    The superadmin permission matrix is managed by Core. It always contains
+                                    <code>core.*</code> and receives permissions contributed by installed modules.
+                                </div>
+                            <?php else: ?>
+                                <div class="border rounded p-3" style="max-height: 20rem; overflow:auto">
+                                    <?php foreach ($permissions as $permission => $description): ?>
+                                        <label class="form-check mb-2">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="permissions[]"
+                                                value="<?= esc($permission) ?>"
+                                                <?= in_array($permission, $matrix[$id] ?? [], true) ? 'checked' : '' ?>
+                                            >
+                                            <span class="form-check-label">
+                                                <code><?= esc($permission) ?></code>
+                                                <span class="d-block text-secondary"><?= esc($description) ?></span>
+                                            </span>
+                                        </label>
+                                    <?php endforeach ?>
+                                </div>
+                            <?php endif ?>
                         </div>
 
                         <button class="btn btn-primary" type="submit">Save group</button>
