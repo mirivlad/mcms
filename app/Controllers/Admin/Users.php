@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers\Admin;
 
+use CodeIgniter\Events\Events;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Shield\Entities\User;
+use MCMS\Core\Events\CoreEvents;
 use RuntimeException;
 
 final class Users extends BaseAdminController
@@ -85,6 +87,7 @@ final class Users extends BaseAdminController
             }
 
             $users->addToDefaultGroup($created);
+            Events::trigger(CoreEvents::USER_CREATED, $created);
 
             return redirect()->to('/admin/users')->with('message', 'User created.');
         }
