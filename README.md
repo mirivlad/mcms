@@ -14,8 +14,8 @@ maintenance. Content and business features are installed as modules.
 - CodeIgniter Settings 2.4.x;
 - MariaDB 11.4;
 - nginx + PHP-FPM;
-- Bootstrap 5.3.x for the default public UI;
-- Tabler 1.6.x for the administration shell;
+- Bootstrap 5.3.8 for the default public UI;
+- Tabler 1.6.1 for the administration shell;
 - Docker Compose / Portainer deployment.
 
 ## Core responsibilities
@@ -28,7 +28,7 @@ maintenance. Content and business features are installed as modules.
 - persisted Core/module settings;
 - stable events/hooks contract;
 - storage abstraction;
-- installation and first-superadmin bootstrap;
+- browser first-run installation and CLI recovery bootstrap;
 - health and diagnostics.
 
 ## Modules
@@ -43,9 +43,9 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-mCMS is in early Core bootstrap. The current work lives in
-`bootstrap/generalize` until the modular Core contract and clean-install flow are
-stable.
+mCMS is in modular Core bootstrap. The current work lives in
+`bootstrap/generalize` until the Core contract and first clean-install release are
+stable. The clean-install CI boots an empty database and exercises the browser installer.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,
