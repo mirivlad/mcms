@@ -1,0 +1,15 @@
+{
+  "id": "beta",
+  "name": "Beta Fixture",
+  "version": "1.0.0",
+  "namespace": "Tests\\Support\\FixtureModules\\Beta",
+  "provider": "Tests\\Support\\FixtureModules\\Beta\\Module",
+  "mcms": "^0.1",
+  "description": "Fixture module depending on Alpha.",
+  "requires": [
+    {"id": "alpha", "version": "^1.0"}
+  ],
+  "settings": {},
+  "permissions": {},
+  "grants": {}
+}
