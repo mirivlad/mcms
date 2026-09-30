@@ -39,6 +39,16 @@ final class ModuleManager
             if (isset($this->catalog[$manifest->id])) {
                 throw new RuntimeException("Duplicate module id: {$manifest->id}");
             }
+
+            // Composer can autoload module classes, but CodeIgniter's
+            // FileLocator/MigrationRunner needs the module namespace registered
+            // explicitly in order to discover migrations, views and other
+            // non-class resources.
+            service('autoloader')->addNamespace(
+                $manifest->namespace,
+                $manifest->path,
+            );
+
             $this->catalog[$manifest->id] = $manifest;
         }
 
