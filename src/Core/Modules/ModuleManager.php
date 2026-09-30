@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MCMS\Core\Modules;
 
 use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Events\Events;
 use CodeIgniter\Router\RouteCollection;
 use Config\Services;
 use MCMS\Core\Admin\AdminRegistry;
@@ -69,12 +70,34 @@ final class ModuleManager
             return;
         }
 
+        $manifest = $this->catalog()[$id] ?? null;
+
         $this->db->table('mcms_modules')
             ->where('module_id', $id)
             ->update([
                 'enabled'    => 0,
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
+
+        if ($manifest instanceof ModuleManifest) {
+            Events::trigger('mcms.module.disabled', $manifest);
+        }
+    }
+
+    public function updateEnabled(): void
+    {
+        foreach ($this->enabledManifests() as $manifest) {
+            Services::migrations()
+                ->setNamespace($manifest->namespace)
+                ->latest();
+
+            $this->db->table('mcms_modules')
+                ->where('module_id', $manifest->id)
+                ->update([
+                    'version'    => $manifest->version,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+        }
     }
 
     public function bootEnabled(): void
@@ -150,6 +173,8 @@ final class ModuleManager
                 'updated_at'   => $now,
             ]);
 
+            Events::trigger('mcms.module.enabled', $manifest);
+
             return;
         }
 
@@ -160,6 +185,8 @@ final class ModuleManager
                 'enabled'    => 1,
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
+
+        Events::trigger('mcms.module.enabled', $manifest);
     }
 
     private function enabledManifests(): array
