@@ -7,7 +7,6 @@ use CodeIgniter\Test\DatabaseTestTrait;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
-use RuntimeException;
 use Tests\Support\FixtureModules\Beta\BetaApi;
 
 final class ModuleLifecycleTest extends CIUnitTestCase
