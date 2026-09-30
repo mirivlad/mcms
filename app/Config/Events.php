@@ -5,6 +5,12 @@ namespace Config;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Exceptions\FrameworkException;
 use CodeIgniter\HotReloader\HotReloader;
+use MCMS\Core\Events\CoreEvents;
+
+// Shield emits the registered User entity as the only argument.
+Events::on('register', static function ($user): void {
+    Events::trigger(CoreEvents::USER_CREATED, $user);
+});
 
 /*
  * --------------------------------------------------------------------
