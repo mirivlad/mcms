@@ -6,7 +6,6 @@
   "require": {
     "php": "^8.2",
     "codeigniter4/framework": "4.7.4",
-    "phpoffice/phpspreadsheet": "5.10.0",
     "codeigniter4/shield": "^1.4",
     "codeigniter4/settings": "^2.4"
   },
