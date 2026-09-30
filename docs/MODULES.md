@@ -65,6 +65,8 @@ final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
+        $context->services->register('example.api', new ExampleApi());
+
         $context->admin->addMenu(
             'example',
             'Example',
@@ -82,10 +84,32 @@ final class Module implements ModuleProviderInterface
 }
 ```
 
+## Public module services
+
+A module that exposes functionality to other modules should register a public API object through
+`$context->services` during `boot()`.
+
+Dependent modules retrieve that API from the same registry instead of reading another module's
+private tables or constructing its internal classes directly.
+
+Enabled modules are booted in dependency order. If `gallery` requires `media`, Media's provider
+is booted first, so Gallery may safely consume a service such as `media.library`.
+
+Service IDs are global runtime identifiers and should be namespaced with the owning module ID,
+for example:
+
+```text
+media.library
+media.images
+shop.catalog
+```
+
+Registering the same service ID twice is an error.
+
 ## Rules
 
 - A module owns its schema and migrations.
-- A module may depend on another module, but may not reach into its private tables/classes without a documented contract.
+- A module may depend on another module, but may not reach into its private tables/classes. Cross-module runtime APIs are published through the module service registry.
 - Disable preserves data.
 - Core never automatically migrates every namespace.
 - Routes/hooks are registered only while enabled.
