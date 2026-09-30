@@ -20,6 +20,7 @@ final class ModuleManifest
         public readonly array $requires = [],
         public readonly array $settings = [],
         public readonly array $permissions = [],
+        public readonly array $grants = [],
         public readonly string $path = '',
     ) {
     }
@@ -42,8 +43,8 @@ final class ModuleManifest
             }
         }
 
-        if (! preg_match('/^[a-z][a-z0-9._-]*$/', $data['id'])) {
-            throw new InvalidArgumentException('Module id must use lowercase ASCII letters, numbers, dot, dash or underscore.');
+        if (! preg_match('/^[a-z][a-z0-9_-]*$/', $data['id'])) {
+            throw new InvalidArgumentException('Module id must use lowercase ASCII letters, numbers, dash or underscore.');
         }
 
         return new self(
@@ -56,6 +57,7 @@ final class ModuleManifest
             requires: is_array($data['requires'] ?? null) ? $data['requires'] : [],
             settings: is_array($data['settings'] ?? null) ? $data['settings'] : [],
             permissions: is_array($data['permissions'] ?? null) ? $data['permissions'] : [],
+            grants: is_array($data['grants'] ?? null) ? $data['grants'] : [],
             path: dirname($path),
         );
     }
