@@ -66,7 +66,13 @@ final class AccessManager
             'title' => $title,
             'description' => $description,
         ];
-        $matrix[$id] = $permissions;
+
+        // superadmin is a Core invariant. Its matrix contains core.* plus
+        // permissions contributed by installed modules and must not be
+        // accidentally flattened by the general group editor.
+        if ($id !== 'superadmin') {
+            $matrix[$id] = $permissions;
+        }
 
         $settings->set('AuthGroups.groups', $groups);
         $settings->set('AuthGroups.matrix', $matrix);
