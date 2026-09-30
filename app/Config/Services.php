@@ -4,6 +4,7 @@ namespace Config;
 
 use CodeIgniter\Config\BaseService;
 use MCMS\Core\Admin\AdminRegistry;
+use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Storage\LocalStorage;
 use MCMS\Core\Storage\StorageInterface;
@@ -24,6 +25,15 @@ class Services extends BaseService
         $registry->addMenu('system', 'System', '/admin/system', 'ti ti-activity', 'core.system', 90);
 
         return $registry;
+    }
+
+    public static function mcmsInstaller(bool $getShared = true): InstallationService
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsInstaller');
+        }
+
+        return new InstallationService(db_connect());
     }
 
     public static function mcmsModules(bool $getShared = true): ModuleManager
