@@ -1,0 +1,15 @@
+{
+  "id": "alpha",
+  "name": "Alpha Fixture",
+  "version": "1.0.0",
+  "namespace": "Tests\\Support\\FixtureModules\\Alpha",
+  "provider": "Tests\\Support\\FixtureModules\\Alpha\\Module",
+  "mcms": "^0.1",
+  "description": "Integration-test fixture module.",
+  "requires": [],
+  "settings": {
+    "items_per_page": 25
+  },
+  "permissions": {},
+  "grants": {}
+}
