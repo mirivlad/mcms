@@ -9,6 +9,7 @@ use CodeIgniter\Events\Events;
 use CodeIgniter\Router\RouteCollection;
 use Config\Services;
 use MCMS\Core\Admin\AdminRegistry;
+use MCMS\Core\Events\CoreEvents;
 use RuntimeException;
 use Throwable;
 
@@ -100,7 +101,7 @@ final class ModuleManager
             ]);
 
         if ($manifest instanceof ModuleManifest) {
-            Events::trigger('mcms.module.disabled', $manifest);
+            Events::trigger(CoreEvents::MODULE_DISABLED, $manifest);
         }
     }
 
@@ -188,7 +189,7 @@ final class ModuleManager
                 'updated_at'   => $now,
             ]);
 
-            Events::trigger('mcms.module.enabled', $manifest);
+            Events::trigger(CoreEvents::MODULE_ENABLED, $manifest);
 
             return;
         }
@@ -202,7 +203,7 @@ final class ModuleManager
             ]);
 
         if ((int) ($state['enabled'] ?? 0) !== 1) {
-            Events::trigger('mcms.module.enabled', $manifest);
+            Events::trigger(CoreEvents::MODULE_ENABLED, $manifest);
         }
     }
 
