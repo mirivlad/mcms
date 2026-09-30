@@ -87,6 +87,7 @@ final class Users extends BaseAdminController
             }
 
             $users->addToDefaultGroup($created);
+            $created->activate();
             Events::trigger(CoreEvents::USER_CREATED, $created);
 
             return redirect()->to('/admin/users')->with('message', 'User created.');
