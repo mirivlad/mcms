@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace MCMS\Core\Modules;
 
 use CodeIgniter\Database\BaseConnection;
+use Composer\Semver\Semver;
 use CodeIgniter\Events\Events;
 use CodeIgniter\Router\RouteCollection;
 use Config\Services;
 use MCMS\Core\Admin\AdminRegistry;
+use MCMS\Core\Version;
 use MCMS\Core\Events\CoreEvents;
 use RuntimeException;
 use Throwable;
@@ -152,6 +154,12 @@ final class ModuleManager
             throw new RuntimeException("Unknown module: {$id}");
         }
 
+        if (! Semver::satisfies(Version::VERSION, $manifest->mcms)) {
+            throw new RuntimeException(
+                "Module {$id} requires mCMS {$manifest->mcms}; installed Core is " . Version::VERSION . '.'
+            );
+        }
+
         if (in_array($id, $stack, true)) {
             throw new RuntimeException('Circular module dependency: ' . implode(' -> ', [...$stack, $id]));
         }
@@ -161,6 +169,23 @@ final class ModuleManager
             if (! is_string($dependencyId) || $dependencyId === '') {
                 throw new RuntimeException("Invalid dependency in module {$id}");
             }
+
+            $dependencyManifest = $catalog[$dependencyId] ?? null;
+            if (! $dependencyManifest instanceof ModuleManifest) {
+                throw new RuntimeException("Module {$id} requires missing module {$dependencyId}.");
+            }
+
+            $constraint = is_array($dependency) ? ($dependency['version'] ?? '*') : '*';
+            if (! is_string($constraint) || trim($constraint) === '') {
+                throw new RuntimeException("Module {$id} has an invalid version constraint for {$dependencyId}.");
+            }
+
+            if (! Semver::satisfies($dependencyManifest->version, $constraint)) {
+                throw new RuntimeException(
+                    "Module {$id} requires {$dependencyId} {$constraint}; available version is {$dependencyManifest->version}."
+                );
+            }
+
             $this->enableRecursive($dependencyId, [...$stack, $id]);
         }
 
