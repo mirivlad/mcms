@@ -48,7 +48,7 @@ The namespace must match the path below `MCMS\Modules\`.
 }
 ```
 
-Version constraints are part of the manifest contract; enforcement is planned before the first public module API release.
+Both the `mcms` compatibility constraint and dependency `version` constraints use Composer semantic-version syntax and are enforced before a module is enabled.
 
 ## Provider
 
