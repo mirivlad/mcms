@@ -47,8 +47,14 @@ class Modules extends BaseAdminController
             return $redirect;
         }
 
-        service('mcmsModules')->disable($id);
+        try {
+            service('mcmsModules')->disable($id);
 
-        return redirect()->to('/admin/modules')->with('message', "Module {$id} disabled. Its data was preserved.");
+            return redirect()->to('/admin/modules')->with('message', "Module {$id} disabled. Its data was preserved.");
+        } catch (\Throwable $e) {
+            log_message('error', 'Module disable failed: {message}', ['message' => $e->getMessage()]);
+
+            return redirect()->to('/admin/modules')->with('error', $e->getMessage());
+        }
     }
 }
