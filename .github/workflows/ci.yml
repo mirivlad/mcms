@@ -36,6 +36,12 @@ jobs:
             echo 'mCMS Core must never auto-run all namespaces'
             exit 1
           fi
+      - name: Guard self-contained frontend
+        run: |
+          if grep -R --line-number --fixed-strings 'cdn.jsdelivr.net' app public; then
+            echo 'Runtime frontend assets must be served locally'
+            exit 1
+          fi
       - name: Validate Compose model
         env:
           MCMS_DB_PASSWORD: ci-test
