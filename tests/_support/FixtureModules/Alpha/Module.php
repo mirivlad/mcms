@@ -12,6 +12,8 @@ final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
+        $context->services->register('alpha.api', new AlphaApi());
+
         $context->admin->addMenu(
             'alpha',
             'Alpha Fixture',
