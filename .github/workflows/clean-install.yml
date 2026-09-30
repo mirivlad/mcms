@@ -83,6 +83,20 @@ jobs:
           grep -q 'Dashboard' /tmp/admin.html
           grep -q 'mCMS is running' /tmp/admin.html
 
+      - name: Verify Core administration routes
+        run: |
+          for path in users access modules settings system; do
+            code="$(curl -sS               -b /tmp/mcms.cookies               -o "/tmp/admin-${path}.html"               -w '%{http_code}'               "http://127.0.0.1:8080/admin/${path}")"
+
+            test "$code" = "200"
+          done
+
+          grep -q 'Users' /tmp/admin-users.html
+          grep -q 'Access control' /tmp/admin-access.html
+          grep -q 'Modules' /tmp/admin-modules.html
+          grep -q 'Settings' /tmp/admin-settings.html
+          grep -q 'System' /tmp/admin-system.html
+
       - name: Verify superadmin membership and settings
         run: |
           count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM auth_groups_users WHERE `group`="superadmin";')"
