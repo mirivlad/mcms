@@ -11,6 +11,7 @@ final class ModuleContext
     public function __construct(
         public readonly ModuleManifest $manifest,
         public readonly AdminRegistry $admin,
+        public readonly ModuleServiceRegistry $services,
     ) {
     }
 }
