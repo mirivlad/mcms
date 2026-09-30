@@ -70,6 +70,26 @@ final class ModuleManager
             return;
         }
 
+        $states = $this->states();
+        if ((int) ($states[$id]['enabled'] ?? 0) !== 1) {
+            return;
+        }
+
+        foreach ($this->enabledManifests() as $candidate) {
+            if ($candidate->id === $id) {
+                continue;
+            }
+
+            foreach ($candidate->requires as $dependency) {
+                $dependencyId = is_array($dependency) ? ($dependency['id'] ?? '') : $dependency;
+                if ($dependencyId === $id) {
+                    throw new RuntimeException(
+                        "Cannot disable {$id}: enabled module {$candidate->id} depends on it."
+                    );
+                }
+            }
+        }
+
         $manifest = $this->catalog()[$id] ?? null;
 
         $this->db->table('mcms_modules')
@@ -90,6 +110,8 @@ final class ModuleManager
             Services::migrations()
                 ->setNamespace($manifest->namespace)
                 ->latest();
+
+            $this->registerPermissions($manifest, service('settings'));
 
             $this->db->table('mcms_modules')
                 ->where('module_id', $manifest->id)
@@ -150,37 +172,11 @@ final class ModuleManager
             ->latest();
 
         $settings = service('settings');
+        $this->registerPermissions($manifest, $settings);
 
         if ($state === null) {
             foreach ($manifest->settings as $key => $value) {
                 $settings->set($manifest->id . '.' . $key, $value);
-            }
-
-            // Shield reads its authorization configuration through the Settings
-            // library, allowing modules to contribute permissions without editing
-            // Core configuration files.
-            if ($manifest->permissions !== []) {
-                $permissions = (array) $settings->get('AuthGroups.permissions');
-                $settings->set('AuthGroups.permissions', array_replace($permissions, $manifest->permissions));
-
-                $matrix = (array) $settings->get('AuthGroups.matrix');
-                $matrix['superadmin'] = array_values(array_unique([
-                    ...($matrix['superadmin'] ?? []),
-                    ...array_keys($manifest->permissions),
-                ]));
-
-                foreach ($manifest->grants as $group => $grants) {
-                    if (! is_string($group) || ! is_array($grants)) {
-                        throw new RuntimeException("Invalid permission grants in module {$id}");
-                    }
-
-                    $matrix[$group] = array_values(array_unique([
-                        ...($matrix[$group] ?? []),
-                        ...$grants,
-                    ]));
-                }
-
-                $settings->set('AuthGroups.matrix', $matrix);
             }
 
             $now = date('Y-m-d H:i:s');
@@ -205,7 +201,38 @@ final class ModuleManager
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
-        Events::trigger('mcms.module.enabled', $manifest);
+        if ((int) ($state['enabled'] ?? 0) !== 1) {
+            Events::trigger('mcms.module.enabled', $manifest);
+        }
+    }
+
+    private function registerPermissions(ModuleManifest $manifest, object $settings): void
+    {
+        if ($manifest->permissions === []) {
+            return;
+        }
+
+        $permissions = (array) $settings->get('AuthGroups.permissions');
+        $settings->set('AuthGroups.permissions', array_replace($permissions, $manifest->permissions));
+
+        $matrix = (array) $settings->get('AuthGroups.matrix');
+        $matrix['superadmin'] = array_values(array_unique([
+            ...($matrix['superadmin'] ?? []),
+            ...array_keys($manifest->permissions),
+        ]));
+
+        foreach ($manifest->grants as $group => $grants) {
+            if (! is_string($group) || ! is_array($grants)) {
+                throw new RuntimeException("Invalid permission grants in module {$manifest->id}");
+            }
+
+            $matrix[$group] = array_values(array_unique([
+                ...($matrix[$group] ?? []),
+                ...$grants,
+            ]));
+        }
+
+        $settings->set('AuthGroups.matrix', $matrix);
     }
 
     private function enabledManifests(): array
