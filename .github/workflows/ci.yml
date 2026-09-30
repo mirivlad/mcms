@@ -24,10 +24,18 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
       - name: Lint application PHP
         run: find app -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Run Core unit tests
+        run: composer test
       - name: Verify Spark bootstrap and routes
         run: |
           php spark list
           php spark routes
+      - name: Guard modular migration boundary
+        run: |
+          if grep -R --line-number --fixed-strings 'migrate --all' docker app src; then
+            echo 'mCMS Core must never auto-run all namespaces'
+            exit 1
+          fi
       - name: Validate Compose model
         env:
           MCMS_DB_PASSWORD: ci-test
