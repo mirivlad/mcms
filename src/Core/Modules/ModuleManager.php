@@ -23,6 +23,7 @@ final class ModuleManager
     public function __construct(
         private readonly BaseConnection $db,
         private readonly AdminRegistry $admin,
+        private readonly ModuleServiceRegistry $services,
         private readonly string $modulesPath = ROOTPATH . 'modules',
     ) {
     }
@@ -134,7 +135,9 @@ final class ModuleManager
         $this->booted = true;
 
         foreach ($this->enabledManifests() as $manifest) {
-            $this->provider($manifest)->boot(new ModuleContext($manifest, $this->admin));
+            $this->provider($manifest)->boot(
+                new ModuleContext($manifest, $this->admin, $this->services)
+            );
         }
     }
 
@@ -271,15 +274,106 @@ final class ModuleManager
         }
 
         $states = $this->states();
+        $catalog = $this->catalog();
         $enabled = [];
 
-        foreach ($this->catalog() as $id => $manifest) {
-            if ((int) ($states[$id]['enabled'] ?? 0) === 1) {
-                $enabled[] = $manifest;
+        foreach ($states as $id => $state) {
+            if ((int) ($state['enabled'] ?? 0) === 1 && ! isset($catalog[$id])) {
+                throw new RuntimeException(
+                    "Enabled module {$id} is missing from the module directory."
+                );
             }
         }
 
-        return $enabled;
+        foreach ($catalog as $id => $manifest) {
+            if ((int) ($states[$id]['enabled'] ?? 0) === 1) {
+                $enabled[$id] = $manifest;
+            }
+        }
+
+        $ordered = [];
+        $visiting = [];
+        $visited = [];
+
+        $visit = function (string $id) use (
+            &$visit,
+            &$ordered,
+            &$visiting,
+            &$visited,
+            $enabled,
+            $catalog
+        ): void {
+            if (isset($visited[$id])) {
+                return;
+            }
+
+            if (isset($visiting[$id])) {
+                throw new RuntimeException(
+                    'Circular enabled-module dependency detected at ' . $id . '.'
+                );
+            }
+
+            $manifest = $enabled[$id] ?? null;
+            if (! $manifest instanceof ModuleManifest) {
+                throw new RuntimeException("Enabled module manifest not found: {$id}");
+            }
+
+            if (! Semver::satisfies(Version::VERSION, $manifest->mcms)) {
+                throw new RuntimeException(
+                    "Enabled module {$id} requires mCMS {$manifest->mcms}; installed Core is "
+                    . Version::VERSION . '.'
+                );
+            }
+
+            $visiting[$id] = true;
+
+            foreach ($manifest->requires as $dependency) {
+                $dependencyId = is_array($dependency) ? ($dependency['id'] ?? '') : $dependency;
+                $constraint = is_array($dependency) ? ($dependency['version'] ?? '*') : '*';
+
+                if (! is_string($dependencyId) || $dependencyId === '') {
+                    throw new RuntimeException("Invalid dependency in enabled module {$id}.");
+                }
+
+                if (! is_string($constraint) || trim($constraint) === '') {
+                    throw new RuntimeException(
+                        "Enabled module {$id} has an invalid constraint for {$dependencyId}."
+                    );
+                }
+
+                $dependencyManifest = $catalog[$dependencyId] ?? null;
+                if (! $dependencyManifest instanceof ModuleManifest) {
+                    throw new RuntimeException(
+                        "Enabled module {$id} requires missing module {$dependencyId}."
+                    );
+                }
+
+                if (! isset($enabled[$dependencyId])) {
+                    throw new RuntimeException(
+                        "Enabled module {$id} requires disabled module {$dependencyId}."
+                    );
+                }
+
+                if (! Semver::satisfies($dependencyManifest->version, $constraint)) {
+                    throw new RuntimeException(
+                        "Enabled module {$id} requires {$dependencyId} {$constraint}; available version is "
+                        . $dependencyManifest->version . '.'
+                    );
+                }
+
+                $visit($dependencyId);
+            }
+
+            unset($visiting[$id]);
+            $visited[$id] = true;
+            $ordered[] = $manifest;
+        };
+
+        foreach (array_keys($enabled) as $id) {
+            $visit($id);
+        }
+
+        return $ordered;
     }
 
     private function provider(ModuleManifest $manifest): ModuleProviderInterface
