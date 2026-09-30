@@ -19,6 +19,7 @@ jobs:
       MCMS_DB_PASSWORD: ci-test
       MCMS_DB_ROOT_PASSWORD: ci-test-root
       MCMS_HTTP_PORT: 8080
+      MCMS_BASE_URL: http://127.0.0.1:8080/
     steps:
       - uses: actions/checkout@v4
 
