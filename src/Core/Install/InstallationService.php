@@ -74,6 +74,7 @@ final class InstallationService
         }
 
         $created->syncGroups('superadmin');
+        $created->activate();
 
         $settings = service('settings');
         $settings->set('Core.siteName', $siteName);
