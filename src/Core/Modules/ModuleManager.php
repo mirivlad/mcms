@@ -119,14 +119,26 @@ final class ModuleManager
         }
 
         $state = $this->states()[$id] ?? null;
-        if ($state === null) {
-            Services::migrations()
-                ->setNamespace($manifest->namespace)
-                ->latest();
 
-            $settings = service('settings');
+        // Migrations are scoped to this module namespace. Core startup never
+        // runs --all, so disabled/uninstalled modules cannot migrate themselves.
+        Services::migrations()
+            ->setNamespace($manifest->namespace)
+            ->latest();
+
+        $settings = service('settings');
+
+        if ($state === null) {
             foreach ($manifest->settings as $key => $value) {
                 $settings->set($manifest->id . '.' . $key, $value);
+            }
+
+            // Shield reads its authorization configuration through the Settings
+            // library, allowing modules to contribute permissions without editing
+            // Core configuration files.
+            if ($manifest->permissions !== []) {
+                $permissions = (array) $settings->get('AuthGroups.permissions');
+                $settings->set('AuthGroups.permissions', array_replace($permissions, $manifest->permissions));
             }
 
             $now = date('Y-m-d H:i:s');
