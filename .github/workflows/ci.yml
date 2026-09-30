@@ -2,7 +2,7 @@ name: mCMS checks
 
 on:
   push:
-    branches: [main, bootstrap/generalize]
+    branches: [main, "feature/**"]
   pull_request:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
       - name: Lint application PHP
-        run: find app src -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+        run: find app src modules -name '*.php' -type f -print0 | xargs -0 -n1 php -l
       - name: Run Core unit tests
         run: composer test
       - name: Verify Spark bootstrap and routes
@@ -32,13 +32,13 @@ jobs:
           php spark routes
       - name: Guard modular migration boundary
         run: |
-          if grep -R --line-number --fixed-strings 'migrate --all' docker app src; then
+          if grep -R --line-number --fixed-strings 'migrate --all' docker app src modules; then
             echo 'mCMS Core must never auto-run all namespaces'
             exit 1
           fi
       - name: Guard self-contained frontend
         run: |
-          if grep -R --line-number --fixed-strings 'cdn.jsdelivr.net' app public; then
+          if grep -R --line-number --fixed-strings 'cdn.jsdelivr.net' app public modules; then
             echo 'Runtime frontend assets must be served locally'
             exit 1
           fi
@@ -46,4 +46,6 @@ jobs:
         env:
           MCMS_DB_PASSWORD: ci-test
           MCMS_DB_ROOT_PASSWORD: ci-test-root
-        run: docker compose config -q
+        run: |
+          docker compose config -q
+          docker compose -f portainer-stack.yml config -q
