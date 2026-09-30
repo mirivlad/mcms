@@ -3,30 +3,30 @@
 namespace Config;
 
 use CodeIgniter\Config\BaseService;
+use MCMS\Core\Admin\AdminRegistry;
+use MCMS\Core\Modules\ModuleManager;
 
-/**
- * Services Configuration file.
- *
- * Services are simply other classes/libraries that the system uses
- * to do its job. This is used by CodeIgniter to allow the core of the
- * framework to be swapped out easily without affecting the usage within
- * the rest of your application.
- *
- * This file holds any application-specific services, or service overrides
- * that you might need. An example has been included with the general
- * method format you should use for your service methods. For more examples,
- * see the core Services file at system/Config/Services.php.
- */
 class Services extends BaseService
 {
-    /*
-     * public static function example($getShared = true)
-     * {
-     *     if ($getShared) {
-     *         return static::getSharedInstance('example');
-     *     }
-     *
-     *     return new \CodeIgniter\Example();
-     * }
-     */
+    public static function mcmsAdmin(bool $getShared = true): AdminRegistry
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsAdmin');
+        }
+
+        $registry = new AdminRegistry();
+        $registry->addMenu('dashboard', 'Dashboard', '/admin', 'ti ti-home', 'core.admin', 10);
+        $registry->addMenu('modules', 'Modules', '/admin/modules', 'ti ti-plug', 'core.modules', 50);
+
+        return $registry;
+    }
+
+    public static function mcmsModules(bool $getShared = true): ModuleManager
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsModules');
+        }
+
+        return new ModuleManager(db_connect(), static::mcmsAdmin());
+    }
 }
