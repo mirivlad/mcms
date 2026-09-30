@@ -95,8 +95,8 @@ Modules may register:
 
 Modules must not replace or patch Core admin templates.
 
-The current admin UI foundation is Tabler 1.6.x. The public/default theme targets Bootstrap 5.3.x.
-During early bootstrap the assets may be loaded from a pinned CDN; release builds should vendor the assets so mCMS remains self-contained.
+The current admin UI foundation is Tabler 1.6.1. The public/default theme targets Bootstrap 5.3.8.
+Both are bundled into the nginx runtime image from exact npm package versions. mCMS Core does not bundle Tabler's demo/vendor libraries.
 
 ## Settings
 
