@@ -216,6 +216,7 @@ final class ModuleManager
         $permissions = (array) $settings->get('AuthGroups.permissions');
         $settings->set('AuthGroups.permissions', array_replace($permissions, $manifest->permissions));
 
+        $groups = (array) $settings->get('AuthGroups.groups');
         $matrix = (array) $settings->get('AuthGroups.matrix');
         $matrix['superadmin'] = array_values(array_unique([
             ...($matrix['superadmin'] ?? []),
@@ -223,8 +224,10 @@ final class ModuleManager
         ]));
 
         foreach ($manifest->grants as $group => $grants) {
-            if (! is_string($group) || ! is_array($grants)) {
-                throw new RuntimeException("Invalid permission grants in module {$manifest->id}");
+            if (! array_key_exists($group, $groups)) {
+                throw new RuntimeException(
+                    "Module {$manifest->id} grants permissions to unknown group {$group}."
+                );
             }
 
             $matrix[$group] = array_values(array_unique([
