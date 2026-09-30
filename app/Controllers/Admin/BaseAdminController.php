@@ -32,4 +32,12 @@ abstract class BaseAdminController extends BaseController
             fn (array $item): bool => $item['permission'] === null || $this->can($item['permission'])
         ));
     }
+
+    protected function adminWidgets(): array
+    {
+        return array_values(array_filter(
+            service('mcmsAdmin')->widgets(),
+            fn (array $widget): bool => $widget['permission'] === null || $this->can($widget['permission'])
+        ));
+    }
 }
