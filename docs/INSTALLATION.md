@@ -1,9 +1,9 @@
 # Installation
 
-mCMS is still in Core bootstrap, but the intended clean-install path is already the
-deployment contract.
+mCMS is designed to install against an empty database without importing any
+application-specific dump.
 
-## Development with Docker Compose
+## Docker Compose / Portainer flow
 
 Copy the environment template:
 
@@ -11,7 +11,8 @@ Copy the environment template:
 cp .env.example .env
 ```
 
-Set unique database passwords, then start the stack:
+Set unique database passwords, the public base URL and mail settings, then start
+the stack:
 
 ```bash
 docker compose up -d --build
@@ -32,12 +33,32 @@ before PHP-FPM starts. This migrates:
 
 It deliberately never runs `migrate --all`.
 
-## Create the first super administrator
+## Browser first-run installer
 
-Do not store the initial administrator password in `.env` or Portainer stack
-configuration.
+On a fresh database, opening the site root redirects to:
 
-For a shell deployment, export the values only for the bootstrap command:
+```text
+/install
+```
+
+The installer asks for:
+
+- site name;
+- first administrator email;
+- first administrator username;
+- password and confirmation;
+- whether public registration should initially be enabled.
+
+Submitting the form creates the first `superadmin`, stores the initial settings,
+logs that user in and redirects to the Core dashboard.
+
+As soon as a superadmin exists, `/install` closes and redirects to the normal
+login page. The installer cannot be used to create a second superadmin.
+
+## CLI fallback
+
+The same installation service is available through the CLI for recovery or
+headless deployments:
 
 ```bash
 read -r -p "Admin email: " MCMS_ADMIN_EMAIL
@@ -57,10 +78,23 @@ docker compose exec \
 unset MCMS_ADMIN_EMAIL MCMS_ADMIN_USERNAME MCMS_ADMIN_PASSWORD
 ```
 
-The command refuses to create another account once a super administrator exists.
+The CLI command and browser installer share the same Core service and both refuse
+to run after installation is complete.
 
-A browser-based first-run installer is planned before the first release so normal
-Portainer users do not need this CLI bootstrap.
+## Frontend assets
+
+The runtime does not depend on a public CDN.
+
+The nginx image installs exact package versions during its build stage and copies
+only these runtime assets into the final image:
+
+- `@tabler/core@1.6.1`: core CSS and JS;
+- `bootstrap@5.3.8`: core CSS and bundled JS.
+
+Tabler demo/vendor libraries such as ApexCharts are not copied.
+
+Third-party notices are stored in `THIRD_PARTY_NOTICES.md` and are also copied
+into the web image under `/usr/share/licenses/mcms/`.
 
 ## Updates
 
@@ -68,4 +102,4 @@ Normal application startup runs `mcms:update`, therefore a new image applies
 Core/package migrations and migrations for enabled modules only.
 
 Installing or enabling a new module applies that module's migrations and default
-settings at enable time.
+settings at enable time. Disabling a module preserves its tables and settings.
