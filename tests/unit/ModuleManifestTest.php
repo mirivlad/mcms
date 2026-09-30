@@ -33,6 +33,7 @@ final class ModuleManifestTest extends TestCase
             'version'     => '1.2.3',
             'namespace'   => 'MCMS\\Modules\\Example',
             'provider'    => 'MCMS\\Modules\\Example\\Module',
+            'mcms'        => '^0.1',
             'requires'    => [['id' => 'media', 'version' => '^1.0']],
             'settings'    => ['items_per_page' => 20],
             'permissions' => ['example.manage' => 'Manage Example'],
@@ -43,6 +44,7 @@ final class ModuleManifestTest extends TestCase
 
         self::assertSame('example', $manifest->id);
         self::assertSame('1.2.3', $manifest->version);
+        self::assertSame('^0.1', $manifest->mcms);
         self::assertSame(['items_per_page' => 20], $manifest->settings);
         self::assertSame(['admin' => ['example.manage']], $manifest->grants);
         self::assertSame($this->dir, $manifest->path);
