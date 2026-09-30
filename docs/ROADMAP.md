@@ -12,13 +12,13 @@
 - [x] Add database-backed module registry.
 - [x] Ensure module migrations are namespace-scoped and opt-in.
 - [x] Add initial Tabler-based admin shell.
-- [ ] Add initial setup wizard/CLI and first superadmin creation.
-- [ ] Add Core user/role/permission administration.
-- [ ] Add Core settings UI.
-- [ ] Add diagnostics/system page.
-- [ ] Add local/vendor packaging for Bootstrap and Tabler assets.
+- [x] Add browser setup wizard, CLI fallback and first superadmin creation.
+- [x] Add Core user/group/permission administration.
+- [x] Add Core settings UI.
+- [x] Add diagnostics/system page.
+- [x] Add local/runtime packaging for Bootstrap and Tabler assets.
 - [x] Enforce mCMS and module dependency version constraints.
-- [ ] Add module lifecycle and fresh-install integration tests.
+- [x] Add module lifecycle and fresh-install integration tests.
 
 ## Stage 1 — first reusable modules
 
