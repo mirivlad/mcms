@@ -5,6 +5,8 @@ namespace Config;
 use CodeIgniter\Config\BaseService;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
+use MCMS\Core\Storage\LocalStorage;
+use MCMS\Core\Storage\StorageInterface;
 
 class Services extends BaseService
 {
@@ -31,5 +33,14 @@ class Services extends BaseService
         }
 
         return new ModuleManager(db_connect(), static::mcmsAdmin());
+    }
+
+    public static function mcmsStorage(bool $getShared = true): StorageInterface
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsStorage');
+        }
+
+        return new LocalStorage(WRITEPATH . 'storage');
     }
 }
