@@ -1,37 +1,52 @@
-# Extraction roadmap
+# mCMS roadmap
 
-## Stage 0 — clean baseline
+## Stage 0 — modular Core
 
 - [x] Initialize independent repository with no inherited Git history.
 - [x] Move CodeIgniter application layout to repository root.
 - [x] Remove customer-specific runtime/deployment configuration.
-- [x] Remove dependency on an imported legacy database at container startup.
-- [ ] Add complete clean-install database migrations.
-- [ ] Add synthetic demo seeder.
-- [ ] Add fresh-install integration test.
+- [x] Remove dependency on an imported legacy database.
+- [x] Adopt CodeIgniter Shield for authentication/authorization.
+- [x] Adopt CodeIgniter Settings for persisted configuration.
+- [x] Define module manifest/provider lifecycle.
+- [x] Add database-backed module registry.
+- [x] Ensure module migrations are namespace-scoped and opt-in.
+- [x] Add initial Tabler-based admin shell.
+- [ ] Add initial setup wizard/CLI and first superadmin creation.
+- [ ] Add Core user/role/permission administration.
+- [ ] Add Core settings UI.
+- [ ] Add diagnostics/system page.
+- [ ] Add local/vendor packaging for Bootstrap and Tabler assets.
+- [ ] Add module lifecycle and fresh-install integration tests.
 
-## Stage 1 — identity
+## Stage 1 — first reusable modules
 
-- [ ] Generalize users, authentication, roles and permissions.
-- [ ] Add corresponding migrations and tests.
+- [ ] Media.
+- [ ] Pages.
+- [ ] News.
+- [ ] Menus/navigation.
+- [ ] Galleries.
 
-## Stage 2 — content and media
+## Stage 2 — commerce modules
 
-- [ ] Generalize pages/news/categories.
-- [ ] Generalize galleries and media management.
-- [ ] Replace legacy file-manager compatibility component.
+- [ ] Catalogue.
+- [ ] Cart.
+- [ ] Orders.
+- [ ] Stock.
+- [ ] Delivery.
+- [ ] Export/report adapters.
 
-## Stage 3 — commerce
+## Stage 3 — ecosystem
 
-- [ ] Generalize catalogue, variants and stock.
-- [ ] Generalize cart and orders.
-- [ ] Generalize delivery rules.
-- [ ] Move external delivery systems behind optional adapters.
+- [ ] Module packaging/install from archive or repository.
+- [ ] Module compatibility/version constraints.
+- [ ] Safe module update workflow.
+- [ ] Theme packaging.
+- [ ] Optional API module.
+- [ ] Optional notification/integration modules.
 
-## Stage 4 — productization
+## Reference policy
 
-- [ ] Installation/bootstrap flow.
-- [ ] Default theme.
-- [ ] Portainer deployment.
-- [ ] Backup/restore.
-- [ ] Documentation and first release.
+Ferma is a functional reference only.
+
+When mCMS needs a feature already implemented there, first extract the user-facing requirement and behavior, then implement it against mCMS Core contracts. Do not copy legacy schema, customer assumptions or compatibility routes unless they are independently justified for a reusable module.
