@@ -7,6 +7,7 @@ use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
+use MCMS\Core\Modules\ModuleServiceRegistry;
 use MCMS\Core\Storage\LocalStorage;
 use MCMS\Core\Storage\StorageInterface;
 
@@ -47,13 +48,26 @@ class Services extends BaseService
         return new InstallationService(db_connect());
     }
 
+    public static function mcmsModuleServices(bool $getShared = true): ModuleServiceRegistry
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsModuleServices');
+        }
+
+        return new ModuleServiceRegistry();
+    }
+
     public static function mcmsModules(bool $getShared = true): ModuleManager
     {
         if ($getShared) {
             return static::getSharedInstance('mcmsModules');
         }
 
-        return new ModuleManager(db_connect(), static::mcmsAdmin());
+        return new ModuleManager(
+            db_connect(),
+            static::mcmsAdmin(),
+            static::mcmsModuleServices(),
+        );
     }
 
     public static function mcmsStorage(bool $getShared = true): StorageInterface
