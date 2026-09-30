@@ -14,7 +14,7 @@ class Dashboard extends BaseAdminController
 
         return view('admin/dashboard', [
             'adminMenu' => $this->adminMenu(),
-            'widgets'   => service('mcmsAdmin')->widgets(),
+            'widgets'   => $this->adminWidgets(),
             'user'      => auth()->user(),
         ]);
     }
