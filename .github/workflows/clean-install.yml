@@ -51,6 +51,10 @@ jobs:
           curl -fsS             -c /tmp/mcms.cookies             http://127.0.0.1:8080/install             -o /tmp/install.html
 
           grep -q 'Initial setup' /tmp/install.html
+          curl -fsS http://127.0.0.1:8080/assets/vendor/bootstrap/css/bootstrap.min.css -o /dev/null
+          curl -fsS http://127.0.0.1:8080/assets/vendor/bootstrap/js/bootstrap.bundle.min.js -o /dev/null
+          curl -fsS http://127.0.0.1:8080/assets/vendor/tabler/tabler.min.css -o /dev/null
+          curl -fsS http://127.0.0.1:8080/assets/vendor/tabler/tabler.min.js -o /dev/null
 
           csrf="$(python3 - <<'PY'
           from html.parser import HTMLParser
