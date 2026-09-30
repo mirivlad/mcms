@@ -52,7 +52,7 @@ jobs:
 
       - name: Verify superadmin membership
         run: |
-          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT COUNT(*) FROM auth_groups_users WHERE `group`='superadmin';")"
+          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM auth_groups_users WHERE `group`="superadmin";')"
 
           test "$count" = "1"
 
