@@ -1,0 +1,15 @@
+CI_ENVIRONMENT = development
+
+MCMS_BASE_URL = 'http://localhost:8080/'
+MCMS_TIMEZONE = 'UTC'
+
+MCMS_DB_HOST = 'db'
+MCMS_DB_PORT = 3306
+MCMS_DB_NAME = 'mcms'
+MCMS_DB_USER = 'mcms'
+MCMS_DB_PASSWORD = 'change-me'
+
+MCMS_MAIL_HOST = 'mail'
+MCMS_MAIL_PORT = 587
+MCMS_MAIL_FROM = 'noreply@example.test'
+MCMS_MAIL_FROM_NAME = 'mCMS'
