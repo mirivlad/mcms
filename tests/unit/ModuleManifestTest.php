@@ -36,6 +36,7 @@ final class ModuleManifestTest extends TestCase
             'requires'    => [['id' => 'media', 'version' => '^1.0']],
             'settings'    => ['items_per_page' => 20],
             'permissions' => ['example.manage' => 'Manage Example'],
+            'grants'      => ['admin' => ['example.manage']],
         ], JSON_THROW_ON_ERROR));
 
         $manifest = ModuleManifest::fromFile($this->dir . '/module.json');
@@ -43,7 +44,53 @@ final class ModuleManifestTest extends TestCase
         self::assertSame('example', $manifest->id);
         self::assertSame('1.2.3', $manifest->version);
         self::assertSame(['items_per_page' => 20], $manifest->settings);
+        self::assertSame(['admin' => ['example.manage']], $manifest->grants);
         self::assertSame($this->dir, $manifest->path);
+    }
+
+    public function testRejectsPermissionOutsideModuleNamespace(): void
+    {
+        file_put_contents($this->dir . '/module.json', json_encode([
+            'id'          => 'example',
+            'name'        => 'Example',
+            'version'     => '1.0.0',
+            'namespace'   => 'MCMS\\\\Modules\\\\Example',
+            'provider'    => 'MCMS\\\\Modules\\\\Example\\\\Module',
+            'permissions' => ['core.system' => 'Nope'],
+        ], JSON_THROW_ON_ERROR));
+
+        $this->expectException(InvalidArgumentException::class);
+        ModuleManifest::fromFile($this->dir . '/module.json');
+    }
+
+    public function testRejectsGrantForUndeclaredPermission(): void
+    {
+        file_put_contents($this->dir . '/module.json', json_encode([
+            'id'          => 'example',
+            'name'        => 'Example',
+            'version'     => '1.0.0',
+            'namespace'   => 'MCMS\\\\Modules\\\\Example',
+            'provider'    => 'MCMS\\\\Modules\\\\Example\\\\Module',
+            'permissions' => ['example.view' => 'View Example'],
+            'grants'      => ['admin' => ['example.manage']],
+        ], JSON_THROW_ON_ERROR));
+
+        $this->expectException(InvalidArgumentException::class);
+        ModuleManifest::fromFile($this->dir . '/module.json');
+    }
+
+    public function testRejectsModuleIdWithDot(): void
+    {
+        file_put_contents($this->dir . '/module.json', json_encode([
+            'id'        => 'vendor.example',
+            'name'      => 'Bad',
+            'version'   => '1.0.0',
+            'namespace' => 'Bad',
+            'provider'  => 'Bad\\\\Module',
+        ], JSON_THROW_ON_ERROR));
+
+        $this->expectException(InvalidArgumentException::class);
+        ModuleManifest::fromFile($this->dir . '/module.json');
     }
 
     public function testRejectsUnsafeModuleId(): void
