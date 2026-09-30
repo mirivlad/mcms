@@ -1,0 +1,35 @@
+name: mCMS checks
+
+on:
+  push:
+    branches: [main, bootstrap/generalize]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, intl, mbstring, mysqli, pdo_mysql, zip
+          tools: composer:v2
+      - name: Validate Composer manifest
+        run: composer validate --no-check-lock
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+      - name: Lint application PHP
+        run: find app -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+      - name: Verify Spark bootstrap and routes
+        run: |
+          php spark list
+          php spark routes
+      - name: Validate Compose model
+        env:
+          MCMS_DB_PASSWORD: ci-test
+          MCMS_DB_ROOT_PASSWORD: ci-test-root
+        run: docker compose config -q
