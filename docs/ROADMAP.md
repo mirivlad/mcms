@@ -17,6 +17,7 @@
 - [ ] Add Core settings UI.
 - [ ] Add diagnostics/system page.
 - [ ] Add local/vendor packaging for Bootstrap and Tabler assets.
+- [x] Enforce mCMS and module dependency version constraints.
 - [ ] Add module lifecycle and fresh-install integration tests.
 
 ## Stage 1 — first reusable modules
