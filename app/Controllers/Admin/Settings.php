@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 
 use CodeIgniter\Events\Events;
 use CodeIgniter\HTTP\RedirectResponse;
+use MCMS\Core\Events\CoreEvents;
 
 final class Settings extends BaseAdminController
 {
@@ -26,7 +27,7 @@ final class Settings extends BaseAdminController
             $settings->set('Core.siteName', $siteName);
             $settings->set('Auth.allowRegistration', $allowRegistration);
 
-            Events::trigger('mcms.settings.changed', ['Core.siteName', 'Auth.allowRegistration']);
+            Events::trigger(CoreEvents::SETTINGS_CHANGED, ['Core.siteName', 'Auth.allowRegistration']);
 
             return redirect()->to('/admin/settings')->with('message', 'Settings saved.');
         }
