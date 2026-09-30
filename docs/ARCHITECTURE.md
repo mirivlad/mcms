@@ -16,6 +16,8 @@ Core contains:
 - initial setup and first-superadmin workflow;
 - admin shell and dashboard extension points;
 - module discovery, dependencies and lifecycle;
+- dependency-ordered module boot;
+- public module service registry;
 - module-scoped migrations;
 - core users/roles/permissions administration;
 - core settings UI;
@@ -75,7 +77,7 @@ mCMS modules must not rely on CI4 automatic `Config/Routes.php`, Events or Servi
 
 Instead a module provider explicitly registers everything through Core:
 
-- `boot()` for event listeners and admin contributions;
+- `boot()` for event listeners, public services and admin contributions;
 - `routes()` for HTTP routes;
 - namespaced migrations for schema;
 - manifest settings and permissions for install-time registration.
