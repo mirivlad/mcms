@@ -41,6 +41,9 @@ The namespace must match the path below `MCMS\Modules\`.
   "permissions": {
     "example.view": "View Example content.",
     "example.manage": "Manage Example content."
+  },
+  "grants": {
+    "admin": ["example.view"]
   }
 }
 ```
@@ -87,5 +90,5 @@ final class Module implements ModuleProviderInterface
 - Core never automatically migrates every namespace.
 - Routes/hooks are registered only while enabled.
 - Module runtime settings live in the Settings database.
-- Module permissions are contributed to Shield at install time.
+- Module permissions are contributed to Shield at install time. Superadmins receive every module permission automatically; a module may optionally declare default grants for other existing groups.
 - A module must not patch Core templates or Core source files.
