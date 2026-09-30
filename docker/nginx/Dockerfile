@@ -1,3 +1,21 @@
+FROM node:24-alpine AS ui
+
+WORKDIR /ui
+RUN npm init -y \
+    && npm install --save-exact --ignore-scripts --omit=optional --no-audit --no-fund \
+        @tabler/core@1.6.1 bootstrap@5.3.8 \
+    && mkdir -p \
+        /out/tabler \
+        /out/bootstrap/css \
+        /out/bootstrap/js \
+    && cp node_modules/@tabler/core/dist/css/tabler.min.css /out/tabler/tabler.min.css \
+    && cp node_modules/@tabler/core/dist/js/tabler.min.js /out/tabler/tabler.min.js \
+    && cp node_modules/bootstrap/dist/css/bootstrap.min.css /out/bootstrap/css/bootstrap.min.css \
+    && cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js /out/bootstrap/js/bootstrap.bundle.min.js
+
 FROM nginx:stable-alpine
+
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY public/ /var/www/html/public/
+COPY --from=ui /out/ /var/www/html/public/assets/vendor/
+COPY THIRD_PARTY_NOTICES.md /usr/share/licenses/mcms/THIRD_PARTY_NOTICES.md
