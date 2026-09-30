@@ -27,7 +27,8 @@ class AuthGroups extends ShieldAuthGroups
 
     public array $permissions = [
         'core.admin'    => 'Access the mCMS administration area.',
-        'core.users'    => 'Manage users and access control.',
+        'core.users'    => 'Manage user accounts.',
+        'core.access'   => 'Manage groups, permissions and user access.',
         'core.modules'  => 'Install, enable, disable and update modules.',
         'core.settings' => 'Manage core and module settings.',
         'core.system'   => 'View diagnostics and perform system maintenance.',
