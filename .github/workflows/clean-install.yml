@@ -46,15 +46,57 @@ jobs:
             printf '%s\n' "$tables" | grep -Fx "$table"
           done
 
-      - name: Create first superadmin
+      - name: Complete browser installer
         run: |
-          docker compose exec -T             -e MCMS_ADMIN_EMAIL=admin@example.test             -e MCMS_ADMIN_USERNAME=admin             -e MCMS_ADMIN_PASSWORD='Correct-Horse-Battery-Staple-42!'             app php spark mcms:admin:create
+          curl -fsS             -c /tmp/mcms.cookies             http://127.0.0.1:8080/install             -o /tmp/install.html
 
-      - name: Verify superadmin membership
+          grep -q 'Initial setup' /tmp/install.html
+
+          csrf="$(python3 - <<'PY'
+          from html.parser import HTMLParser
+
+          class Parser(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.token = None
+
+              def handle_starttag(self, tag, attrs):
+                  if tag != 'input':
+                      return
+                  values = dict(attrs)
+                  if values.get('name') == 'csrf_test_name':
+                      self.token = values.get('value')
+
+          parser = Parser()
+          with open('/tmp/install.html', encoding='utf-8') as handle:
+              parser.feed(handle.read())
+
+          if not parser.token:
+              raise SystemExit('CSRF token not found')
+
+          print(parser.token)
+          PY
+          )"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "site_name=CI Test mCMS"             --data-urlencode "email=admin@example.test"             --data-urlencode "username=admin"             --data-urlencode "password=Correct-Horse-Battery-Staple-42!"             --data-urlencode "password_confirm=Correct-Horse-Battery-Staple-42!"             --data-urlencode "allow_registration=1"             http://127.0.0.1:8080/install             -o /tmp/admin.html
+
+          grep -q 'Dashboard' /tmp/admin.html
+          grep -q 'mCMS is running' /tmp/admin.html
+
+      - name: Verify superadmin membership and settings
         run: |
           count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM auth_groups_users WHERE `group`="superadmin";')"
 
           test "$count" = "1"
+
+          settings="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM settings;')"
+
+          test "$settings" -ge "2"
+
+      - name: Verify installer is closed after setup
+        run: |
+          code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/install)"
+          test "$code" = "302"
 
       - name: Verify updater is idempotent
         run: docker compose exec -T app php spark mcms:update
