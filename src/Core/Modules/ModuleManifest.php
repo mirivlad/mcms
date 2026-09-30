@@ -16,7 +16,7 @@ final class ModuleManifest
         public readonly string $version,
         public readonly string $namespace,
         public readonly string $provider,
-        public readonly string $mcms = '^0.1',
+        public readonly string $mcms,
         public readonly string $description = '',
         public readonly array $requires = [],
         public readonly array $settings = [],
@@ -38,7 +38,7 @@ final class ModuleManifest
             throw new RuntimeException("Invalid module manifest: {$path}", 0, $e);
         }
 
-        foreach (['id', 'name', 'version', 'namespace', 'provider'] as $required) {
+        foreach (['id', 'name', 'version', 'namespace', 'provider', 'mcms'] as $required) {
             if (! isset($data[$required]) || ! is_string($data[$required]) || trim($data[$required]) === '') {
                 throw new InvalidArgumentException("Missing module manifest field: {$required}");
             }
@@ -82,7 +82,7 @@ final class ModuleManifest
             version: $data['version'],
             namespace: trim($data['namespace'], '\\'),
             provider: $data['provider'],
-            mcms: is_string($data['mcms'] ?? null) && trim($data['mcms']) !== '' ? $data['mcms'] : '^0.1',
+            mcms: $data['mcms'],
             description: (string) ($data['description'] ?? ''),
             requires: is_array($data['requires'] ?? null) ? $data['requires'] : [],
             settings: is_array($data['settings'] ?? null) ? $data['settings'] : [],
