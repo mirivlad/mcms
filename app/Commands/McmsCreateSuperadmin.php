@@ -6,7 +6,6 @@ namespace App\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-use CodeIgniter\Shield\Entities\User;
 use RuntimeException;
 
 final class McmsCreateSuperadmin extends BaseCommand
@@ -20,6 +19,7 @@ final class McmsCreateSuperadmin extends BaseCommand
         $email = trim((string) getenv('MCMS_ADMIN_EMAIL'));
         $password = (string) getenv('MCMS_ADMIN_PASSWORD');
         $username = trim((string) (getenv('MCMS_ADMIN_USERNAME') ?: 'admin'));
+        $siteName = trim((string) (getenv('MCMS_SITE_NAME') ?: 'mCMS'));
 
         if ($email === '' || $password === '') {
             throw new RuntimeException(
@@ -27,35 +27,14 @@ final class McmsCreateSuperadmin extends BaseCommand
             );
         }
 
-        $users = auth()->getProvider();
+        $user = service('mcmsInstaller')->createSuperadmin(
+            $email,
+            $username,
+            $password,
+            $siteName,
+            true,
+        );
 
-        foreach ($users->findAll() as $existing) {
-            if ($existing->inGroup('superadmin')) {
-                throw new RuntimeException('A super administrator already exists.');
-            }
-        }
-
-        if ($users->findByCredentials(['email' => $email]) !== null) {
-            throw new RuntimeException('A user with this email already exists.');
-        }
-
-        $user = new User([
-            'username' => $username,
-            'email'    => $email,
-            'password' => $password,
-        ]);
-
-        if (! $users->save($user)) {
-            throw new RuntimeException('Unable to create super administrator: ' . implode('; ', $users->errors()));
-        }
-
-        $created = $users->findById($users->getInsertID());
-        if ($created === null) {
-            throw new RuntimeException('Super administrator was created but could not be reloaded.');
-        }
-
-        $created->syncGroups('superadmin');
-
-        CLI::write('Super administrator created: ' . $email, 'green');
+        CLI::write('Super administrator created: ' . $user->email, 'green');
     }
 }
