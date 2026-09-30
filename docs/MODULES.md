@@ -90,5 +90,5 @@ final class Module implements ModuleProviderInterface
 - Core never automatically migrates every namespace.
 - Routes/hooks are registered only while enabled.
 - Module runtime settings live in the Settings database.
-- Module permissions are contributed to Shield at install time. Superadmins receive every module permission automatically; a module may optionally declare default grants for other existing groups.
+- Module permissions must use the module ID as their namespace (for example `example.manage`). They are contributed to Shield at install/update time. Superadmins receive every module permission automatically; a module may optionally declare default grants for other existing Core groups. Grants may only reference permissions declared by that module.
 - A module must not patch Core templates or Core source files.
