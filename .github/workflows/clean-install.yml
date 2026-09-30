@@ -104,13 +104,23 @@ jobs:
 
           enabled="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT enabled FROM mcms_modules WHERE module_id="media";')"
 
+          echo "media enabled state: [$enabled]"
           test "$enabled" = "1"
 
           tables="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SHOW TABLES LIKE "media_files";')"
 
+          echo "media table lookup: [$tables]"
           test "$tables" = "media_files"
 
           code="$(curl -sS             -b /tmp/mcms.cookies             -o /tmp/media.html             -w '%{http_code}'             http://127.0.0.1:8080/admin/media)"
+
+          echo "GET /admin/media status: [$code]"
+          if [ "$code" != "200" ]; then
+            echo '--- /tmp/modules-enabled.html ---'
+            grep -nE 'alert|Media|Enabled|Not installed|error|Exception' /tmp/modules-enabled.html || true
+            echo '--- /tmp/media.html ---'
+            cat /tmp/media.html || true
+          fi
 
           test "$code" = "200"
           grep -q 'Media' /tmp/media.html
@@ -183,7 +193,16 @@ jobs:
 
       - name: Dump logs on failure
         if: failure()
-        run: docker compose logs
+        run: |
+          docker compose logs
+          echo '--- CodeIgniter application logs ---'
+          docker compose exec -T app sh -c '
+            for file in writable/logs/*.log; do
+              [ -f "$file" ] || continue
+              echo "### $file"
+              tail -n 250 "$file"
+            done
+          ' || true
 
       - name: Stop stack
         if: always()
