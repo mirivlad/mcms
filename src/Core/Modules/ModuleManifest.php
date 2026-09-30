@@ -47,6 +47,34 @@ final class ModuleManifest
             throw new InvalidArgumentException('Module id must use lowercase ASCII letters, numbers, dash or underscore.');
         }
 
+        $permissions = is_array($data['permissions'] ?? null) ? $data['permissions'] : [];
+        foreach ($permissions as $permission => $description) {
+            if (! is_string($permission)
+                || ! str_starts_with($permission, $data['id'] . '.')
+                || ! is_string($description)
+                || trim($description) === ''
+            ) {
+                throw new InvalidArgumentException(
+                    "Module permissions must use the {$data['id']}.* namespace and a non-empty description."
+                );
+            }
+        }
+
+        $grants = is_array($data['grants'] ?? null) ? $data['grants'] : [];
+        foreach ($grants as $group => $grantedPermissions) {
+            if (! is_string($group) || $group === '' || ! is_array($grantedPermissions)) {
+                throw new InvalidArgumentException('Module grants must map a group name to a permission list.');
+            }
+
+            foreach ($grantedPermissions as $permission) {
+                if (! is_string($permission) || ! array_key_exists($permission, $permissions)) {
+                    throw new InvalidArgumentException(
+                        "Module grant {$group} refers to an undeclared permission."
+                    );
+                }
+            }
+        }
+
         return new self(
             id: $data['id'],
             name: $data['name'],
@@ -56,8 +84,8 @@ final class ModuleManifest
             description: (string) ($data['description'] ?? ''),
             requires: is_array($data['requires'] ?? null) ? $data['requires'] : [],
             settings: is_array($data['settings'] ?? null) ? $data['settings'] : [],
-            permissions: is_array($data['permissions'] ?? null) ? $data['permissions'] : [],
-            grants: is_array($data['grants'] ?? null) ? $data['grants'] : [],
+            permissions: $permissions,
+            grants: $grants,
             path: dirname($path),
         );
     }
