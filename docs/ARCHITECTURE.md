@@ -121,9 +121,9 @@ Modules define their own namespaced events for domain-specific behavior.
 
 ## Storage
 
-Core will expose a small storage abstraction: put/get/delete/exists/url.
+Core exposes a small private storage abstraction: put/get/delete/exists.
 
-Media browsing, image metadata, thumbnails, folders, pickers and galleries are not Core responsibilities. They belong to a Media module.
+Public URLs, media browsing, image metadata, thumbnails, folders, pickers and galleries are not Core responsibilities. They belong to a Media module.
 
 ## Database rule
 
