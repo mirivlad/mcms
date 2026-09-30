@@ -1,0 +1,64 @@
+name: mCMS clean install smoke
+
+on:
+  push:
+    branches: [bootstrap/generalize]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  clean-install:
+    runs-on: ubuntu-latest
+    env:
+      MCMS_DB_PASSWORD: ci-test
+      MCMS_DB_ROOT_PASSWORD: ci-test-root
+      MCMS_HTTP_PORT: 8080
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and start a clean stack
+        run: docker compose up -d --build db app web
+
+      - name: Wait for HTTP health
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/_health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose logs
+          exit 1
+
+      - name: Verify Core, Settings and Shield tables
+        run: |
+          tables="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SHOW TABLES')"
+
+          printf '%s\n' "$tables"
+
+          for table in migrations mcms_modules settings users auth_identities auth_groups_users; do
+            printf '%s\n' "$tables" | grep -Fx "$table"
+          done
+
+      - name: Create first superadmin
+        run: |
+          docker compose exec -T             -e MCMS_ADMIN_EMAIL=admin@example.test             -e MCMS_ADMIN_USERNAME=admin             -e MCMS_ADMIN_PASSWORD='Correct-Horse-Battery-Staple-42!'             app php spark mcms:admin:create
+
+      - name: Verify superadmin membership
+        run: |
+          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT COUNT(*) FROM auth_groups_users WHERE `group`='superadmin';")"
+
+          test "$count" = "1"
+
+      - name: Verify updater is idempotent
+        run: docker compose exec -T app php spark mcms:update
+
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Stop stack
+        if: always()
+        run: docker compose down -v
