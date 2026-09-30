@@ -8,6 +8,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mcms-clean-install-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   clean-install:
     runs-on: ubuntu-latest
