@@ -1,0 +1,8 @@
+.git
+.env
+vendor
+writable/cache
+writable/logs
+writable/session
+writable/uploads
+public/assets/uploads
