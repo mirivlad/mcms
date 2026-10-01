@@ -17,6 +17,11 @@ final class SiteLocale implements FilterInterface
                 return null;
             }
 
+            // Discover module manifests before the Language service resolves
+            // the active locale. This registers namespaces for disabled and
+            // not-yet-installed modules without booting them or running schema.
+            service('mcmsModules')->catalog();
+
             $app = config('App');
             $locale = (string) (service('settings')->get('Core.locale') ?? $app->defaultLocale);
 
