@@ -31,6 +31,7 @@ class AuthGroups extends ShieldAuthGroups
         'core.access'   => 'Manage groups, permissions and user access.',
         'core.modules'  => 'Install, enable, disable and update modules.',
         'core.settings' => 'Manage core and module settings.',
+        'core.themes'   => 'Manage site themes and appearance.',
         'core.system'   => 'View diagnostics and perform system maintenance.',
     ];
 
@@ -42,6 +43,7 @@ class AuthGroups extends ShieldAuthGroups
             'core.admin',
             'core.users',
             'core.settings',
+            'core.themes',
         ],
         'user' => [],
     ];

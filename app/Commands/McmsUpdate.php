@@ -27,6 +27,9 @@ final class McmsUpdate extends BaseCommand
         CLI::write('Updating CodeIgniter Shield...', 'yellow');
         $migrations->setNamespace('CodeIgniter\\Shield')->latest();
 
+        CLI::write('Synchronizing Core access definitions...', 'yellow');
+        service('mcmsAccess')->syncCoreDefinitions();
+
         CLI::write('Updating enabled modules...', 'yellow');
         service('mcmsModules')->updateEnabled();
 

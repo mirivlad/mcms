@@ -86,7 +86,7 @@ jobs:
 
       - name: Verify Core administration routes
         run: |
-          for path in users access modules settings system; do
+          for path in users access modules themes settings system; do
             code="$(curl -sS               -b /tmp/mcms.cookies               -o "/tmp/admin-${path}.html"               -w '%{http_code}'               "http://127.0.0.1:8080/admin/${path}")"
 
             test "$code" = "200"
@@ -98,6 +98,8 @@ jobs:
           grep -q 'Pages' /tmp/admin-modules.html
           grep -q 'Menus' /tmp/admin-modules.html
           grep -q 'Not installed' /tmp/admin-modules.html
+          grep -q 'Themes' /tmp/admin-themes.html
+          grep -q 'No themes found' /tmp/admin-themes.html
           grep -q 'Settings' /tmp/admin-settings.html
           grep -q 'System' /tmp/admin-system.html
 

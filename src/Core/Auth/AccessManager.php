@@ -30,6 +30,40 @@ final class AccessManager
         return (array) service('settings')->get('AuthGroups.matrix');
     }
 
+    public function syncCoreDefinitions(): void
+    {
+        $config = config('AuthGroups');
+        $settings = service('settings');
+
+        $groups = (array) $settings->get('AuthGroups.groups');
+        foreach ((array) $config->groups as $id => $definition) {
+            if (! array_key_exists($id, $groups)) {
+                $groups[$id] = $definition;
+            }
+        }
+
+        $permissions = array_replace(
+            (array) $settings->get('AuthGroups.permissions'),
+            (array) $config->permissions,
+        );
+
+        $matrix = (array) $settings->get('AuthGroups.matrix');
+        foreach ((array) $config->matrix as $group => $grants) {
+            if (! array_key_exists($group, $matrix)) {
+                $matrix[$group] = $grants;
+            }
+        }
+
+        $matrix['superadmin'] = array_values(array_unique([
+            ...($matrix['superadmin'] ?? []),
+            'core.*',
+        ]));
+
+        $settings->set('AuthGroups.groups', $groups);
+        $settings->set('AuthGroups.permissions', $permissions);
+        $settings->set('AuthGroups.matrix', $matrix);
+    }
+
     public function saveGroup(string $id, string $title, string $description, array $permissions): void
     {
         $id = trim($id);

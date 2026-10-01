@@ -100,6 +100,32 @@ Modules must not replace or patch Core admin templates.
 The current admin UI foundation is Tabler 1.6.1. The public/default theme targets Bootstrap 5.3.8.
 Both are bundled into the nginx runtime image from exact npm package versions. mCMS Core does not bundle Tabler's demo/vendor libraries.
 
+## Themes
+
+Public presentation is managed by the Core Theme API.
+
+A theme lives under `themes/<id>/` and contains a `theme.json` manifest. Core
+discovers themes from disk, validates their manifests and stores only the active
+theme ID in Settings as `Core.theme`.
+
+Themes declare:
+
+- a stable ID, version and namespace;
+- logical view templates such as `home`, `page` or later `news.show`;
+- optional metadata such as author and screenshot;
+- supported menu locations, each with a label and optional maximum depth.
+
+Modules request logical templates through `ThemeManager::render()` and may
+provide their own fallback view. This keeps domain modules independent of any
+concrete theme while allowing the active theme to override public presentation.
+
+Theme menu locations are declarations only. Menu instances and menu trees remain
+owned by the Menus module; assignment of a menu to a theme location is a separate
+integration layer.
+
+Theme PHP/view files are never exposed as static files. Runtime images publish
+only a theme's explicit `assets/` tree.
+
 ## Settings
 
 Core uses CodeIgniter Settings as the persistence layer.
