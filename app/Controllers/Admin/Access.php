@@ -37,7 +37,7 @@ final class Access extends BaseAdminController
                 (array) $this->request->getPost('permissions'),
             );
 
-            return redirect()->to('/admin/access')->with('message', 'Access group saved.');
+            return redirect()->to('/admin/access')->with('message', lang('MCMS.messages.accessGroupSaved'));
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
