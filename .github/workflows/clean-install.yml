@@ -84,6 +84,26 @@ jobs:
           grep -q 'Settings' /tmp/admin-settings.html
           grep -q 'System' /tmp/admin-system.html
 
+      - name: Switch site locale through Core settings
+        run: |
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/settings             -o /tmp/settings-en.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/settings-en.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "site_name=CI Test mCMS"             --data-urlencode "locale=ru"             --data-urlencode "allow_registration=1"             http://127.0.0.1:8080/admin/settings             -o /tmp/settings-ru.html
+
+          grep -q 'Настройки' /tmp/settings-ru.html
+          grep -q 'Язык сайта' /tmp/settings-ru.html
+
+          curl -fsS             -b /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-ru.html
+          grep -q 'Модули' /tmp/modules-ru.html
+          grep -q 'Медиа' /tmp/modules-ru.html
+          grep -q 'Не установлен' /tmp/modules-ru.html
+
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/settings-ru.html)"
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "site_name=CI Test mCMS"             --data-urlencode "locale=en"             --data-urlencode "allow_registration=1"             http://127.0.0.1:8080/admin/settings             -o /tmp/settings-en-restored.html
+
+          grep -q 'Settings' /tmp/settings-en-restored.html
+
       - name: Verify superadmin membership and settings
         run: |
           count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM auth_groups_users WHERE `group`="superadmin";')"
