@@ -16,23 +16,19 @@ In Portainer:
 5. Set **Compose path** to `portainer-stack.yml`.
 6. If the repository is private, configure the Git credentials/token in Portainer.
 
-Set at least these environment variables:
+Set at least the database passwords:
 
 ```text
-MCMS_BASE_URL=https://cms.example.com/
-MCMS_COOKIE_SECURE=1
-MCMS_HTTP_PORT=8188
-
-MCMS_DB_NAME=mcms
-MCMS_DB_USER=mcms
 MCMS_DB_PASSWORD=<strong random password>
 MCMS_DB_ROOT_PASSWORD=<different strong random password>
-
-MCMS_MAIL_DOMAIN=example.com
-MCMS_MAIL_HOSTNAME=mail.example.com
-MCMS_MAIL_FROM=noreply@example.com
-MCMS_MAIL_FROM_NAME=mCMS
 ```
+
+The public base URL and secure-cookie mode are auto-detected from the incoming
+`Host` and `X-Forwarded-Proto` headers. `MCMS_BASE_URL` and
+`MCMS_COOKIE_SECURE` are optional overrides for unusual proxy setups.
+
+Other settings such as `MCMS_HTTP_PORT`, database name/user and mail identity
+have safe defaults and can be overridden when needed.
 
 The default bind address is `127.0.0.1`, so the mCMS nginx container is not
 directly exposed to the Internet. A host reverse proxy should forward to
@@ -72,10 +68,8 @@ server {
 }
 ```
 
-The value of `MCMS_BASE_URL` must match the public HTTPS URL, including the
-trailing slash.
-
-When the public endpoint is HTTPS, set `MCMS_COOKIE_SECURE=1`.
+With the recommended proxy headers, mCMS automatically detects the public
+hostname and HTTPS scheme. No public-domain variable is required.
 
 ## 3. Browser installation
 
