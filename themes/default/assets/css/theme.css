@@ -1,0 +1,95 @@
+html,
+body {
+    min-height: 100%;
+}
+
+.mcms-site {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+.mcms-site-header {
+    border-bottom: 1px solid var(--bs-border-color);
+    background: color-mix(in srgb, var(--bs-body-bg) 94%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+.mcms-site-header .navbar {
+    min-height: 4.5rem;
+}
+
+.mcms-site-header .navbar-brand {
+    letter-spacing: -.02em;
+}
+
+.mcms-site main {
+    flex: 1 0 auto;
+}
+
+.mcms-site-footer {
+    border-top: 1px solid var(--bs-border-color);
+}
+
+.mcms-hero {
+    background:
+        radial-gradient(circle at 85% 15%, rgba(var(--bs-primary-rgb), .08), transparent 34rem),
+        linear-gradient(180deg, var(--bs-tertiary-bg), var(--bs-body-bg));
+}
+
+.mcms-copy-width,
+.mcms-content-shell {
+    max-width: 52rem;
+}
+
+.mcms-content-shell {
+    margin-inline: auto;
+}
+
+.mcms-page-content {
+    font-size: 1.075rem;
+    line-height: 1.75;
+}
+
+.mcms-page-content > :first-child {
+    margin-top: 0;
+}
+
+.mcms-page-content > :last-child {
+    margin-bottom: 0;
+}
+
+.mcms-page-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--bs-border-radius-lg);
+}
+
+.mcms-page-content blockquote {
+    margin: 2rem 0;
+    padding: .25rem 0 .25rem 1.25rem;
+    border-left: .25rem solid var(--bs-border-color);
+    color: var(--bs-secondary-color);
+}
+
+.mcms-page-content h2,
+.mcms-page-content h3 {
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.mcms-skip-link {
+    position: fixed;
+    z-index: 1100;
+    top: .75rem;
+    left: .75rem;
+}
+
+@media (min-width: 992px) {
+    .py-lg-6 {
+        padding-top: 6rem !important;
+        padding-bottom: 6rem !important;
+    }
+}
