@@ -6,7 +6,7 @@
     <title><?= $this->renderSection('title') ?></title>
     <?= $this->renderSection('meta') ?>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
-    <link rel="stylesheet" href="<?= esc($themeAssets . 'css/theme.css', 'attr') ?>">
+    <link rel="stylesheet" href="<?= esc($themeAssets . 'css/theme.css', 'html') ?>">
 </head>
 <body class="mcms-site">
 <a class="visually-hidden-focusable mcms-skip-link" href="#main-content"><?= esc(lang('DefaultTheme.Accessibility.skipToContent')) ?></a>
