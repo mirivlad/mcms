@@ -21,11 +21,14 @@
 - [x] Enforce mCMS and module dependency version constraints.
 - [x] Add module lifecycle and fresh-install integration tests.
 
-## Stage 1 — first reusable modules
+## Stage 1 — first reusable modules and public presentation
 
 - [x] Media.
 - [x] Pages.
 - [ ] Menus/navigation.
+- [ ] Theme API and administration.
+- [ ] Default theme with declared menu locations.
+- [ ] Menus ↔ theme-location assignment.
 - [ ] News.
 - [ ] Galleries.
 
@@ -43,7 +46,7 @@
 - [ ] Module packaging/install from archive or repository.
 - [ ] Module compatibility/version constraints.
 - [ ] Safe module update workflow.
-- [ ] Theme packaging.
+- [ ] Third-party theme packaging/install.
 - [ ] Optional API module.
 - [ ] Optional notification/integration modules.
 

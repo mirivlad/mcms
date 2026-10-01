@@ -43,9 +43,17 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-mCMS has a stable modular Core foundation on `main`. Media and Pages are
-integrated as the first reusable modules and covered by clean-install CI. The next
-Stage 1 module is Menus/navigation.
+The 2026-10-01 baseline on `main` contains a stable modular Core, the Media and
+Pages first-party modules, the Tabler administration shell, HTTPS reverse-proxy
+support and clean-install CI coverage. See [docs/STATUS.md](docs/STATUS.md) for the
+exact checkpoint.
+
+The next implementation sequence is:
+
+1. Menus/navigation;
+2. Theme API + the first default theme, including declared menu locations;
+3. News;
+4. Galleries.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,
