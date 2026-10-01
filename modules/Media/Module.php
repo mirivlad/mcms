@@ -23,7 +23,7 @@ final class Module implements ModuleProviderInterface
 
         $context->admin->addMenu(
             'media',
-            'Media',
+            '@MCMS.nav.media',
             '/admin/media',
             'ti ti-photo',
             'media.view',
