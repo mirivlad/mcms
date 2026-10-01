@@ -5,6 +5,7 @@ return [
         'menuLabel' => 'Pages',
         'description' => 'Reusable static pages with drafts, publishing and SEO metadata.',
         'title' => 'Pages',
+        'count' => 'Pages: %d',
         'create' => 'Create page',
         'edit' => 'Edit page',
         'settings' => 'Page settings',
