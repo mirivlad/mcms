@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
-        <div class="col">
+        <div class="col-12 col-md">
             <div class="page-pretitle"><?= esc(lang('MCMS.common.module')) ?></div>
             <h2 class="page-title"><?= esc(lang('MCMS.media.title')) ?></h2>
             <div class="text-secondary mt-1">
@@ -11,7 +11,7 @@
                 <?= $query !== '' ? esc(sprintf(lang('MCMS.media.matching'), $query)) : esc(lang('MCMS.media.inLibrary')) ?>
             </div>
         </div>
-        <div class="col-auto ms-auto d-flex gap-2">
+        <div class="col-12 col-md-auto ms-md-auto d-flex flex-wrap gap-2">
             <?php if ($canUpload): ?>
                 <button class="btn btn-primary" type="button" id="toggle-media-upload">
                     <i class="ti ti-upload me-1"></i>
