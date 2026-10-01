@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: docker/app/Dockerfile
-    image: mcms-app:local
     restart: unless-stopped
     environment:
       CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
@@ -29,7 +28,6 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
-    image: mcms-web:local
     restart: unless-stopped
     depends_on:
       - app
