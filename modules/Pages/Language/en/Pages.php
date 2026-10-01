@@ -31,6 +31,9 @@ return [
         'mediaPicker' => 'Insert image from Media',
         'mediaSearch' => 'Search Media',
         'mediaEmpty' => 'No images found.',
+        'mediaLoading' => 'Loading Media…',
+        'mediaLoadError' => 'Could not load the Media library.',
+        'retry' => 'Retry',
         'insertImage' => 'Insert image',
         'bold' => 'Bold',
         'italic' => 'Italic',
@@ -41,6 +44,8 @@ return [
         'link' => 'Link',
         'quote' => 'Quote',
         'clearFormatting' => 'Clear formatting',
+        'permalink' => 'Permalink',
+        'seoHint' => 'Optional search-engine metadata.',
     ],
     'Permissions' => [
         'view' => 'View pages in the administration area.',
