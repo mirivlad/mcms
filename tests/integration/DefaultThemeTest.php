@@ -44,10 +44,12 @@ final class DefaultThemeTest extends CIUnitTestCase
             ],
         ]);
 
-        self::assertStringContainsString('Theme SEO', $page);
-        self::assertStringContainsString('Theme description', $page);
-        self::assertStringContainsString('<p>Theme body</p>', $page);
-        self::assertStringContainsString('mcms-page-content', $page);
+        $decodedPage = html_entity_decode($page, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        self::assertStringContainsString('Theme SEO', $decodedPage);
+        self::assertStringContainsString('Theme description', $decodedPage);
+        self::assertStringContainsString('<p>Theme body</p>', $decodedPage);
+        self::assertStringContainsString('mcms-page-content', $decodedPage);
     }
 
     public function testDefaultThemeManifestIsLocalizedInRussian(): void
