@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="<?= esc(service('request')->getLocale(), 'attr') ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,8 +12,8 @@
         <div class="col-lg-8">
             <div class="p-5 bg-body-tertiary rounded-3">
                 <h1 class="display-5 fw-bold">mCMS</h1>
-                <p class="lead">A modular CMS platform built on CodeIgniter 4.</p>
-                <p class="mb-0">The Core provides identity, administration, settings and module lifecycle. Everything domain-specific is installed as a module.</p>
+                <p class="lead"><?= esc(lang('MCMS.home.lead')) ?></p>
+                <p class="mb-0"><?= esc(lang('MCMS.home.description')) ?></p>
             </div>
         </div>
     </div>
