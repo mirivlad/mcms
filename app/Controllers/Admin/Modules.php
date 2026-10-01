@@ -33,7 +33,7 @@ class Modules extends BaseAdminController
         try {
             service('mcmsModules')->enable($id);
 
-            return redirect()->to('/admin/modules')->with('message', "Module {$id} enabled.");
+            return redirect()->to('/admin/modules')->with('message', sprintf(lang('MCMS.messages.moduleEnabled'), $id));
         } catch (\Throwable $e) {
             log_message('error', 'Module enable failed: {message}', ['message' => $e->getMessage()]);
 
@@ -50,7 +50,7 @@ class Modules extends BaseAdminController
         try {
             service('mcmsModules')->disable($id);
 
-            return redirect()->to('/admin/modules')->with('message', "Module {$id} disabled. Its data was preserved.");
+            return redirect()->to('/admin/modules')->with('message', sprintf(lang('MCMS.messages.moduleDisabled'), $id));
         } catch (\Throwable $e) {
             log_message('error', 'Module disable failed: {message}', ['message' => $e->getMessage()]);
 
