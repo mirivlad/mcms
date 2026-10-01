@@ -1,0 +1,25 @@
+{
+  "id": "default",
+  "name": "@DefaultTheme.Manifest.name",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Themes\\DefaultTheme",
+  "description": "@DefaultTheme.Manifest.description",
+  "author": "mCMS",
+  "screenshot": "screenshot.svg",
+  "templates": {
+    "home": "home",
+    "page": "page"
+  },
+  "menu_locations": {
+    "header.primary": {
+      "label": "@DefaultTheme.Menu.headerPrimary",
+      "description": "@DefaultTheme.Menu.headerPrimaryDescription",
+      "max_depth": 2
+    },
+    "footer.primary": {
+      "label": "@DefaultTheme.Menu.footerPrimary",
+      "description": "@DefaultTheme.Menu.footerPrimaryDescription",
+      "max_depth": 1
+    }
+  }
+}
