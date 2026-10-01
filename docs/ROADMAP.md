@@ -24,9 +24,9 @@
 ## Stage 1 — first reusable modules
 
 - [x] Media.
-- [ ] Pages.
-- [ ] News.
+- [x] Pages.
 - [ ] Menus/navigation.
+- [ ] News.
 - [ ] Galleries.
 
 ## Stage 2 — commerce modules
