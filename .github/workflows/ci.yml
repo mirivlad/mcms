@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
       - name: Lint application PHP
-        run: find app src modules -name '*.php' -type f -print0 | xargs -0 -n1 php -l
+        run: find app src modules themes -name '*.php' -type f -print0 | xargs -0 -n1 php -l
       - name: Run Core unit tests
         run: composer test
       - name: Verify Spark bootstrap and routes
@@ -38,7 +38,7 @@ jobs:
           fi
       - name: Guard self-contained frontend
         run: |
-          if grep -R --line-number --fixed-strings 'cdn.jsdelivr.net' app public modules; then
+          if grep -R --line-number --fixed-strings 'cdn.jsdelivr.net' app public modules themes; then
             echo 'Runtime frontend assets must be served locally'
             exit 1
           fi

@@ -120,8 +120,16 @@ provide their own fallback view. This keeps domain modules independent of any
 concrete theme while allowing the active theme to override public presentation.
 
 Theme menu locations are declarations only. Menu instances and menu trees remain
-owned by the Menus module; assignment of a menu to a theme location is a separate
-integration layer.
+owned by the Menus module. Core stores per-theme location assignments in
+`Core.themeMenuAssignments` and resolves navigation through the small
+`MCMS\Core\Themes\MenuSourceInterface` contract. The active theme receives only
+enabled menu items, trimmed to the location's declared `max_depth` when present.
+Assignments survive theme switching and temporary Menus module disablement.
+
+The built-in `mcms-default` theme provides the first reference implementation for
+`home` and `page`, with `header.primary`, `footer.primary` and `footer.legal`
+menu locations. If no theme has been explicitly selected, Core uses this built-in
+theme when it is present on disk.
 
 Theme PHP/view files are never exposed as static files. Runtime images publish
 only a theme's explicit `assets/` tree.

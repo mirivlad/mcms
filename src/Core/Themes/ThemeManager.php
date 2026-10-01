@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace MCMS\Core\Themes;
 
 use CodeIgniter\Settings\Settings;
+use InvalidArgumentException;
 use RuntimeException;
+use Throwable;
 
 final class ThemeManager
 {
@@ -15,6 +17,7 @@ final class ThemeManager
     public function __construct(
         private readonly Settings $settings,
         private readonly string $themesPath = ROOTPATH . 'themes',
+        private readonly ?MenuSourceInterface $injectedMenuSource = null,
     ) {
     }
 
@@ -57,8 +60,11 @@ final class ThemeManager
     public function activeId(): ?string
     {
         $value = trim((string) ($this->settings->get('Core.theme') ?? ''));
+        if ($value !== '') {
+            return $value;
+        }
 
-        return $value === '' ? null : $value;
+        return $this->find('mcms-default')?->id;
     }
 
     public function active(): ?ThemeManifest
@@ -143,6 +149,118 @@ final class ThemeManager
         return $this->resolveText((string) ($location['description'] ?? ''));
     }
 
+    public function menusAvailable(): bool
+    {
+        return $this->menuSource() !== null;
+    }
+
+    public function availableMenus(): array
+    {
+        return $this->menuSource()?->list() ?? [];
+    }
+
+    /**
+     * @return array<string, int|null>
+     */
+    public function menuAssignments(?ThemeManifest $theme = null): array
+    {
+        $theme ??= $this->active();
+        if ($theme === null) {
+            return [];
+        }
+
+        $all = $this->settings->get('Core.themeMenuAssignments');
+        $stored = is_array($all) && isset($all[$theme->id]) && is_array($all[$theme->id])
+            ? $all[$theme->id]
+            : [];
+
+        $result = [];
+        foreach ($theme->menuLocations as $locationId => $_definition) {
+            $value = $stored[$locationId] ?? null;
+            $result[$locationId] = is_numeric($value) && (int) $value > 0
+                ? (int) $value
+                : null;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array<string, mixed> $assignments
+     * @return array<string, int|null>
+     */
+    public function saveMenuAssignments(string $themeId, array $assignments): array
+    {
+        $theme = $this->find($themeId);
+        if ($theme === null) {
+            throw new RuntimeException(lang('MCMS.errors.themeNotFound'));
+        }
+
+        $source = $this->menuSource();
+        $normalized = [];
+
+        foreach ($theme->menuLocations as $locationId => $_definition) {
+            $value = $assignments[$locationId] ?? null;
+            if ($value === null || $value === '' || (int) $value === 0) {
+                $normalized[$locationId] = null;
+                continue;
+            }
+
+            if (! is_numeric($value) || (int) $value <= 0) {
+                throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+            }
+
+            $menuId = (int) $value;
+            if ($source === null) {
+                throw new RuntimeException(lang('MCMS.errors.themeMenusUnavailable'));
+            }
+
+            if ($source->findMenu($menuId) === null) {
+                throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+            }
+
+            $normalized[$locationId] = $menuId;
+        }
+
+        $all = $this->settings->get('Core.themeMenuAssignments');
+        $all = is_array($all) ? $all : [];
+        $all[$theme->id] = $normalized;
+        $this->settings->set('Core.themeMenuAssignments', $all);
+
+        return $normalized;
+    }
+
+    /**
+     * @return array<string, array>
+     */
+    public function menuTrees(?ThemeManifest $theme = null): array
+    {
+        $theme ??= $this->active();
+        if ($theme === null) {
+            return [];
+        }
+
+        $source = $this->menuSource();
+        $assignments = $this->menuAssignments($theme);
+        $trees = [];
+
+        foreach ($theme->menuLocations as $locationId => $definition) {
+            $menuId = $assignments[$locationId] ?? null;
+            if ($source === null || $menuId === null || $source->findMenu($menuId) === null) {
+                $trees[$locationId] = [];
+                continue;
+            }
+
+            $tree = $source->tree($menuId, true);
+            $maxDepth = $definition['max_depth'] ?? null;
+            $trees[$locationId] = $maxDepth === null
+                ? $tree
+                : $this->limitTreeDepth($tree, (int) $maxDepth);
+        }
+
+        return $trees;
+    }
+
     private function decorateViewData(array $data, ?ThemeManifest $theme): array
     {
         if (! array_key_exists('siteName', $data)) {
@@ -153,9 +271,45 @@ final class ThemeManager
 
         if ($theme !== null) {
             $data['themeAssets'] = site_url($theme->assetBaseUrl());
+            $data['themeMenus'] = $this->menuTrees($theme);
+        } else {
+            $data['themeMenus'] = [];
         }
 
         return $data;
+    }
+
+    private function menuSource(): ?MenuSourceInterface
+    {
+        if ($this->injectedMenuSource !== null) {
+            return $this->injectedMenuSource;
+        }
+
+        try {
+            $registry = service('mcmsModuleServices');
+            if (! $registry->has('menus.repository')) {
+                return null;
+            }
+
+            $source = $registry->get('menus.repository');
+
+            return $source instanceof MenuSourceInterface ? $source : null;
+        } catch (Throwable) {
+            return null;
+        }
+    }
+
+    private function limitTreeDepth(array $items, int $maxDepth, int $depth = 1): array
+    {
+        foreach ($items as &$item) {
+            $children = is_array($item['children'] ?? null) ? $item['children'] : [];
+            $item['children'] = $depth >= $maxDepth
+                ? []
+                : $this->limitTreeDepth($children, $maxDepth, $depth + 1);
+        }
+        unset($item);
+
+        return $items;
     }
 
     private function resolveText(string $value): string

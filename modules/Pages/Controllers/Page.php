@@ -19,10 +19,19 @@ final class Page extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        return view('MCMS\\Modules\\Pages\\Views\\show', [
-            'page' => $page,
-            'siteName' => (string) (setting('Core.siteName') ?? 'mCMS'),
-        ]);
+        $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
+        $pageTitle = (string) (($page['seo_title'] ?? null) ?: $page['title']);
+
+        return service('mcmsThemes')->render(
+            'page',
+            [
+                'page' => $page,
+                'siteName' => $siteName,
+                'metaTitle' => $pageTitle . ' · ' . $siteName,
+                'metaDescription' => $page['seo_description'] ?? null,
+            ],
+            'MCMS\\Modules\\Pages\\Views\\show',
+        );
     }
 
     private function pages(): PageRepositoryInterface

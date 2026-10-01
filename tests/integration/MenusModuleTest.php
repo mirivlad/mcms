@@ -7,6 +7,7 @@ use CodeIgniter\Test\DatabaseTestTrait;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
+use MCMS\Core\Themes\MenuSourceInterface;
 use MCMS\Modules\Menus\Api\MenuRepositoryInterface;
 
 final class MenusModuleTest extends CIUnitTestCase

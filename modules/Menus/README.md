@@ -3,8 +3,11 @@
 Menus owns reusable navigation trees. It deliberately does not know which theme is
 active and it does not define locations such as "header" or "footer".
 
-A future Theme API will declare the menu locations supported by the active theme
-and persist assignments from those locations to menu instances.
+The Core Theme API declares the locations supported by each theme and persists
+assignments from those locations to menu instances. Menus implements Core's
+`MCMS\Core\Themes\MenuSourceInterface`, so ThemeManager can consume navigation
+without knowing Menus implementation classes. Menus itself remains completely
+independent of the active theme and of location names such as `header.primary`.
 
 ## Public service
 

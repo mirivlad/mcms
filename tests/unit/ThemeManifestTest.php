@@ -28,6 +28,21 @@ final class ThemeManifestTest extends CIUnitTestCase
         self::assertSame('assets/themes/alpha/', $manifest->assetBaseUrl());
     }
 
+    public function testDefaultThemeDeclaresPublicTemplatesAndMenuLocations(): void
+    {
+        $manifest = ThemeManifest::fromFile(ROOTPATH . 'themes/mcms-default/theme.json');
+
+        self::assertSame('mcms-default', $manifest->id);
+        self::assertSame('MCMS\\Themes\\DefaultTheme\\Views\\home', $manifest->view('home'));
+        self::assertSame('MCMS\\Themes\\DefaultTheme\\Views\\page', $manifest->view('page'));
+        self::assertSame(
+            ['footer.legal', 'footer.primary', 'header.primary'],
+            array_keys($manifest->menuLocations),
+        );
+        self::assertSame(2, $manifest->menuLocations['header.primary']['max_depth']);
+        self::assertSame(1, $manifest->menuLocations['footer.legal']['max_depth']);
+    }
+
     public function testManifestRejectsTraversalInTemplatePath(): void
     {
         $path = WRITEPATH . 'theme-invalid.json';

@@ -16,9 +16,22 @@ RUN npm init -y \
     && cp node_modules/bootstrap/dist/css/bootstrap.min.css /out/bootstrap/css/bootstrap.min.css \
     && cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js /out/bootstrap/js/bootstrap.bundle.min.js
 
+FROM alpine:3.22 AS theme-assets
+
+WORKDIR /themes
+COPY themes/ ./
+RUN set -eux; \
+    mkdir -p /out; \
+    for theme in *; do \
+        [ -d "$theme/assets" ] || continue; \
+        mkdir -p "/out/$theme"; \
+        cp -a "$theme/assets/." "/out/$theme/"; \
+    done
+
 FROM nginx:stable-alpine
 
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY public/ /var/www/html/public/
 COPY --from=ui /out/ /var/www/html/public/assets/vendor/
+COPY --from=theme-assets /out/ /var/www/html/public/assets/themes/
 COPY THIRD_PARTY_NOTICES.md /usr/share/licenses/mcms/THIRD_PARTY_NOTICES.md

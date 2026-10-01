@@ -14,6 +14,15 @@ class Home extends BaseController
             return redirect()->to('/install');
         }
 
-        return view('home/index');
+        $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
+
+        return service('mcmsThemes')->render(
+            'home',
+            [
+                'siteName' => $siteName,
+                'metaTitle' => $siteName,
+            ],
+            'home/index',
+        );
     }
 }

@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace MCMS\Modules\Menus\Api;
 
-interface MenuRepositoryInterface
+use MCMS\Core\Themes\MenuSourceInterface;
+
+interface MenuRepositoryInterface extends MenuSourceInterface
 {
-    public function list(): array;
-
-    public function findMenu(int $id): ?array;
-
     public function findByHandle(string $handle): ?array;
 
     public function createMenu(array $data): array;
@@ -19,8 +17,6 @@ interface MenuRepositoryInterface
     public function deleteMenu(int $id): void;
 
     public function items(int $menuId, bool $enabledOnly = false): array;
-
-    public function tree(int $menuId, bool $enabledOnly = false): array;
 
     public function treeByHandle(string $handle, bool $enabledOnly = true): array;
 

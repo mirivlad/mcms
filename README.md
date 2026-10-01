@@ -47,13 +47,13 @@ The 2026-10-01 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
 Media, Pages and Menus are implemented as the first reusable modules and covered
 by module/integration checks.
 
+Theme API, the first default theme and Menus ↔ theme-location assignment are implemented.
+The built-in theme renders the home page and Pages content through logical theme templates and declares responsive header/footer navigation locations.
+
 The next implementation sequence is:
 
-1. Theme API + administration;
-2. the first default theme with declared menu locations;
-3. Menus ↔ theme-location assignment;
-4. News;
-5. Galleries.
+1. News;
+2. Galleries.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,

@@ -1,0 +1,30 @@
+{
+  "id": "mcms-default",
+  "name": "@MCMS.themes.defaultName",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Themes\\DefaultTheme",
+  "description": "@MCMS.themes.defaultDescription",
+  "author": "mCMS",
+  "screenshot": "screenshot.svg",
+  "templates": {
+    "home": "home",
+    "page": "page"
+  },
+  "menu_locations": {
+    "header.primary": {
+      "label": "@MCMS.themes.locationHeaderPrimary",
+      "description": "@MCMS.themes.locationHeaderPrimaryDescription",
+      "max_depth": 2
+    },
+    "footer.primary": {
+      "label": "@MCMS.themes.locationFooterPrimary",
+      "description": "@MCMS.themes.locationFooterPrimaryDescription",
+      "max_depth": 1
+    },
+    "footer.legal": {
+      "label": "@MCMS.themes.locationFooterLegal",
+      "description": "@MCMS.themes.locationFooterLegalDescription",
+      "max_depth": 1
+    }
+  }
+}

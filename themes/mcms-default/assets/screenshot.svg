@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="750" viewBox="0 0 1200 750">
+  <rect width="1200" height="750" fill="#f5f7fb"/>
+  <rect x="70" y="55" width="1060" height="640" rx="24" fill="#fff" stroke="#dfe5ee" stroke-width="3"/>
+  <line x1="70" y1="133" x2="1130" y2="133" stroke="#dfe5ee" stroke-width="3"/>
+  <text x="118" y="105" font-family="Arial, sans-serif" font-size="31" font-weight="700" fill="#172033">mCMS</text>
+  <text x="815" y="104" font-family="Arial, sans-serif" font-size="20" fill="#64748b">Home</text>
+  <text x="900" y="104" font-family="Arial, sans-serif" font-size="20" fill="#64748b">About</text>
+  <text x="990" y="104" font-family="Arial, sans-serif" font-size="20" fill="#64748b">Contacts</text>
+  <rect x="118" y="182" width="760" height="330" rx="30" fill="#eef4ff" stroke="#dfe5ee" stroke-width="3"/>
+  <text x="168" y="245" font-family="Arial, sans-serif" font-size="16" font-weight="700" letter-spacing="3" fill="#2563eb">YOUR SITE</text>
+  <text x="168" y="338" font-family="Arial, sans-serif" font-size="67" font-weight="800" fill="#172033">Clean by default.</text>
+  <text x="168" y="395" font-family="Arial, sans-serif" font-size="26" fill="#64748b">Responsive navigation, content and footer</text>
+  <text x="168" y="432" font-family="Arial, sans-serif" font-size="26" fill="#64748b">without business logic in the theme.</text>
+  <rect x="118" y="552" width="964" height="2" fill="#dfe5ee"/>
+  <text x="118" y="612" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#172033">mCMS</text>
+  <text x="865" y="612" font-family="Arial, sans-serif" font-size="18" fill="#64748b">Privacy</text>
+  <text x="960" y="612" font-family="Arial, sans-serif" font-size="18" fill="#64748b">Contacts</text>
+</svg>

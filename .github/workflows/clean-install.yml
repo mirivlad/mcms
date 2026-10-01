@@ -75,6 +75,8 @@ jobs:
           curl -fsS http://127.0.0.1:8080/assets/vendor/tabler/tabler.min.js -o /dev/null
           curl -fsS http://127.0.0.1:8080/assets/vendor/tabler-icons/tabler-icons.min.css -o /dev/null
           curl -fsS http://127.0.0.1:8080/assets/vendor/tabler-icons/fonts/tabler-icons.woff2 -o /dev/null
+          test "$(curl -fsS http://127.0.0.1:8080/assets/themes/mcms-default/css/theme.css | wc -c)" -gt 1000
+          test "$(curl -fsS http://127.0.0.1:8080/assets/themes/mcms-default/screenshot.svg | wc -c)" -gt 500
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/install.html)"
 
@@ -83,6 +85,10 @@ jobs:
           grep -q 'Dashboard' /tmp/admin.html
           grep -q 'mCMS is running' /tmp/admin.html
           grep -q 'ti-home' /tmp/admin.html
+
+          curl -fsS http://127.0.0.1:8080/ -o /tmp/public-home.html
+          grep -q 'data-theme="mcms-default"' /tmp/public-home.html
+          grep -q 'CI Test mCMS' /tmp/public-home.html
 
       - name: Verify Core administration routes
         run: |
@@ -99,7 +105,9 @@ jobs:
           grep -q 'Menus' /tmp/admin-modules.html
           grep -q 'Not installed' /tmp/admin-modules.html
           grep -q 'Themes' /tmp/admin-themes.html
-          grep -q 'No themes found' /tmp/admin-themes.html
+          grep -q 'mCMS Default' /tmp/admin-themes.html
+          grep -q 'Active' /tmp/admin-themes.html
+          grep -q 'Primary navigation' /tmp/admin-themes.html
           grep -q 'Settings' /tmp/admin-settings.html
           grep -q 'System' /tmp/admin-system.html
 
@@ -371,6 +379,19 @@ jobs:
           grep -q 'About' /tmp/menu-tree.html
           grep -q 'Child' /tmp/menu-tree.html
 
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/themes/mcms-default             -o /tmp/theme-configure.html
+          grep -q 'Menu assignments' /tmp/theme-configure.html
+          grep -q 'header.primary' /tmp/theme-configure.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/theme-configure.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "location[]=header.primary"             --data-urlencode "menu_id[]=$menu_id"             --data-urlencode "location[]=footer.primary"             --data-urlencode "menu_id[]="             --data-urlencode "location[]=footer.legal"             --data-urlencode "menu_id[]="             http://127.0.0.1:8080/admin/themes/mcms-default             -o /tmp/theme-configured.html
+          grep -q 'Theme menu assignments saved' /tmp/theme-configured.html
+
+          curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page-with-menu.html
+          grep -q 'data-theme="mcms-default"' /tmp/public-page-with-menu.html
+          grep -q '>About<' /tmp/public-page-with-menu.html
+          grep -q '>Child<' /tmp/public-page-with-menu.html
+
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-menus-disable.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-menus-disable.html)"
 
@@ -382,6 +403,13 @@ jobs:
           count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT COUNT(*) FROM menu_items WHERE menu_id=${menu_id};")"
           test "$count" = "3"
 
+          curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page-menus-disabled.html
+          grep -q 'data-theme="mcms-default"' /tmp/public-page-menus-disabled.html
+          if grep -q '>About<' /tmp/public-page-menus-disabled.html; then
+            echo 'Assigned theme menu must disappear while Menus is disabled'
+            exit 1
+          fi
+
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-menus-reenable.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-menus-reenable.html)"
 
@@ -389,6 +417,10 @@ jobs:
 
           curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-tree-reenabled.html
           grep -q 'Child' /tmp/menu-tree-reenabled.html
+
+          curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page-menus-reenabled.html
+          grep -q '>About<' /tmp/public-page-menus-reenabled.html
+          grep -q '>Child<' /tmp/public-page-menus-reenabled.html
 
       - name: Verify installer is closed after setup
         run: |

@@ -1,7 +1,6 @@
-# Current baseline — 2026-10-01
+# Current baseline — 2026-10-02
 
-This document records the known-good mCMS checkpoint immediately before work on
-the Menus/navigation module begins.
+This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
@@ -13,52 +12,69 @@ the Menus/navigation module begins.
 - Users, groups, permissions, Core settings and system diagnostics.
 - English/Russian localization.
 - Tabler 1.6.1 administration shell with responsive navigation.
-- Account/logout controls live in the administration sidebar rather than a
-  separate top bar.
-- HTTPS reverse-proxy deployments are supported through trusted proxy
-  configuration and `X-Forwarded-Proto`.
-- Standard CodeIgniter production/development error views are present.
+- HTTPS reverse-proxy support and standard CodeIgniter error views.
+- Theme discovery, manifest validation, activation and logical template rendering.
+- Per-theme menu-location assignments through the Core navigation source contract.
 
 ## First-party modules
 
 ### Media 0.1.0
 
-- Persistent media library.
-- Image/file upload and metadata editing.
+- Persistent media library with upload and metadata editing.
 - Configurable upload/image limits and MIME allow-list.
-- Public module service: `media.library`.
-- Persistent files survive module disable/re-enable and container redeploy.
+- Public service: `media.library`.
 
 ### Pages 0.1.0
 
-- Draft/published static pages.
-- Slug generation and collision handling.
-- Sanitized rich-text content editor.
-- Media picker integration through the Media public API.
-- SEO title/description fields.
-- Public route rendering.
-- Public module service: `pages.repository`.
+- Draft/published static pages with sanitized rich text.
+- Slug generation, SEO fields and Media picker integration.
+- Public service: `pages.repository`.
+- Public pages render through the active theme's logical `page` template with a module fallback.
 
-## Deployment and verification
+### Menus 0.1.0
 
-The supported development deployment is the repository-backed Portainer stack on
-`main`, behind an HTTPS reverse proxy.
+- Named reusable menus with stable handles.
+- Arbitrarily nested items, ordering, enabled state and new-window links.
+- Drag-and-drop administration with non-drag parent selection fallback.
+- Public service: `menus.repository`.
+- Implements the Core `MenuSourceInterface`; it does not know theme location names.
 
-The baseline has been verified by:
+## Themes
 
-- PHP lint and unit/integration checks in the `mCMS checks` workflow;
-- the full clean-install Docker smoke workflow;
-- browser login through the HTTPS reverse proxy;
-- desktop and mobile administration rendering.
+### mCMS Default 0.1.0
+
+- Built-in responsive public theme.
+- Logical `home` and `page` templates.
+- Header navigation with mobile collapse and two-level dropdown support.
+- Footer navigation and legal-link locations.
+- Theme-declared locations:
+  - `header.primary` — maximum depth 2;
+  - `footer.primary` — maximum depth 1;
+  - `footer.legal` — maximum depth 1.
+- Theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
+- If no explicit theme has been selected, the built-in default theme is used when present.
+
+## Menus ↔ themes
+
+- Assignments are managed from the Themes administration screen.
+- Assignments are persisted per theme in Core settings.
+- Only enabled menu items are supplied to public theme rendering.
+- Theme `max_depth` is enforced by Core before rendering.
+- Disabling Menus does not remove assignments or break the public theme; navigation becomes empty until Menus is enabled again.
+
+## Verification
+
+The checkpoint is covered by:
+
+- PHP lint and Composer validation;
+- Core unit/integration tests;
+- clean-install Docker smoke through real administration forms;
+- public theme asset checks;
+- public Home/Pages theme rendering checks;
+- menu assignment, Menus disable/re-enable and assignment restoration checks.
 
 ## Next sequence
 
-1. Menus/navigation.
-2. Theme API + default theme.
-3. Theme-declared menu locations and menu assignment.
-4. News.
-5. Galleries.
-
-Menus must remain independent of any concrete theme. Themes will later declare
-the menu locations they support; the active theme will map menu instances to
-those locations.
+1. News.
+2. Galleries.
+3. Commerce modules after the reusable content/presentation layer is stable.
