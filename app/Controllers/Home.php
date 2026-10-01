@@ -14,6 +14,10 @@ class Home extends BaseController
             return redirect()->to('/install');
         }
 
-        return view('home/index');
+        return service('mcmsThemes')->render(
+            'home',
+            [],
+            'home/index',
+        );
     }
 }
