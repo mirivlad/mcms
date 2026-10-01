@@ -8,6 +8,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
 - Public module service registry, administration contribution registry and generic navigable-resource registry.
+- Shared safe rich-text sanitizer used by content modules without introducing module-to-module dependencies.
 - First-run browser installer plus CLI recovery bootstrap.
 - Users, groups, permissions, Core settings and system diagnostics.
 - English/Russian localization.
@@ -32,6 +33,15 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
+### News 0.1.0
+
+- Draft and published news articles with optional future publication time.
+- Sanitized rich text, excerpt, SEO metadata and optional featured Media image.
+- Public archive at `/news` and articles at `/news/{slug}`.
+- Public service: `news.repository`.
+- Generic navigation providers: `news.archive` and `news.article`.
+- Public rendering through logical `news.index` / `news.article` theme templates with module fallbacks.
+
 ### Menus 0.1.0
 
 - Named reusable menus with stable handles.
@@ -44,10 +54,10 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Themes
 
-### mCMS Default 0.1.0
+### mCMS Default 0.2.0
 
 - Built-in responsive public theme.
-- Logical `home` and `page` templates.
+- Logical `home`, `page`, `news.index` and `news.article` templates.
 - Header navigation with mobile collapse and two-level dropdown support.
 - Footer navigation and legal-link locations.
 - Theme-declared locations:
@@ -73,12 +83,12 @@ The checkpoint is covered by:
 - Core unit/integration tests;
 - clean-install Docker smoke through real administration forms;
 - public theme asset checks;
-- public Home/Pages theme rendering checks;
+- public Home/Pages/News theme rendering checks;
 - menu assignment, Menus disable/re-enable and assignment restoration checks;
-- generic Pages → Menus internal-resource discovery and resolution checks.
+- generic Pages/News → Menus internal-resource discovery and resolution checks;
+- News scheduling, sanitization, featured Media and public archive/article checks.
 
 ## Next sequence
 
-1. News.
-2. Galleries.
-3. Commerce modules after the reusable content/presentation layer is stable.
+1. Galleries.
+2. Commerce modules after the reusable content/presentation layer is stable.

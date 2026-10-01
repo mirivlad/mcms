@@ -126,7 +126,7 @@ theme ID in Settings as `Core.theme`.
 Themes declare:
 
 - a stable ID, version and namespace;
-- logical view templates such as `home`, `page` or later `news.show`;
+- logical view templates such as `home`, `page`, `news.index` and `news.article`;
 - optional metadata such as author and screenshot;
 - supported menu locations, each with a label and optional maximum depth.
 
@@ -141,9 +141,9 @@ owned by the Menus module. Core stores per-theme location assignments in
 enabled menu items, trimmed to the location's declared `max_depth` when present.
 Assignments survive theme switching and temporary Menus module disablement.
 
-The built-in `mcms-default` theme provides the first reference implementation for
-`home` and `page`, with `header.primary`, `footer.primary` and `footer.legal`
-menu locations. If no theme has been explicitly selected, Core uses this built-in
+The built-in `mcms-default` theme provides the reference implementation for
+`home`, `page`, `news.index` and `news.article`, with `header.primary`,
+`footer.primary` and `footer.legal` menu locations. If no theme has been explicitly selected, Core uses this built-in
 theme when it is present on disk.
 
 Theme PHP/view files are never exposed as static files. Runtime images publish

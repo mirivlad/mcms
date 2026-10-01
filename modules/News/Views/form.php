@@ -6,10 +6,12 @@
     $titleValue = (string) old('title', $article['title'] ?? '');
     $slugValue = (string) old('slug', $article['slug'] ?? '');
     $excerptValue = (string) old('excerpt', $article['excerpt'] ?? '');
-    $bodyValue = (string) old('body', $article['body'] ?? '');
+    $sanitizer = new \MCMS\Core\Content\HtmlSanitizer();
+    $bodyValue = $sanitizer->sanitize((string) old('body', $article['body'] ?? ''));
     $statusValue = (string) old('status', $article['status'] ?? $defaultStatus);
     $publishedValue = (string) old('published_at', $article['published_at'] ?? '');
-    $publishedInput = $publishedValue === '' ? '' : date('Y-m-d\TH:i', strtotime($publishedValue));
+    $publishedTimestamp = $publishedValue === '' ? false : strtotime($publishedValue);
+    $publishedInput = $publishedTimestamp === false ? '' : date('Y-m-d\TH:i', $publishedTimestamp);
     $featuredId = (string) old('featured_media_id', $article['featured_media_id'] ?? '');
     $seoTitle = (string) old('seo_title', $article['seo_title'] ?? '');
     $seoDescription = (string) old('seo_description', $article['seo_description'] ?? '');
