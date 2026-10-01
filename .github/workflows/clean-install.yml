@@ -101,7 +101,8 @@ jobs:
           grep -q 'Menus' /tmp/admin-modules.html
           grep -q 'Not installed' /tmp/admin-modules.html
           grep -q 'Themes' /tmp/admin-themes.html
-          grep -q 'No themes found' /tmp/admin-themes.html
+          grep -q 'mCMS Default' /tmp/admin-themes.html
+          grep -q 'Active' /tmp/admin-themes.html
           grep -q 'Settings' /tmp/admin-settings.html
           grep -q 'System' /tmp/admin-system.html
 
