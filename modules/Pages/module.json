@@ -1,0 +1,34 @@
+{
+  "id": "pages",
+  "name": "@Pages.Admin.menuLabel",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Pages",
+  "provider": "MCMS\\Modules\\Pages\\Module",
+  "mcms": "^0.1",
+  "description": "@Pages.Admin.description",
+  "requires": [
+    {
+      "id": "media",
+      "version": "^0.1"
+    }
+  ],
+  "settings": {
+    "default_status": "draft"
+  },
+  "permissions": {
+    "pages.view": "@Pages.Permissions.view",
+    "pages.create": "@Pages.Permissions.create",
+    "pages.edit": "@Pages.Permissions.edit",
+    "pages.delete": "@Pages.Permissions.delete",
+    "pages.settings": "@Pages.Permissions.settings"
+  },
+  "grants": {
+    "admin": [
+      "pages.view",
+      "pages.create",
+      "pages.edit",
+      "pages.delete",
+      "pages.settings"
+    ]
+  }
+}
