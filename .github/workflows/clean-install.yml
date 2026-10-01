@@ -246,12 +246,21 @@ jobs:
           test "$unsafe" = "0"
 
           curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page.html
-          grep -q 'Smoke SEO title' /tmp/public-page.html
-          grep -q 'Smoke SEO description' /tmp/public-page.html
-          grep -q '<strong>page</strong>' /tmp/public-page.html
+
+          for needle in 'Smoke SEO title' 'Smoke SEO description' '<strong>page</strong>'; do
+            if ! grep -Fq "$needle" /tmp/public-page.html; then
+              echo "Missing public page content: $needle"
+              cat /tmp/public-page.html
+              exit 1
+            fi
+          done
 
           curl -fsS             -b /tmp/mcms.cookies             http://127.0.0.1:8080/admin/pages/media             -o /tmp/pages-media.json
-          grep -q 'Smoke image' /tmp/pages-media.json
+          if ! grep -Fq 'Smoke image' /tmp/pages-media.json; then
+            echo 'Pages Media picker did not return the uploaded image'
+            cat /tmp/pages-media.json
+            exit 1
+          fi
 
       - name: Protect Media dependency while Pages is enabled
         run: |
