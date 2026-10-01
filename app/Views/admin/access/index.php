@@ -59,6 +59,9 @@
                                             $permissionKey = 'MCMS.permissions.' . str_replace('.', '_', $permission);
                                             $translated = lang($permissionKey);
                                             $permissionDescription = $translated === $permissionKey ? $description : $translated;
+                                            if (is_string($permissionDescription) && str_starts_with($permissionDescription, '@')) {
+                                                $permissionDescription = lang(substr($permissionDescription, 1));
+                                            }
                                         ?>
                                         <label class="form-check mb-2">
                                             <input
