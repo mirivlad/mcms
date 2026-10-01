@@ -33,7 +33,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.1.0
+### News 0.1.1
 
 - Draft and published news articles with optional future publication time.
 - Sanitized rich text, excerpt, SEO metadata and optional featured Media image.
@@ -41,6 +41,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Public service: `news.repository`.
 - Generic navigation providers: `news.archive` and `news.article`.
 - Public rendering through logical `news.index` / `news.article` theme templates with module fallbacks.
+- Administration includes paginated article browsing and a searchable Media picker for featured and inline images.
 
 ### Menus 0.1.0
 
