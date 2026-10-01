@@ -37,13 +37,11 @@ final class AccessManager
         $description = trim($description);
 
         if (! preg_match('/^[a-z][a-z0-9_-]*$/', $id)) {
-            throw new InvalidArgumentException(
-                'Group ID must use lowercase ASCII letters, numbers, dash or underscore.'
-            );
+            throw new InvalidArgumentException(lang('MCMS.errors.groupId'));
         }
 
         if ($title === '') {
-            throw new InvalidArgumentException('Group title is required.');
+            throw new InvalidArgumentException(lang('MCMS.errors.groupTitle'));
         }
 
         $availablePermissions = $this->permissions();
@@ -54,7 +52,7 @@ final class AccessManager
 
         foreach ($permissions as $permission) {
             if (! array_key_exists($permission, $availablePermissions)) {
-                throw new InvalidArgumentException("Unknown permission: {$permission}");
+                throw new InvalidArgumentException(sprintf(lang('MCMS.errors.unknownPermission'), $permission));
             }
         }
 
@@ -94,7 +92,7 @@ final class AccessManager
 
         foreach ($groups as $group) {
             if (! array_key_exists($group, $availableGroups)) {
-                throw new InvalidArgumentException("Unknown group: {$group}");
+                throw new InvalidArgumentException(sprintf(lang('MCMS.errors.unknownGroup'), $group));
             }
         }
 
@@ -108,7 +106,7 @@ final class AccessManager
             && ! in_array('superadmin', $groups, true)
             && $this->countSuperadmins() <= 1
         ) {
-            throw new RuntimeException('The last super administrator cannot lose the superadmin group.');
+            throw new RuntimeException(lang('MCMS.errors.lastSuperadmin'));
         }
 
         $user->syncGroups(...$groups);
