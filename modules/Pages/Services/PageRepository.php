@@ -130,7 +130,7 @@ final class PageRepository implements PageRepositoryInterface
             throw new RuntimeException(lang('Pages.Errors.notFound'));
         }
 
-        $normalized = $this->normalize($data, $id);
+        $normalized = $this->normalize($data, $current);
 
         $this->db->table('pages')
             ->where('id', $id)
@@ -172,7 +172,7 @@ final class PageRepository implements PageRepositoryInterface
         return '/' . rawurlencode($slug);
     }
 
-    private function normalize(array $data, ?int $currentId): array
+    private function normalize(array $data, ?array $currentPage): array
     {
         $title = trim((string) ($data['title'] ?? ''));
         if ($title === '') {
@@ -194,11 +194,20 @@ final class PageRepository implements PageRepositoryInterface
             throw new InvalidArgumentException(lang('Pages.Errors.reservedSlug'));
         }
 
-        $slug = $this->uniqueSlug($slug, $currentId);
+        $slug = $this->uniqueSlug($slug, $currentPage === null ? null : (int) $currentPage['id']);
 
         $status = trim((string) ($data['status'] ?? 'draft'));
         if (! in_array($status, self::STATUSES, true)) {
             throw new InvalidArgumentException(lang('Pages.Errors.invalidStatus'));
+        }
+
+        $publishedAt = null;
+        if ($status === 'published') {
+            $publishedAt = $currentPage !== null
+                && ($currentPage['status'] ?? null) === 'published'
+                && ($currentPage['published_at'] ?? null) !== null
+                    ? (string) $currentPage['published_at']
+                    : date('Y-m-d H:i:s');
         }
 
         return [
@@ -208,7 +217,7 @@ final class PageRepository implements PageRepositoryInterface
             'status' => $status,
             'seo_title' => $this->nullableText($data['seo_title'] ?? null, 255),
             'seo_description' => $this->nullableText($data['seo_description'] ?? null, 320),
-            'published_at' => $status === 'published' ? date('Y-m-d H:i:s') : null,
+            'published_at' => $publishedAt,
         ];
     }
 
