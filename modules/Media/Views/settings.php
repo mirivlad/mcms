@@ -3,11 +3,11 @@
 <?= $this->section('content') ?>
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
-        <div class="col">
+        <div class="col-12 col-md">
             <div class="page-pretitle"><?= esc(lang('MCMS.media.title')) ?></div>
             <h2 class="page-title"><?= esc(lang('MCMS.media.settings')) ?></h2>
         </div>
-        <div class="col-auto ms-auto">
+        <div class="col-12 col-md-auto ms-md-auto">
             <a class="btn btn-outline-secondary" href="<?= site_url('admin/media') ?>">
                 <i class="ti ti-arrow-left me-1"></i><?= esc(lang('MCMS.media.back')) ?>
             </a>

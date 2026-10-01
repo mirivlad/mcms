@@ -13,10 +13,21 @@
 <div class="page">
     <aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
         <div class="container-fluid">
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#admin-sidebar-menu"
+                aria-controls="admin-sidebar-menu"
+                aria-expanded="false"
+                aria-label="Menu"
+            >
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <h1 class="navbar-brand navbar-brand-autodark">
                 <a href="<?= site_url('/admin') ?>">mCMS</a>
             </h1>
-            <div class="collapse navbar-collapse show">
+            <div class="collapse navbar-collapse" id="admin-sidebar-menu">
                 <ul class="navbar-nav pt-lg-3">
                     <?php foreach ($adminMenu ?? [] as $item): ?>
                         <?php

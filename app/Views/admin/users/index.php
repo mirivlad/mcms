@@ -3,11 +3,11 @@
 <?= $this->section('content') ?>
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
-        <div class="col">
+        <div class="col-12 col-md">
             <div class="page-pretitle"><?= esc(lang('MCMS.common.core')) ?></div>
             <h2 class="page-title"><?= esc(lang('MCMS.users.title')) ?></h2>
         </div>
-        <div class="col-auto ms-auto">
+        <div class="col-12 col-md-auto ms-md-auto">
             <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>"><?= esc(lang('MCMS.users.create')) ?></a>
         </div>
     </div>
