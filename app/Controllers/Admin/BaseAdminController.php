@@ -22,7 +22,7 @@ abstract class BaseAdminController extends BaseController
             return null;
         }
 
-        return redirect()->to('/')->with('error', 'You do not have permission to access that area.');
+        return redirect()->to('/')->with('error', lang('MCMS.errors.permissionDenied'));
     }
 
     protected function adminMenu(): array
