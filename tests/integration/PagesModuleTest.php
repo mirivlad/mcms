@@ -8,7 +8,6 @@ use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
-use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 
 final class PagesModuleTest extends CIUnitTestCase
 {
@@ -88,6 +87,18 @@ final class PagesModuleTest extends CIUnitTestCase
         $published = $repository->findPublishedBySlug('privet-mir');
         self::assertNotNull($published);
         self::assertSame($page['id'], $published['id']);
+
+        $publishedAt = $page['published_at'];
+        $updated = $repository->update($page['id'], [
+            'title' => 'Привет, мир — обновлено',
+            'slug' => 'privet-mir',
+            'body' => '<p>Updated</p>',
+            'status' => 'published',
+            'seo_title' => '',
+            'seo_description' => '',
+        ], 1);
+
+        self::assertSame($publishedAt, $updated['published_at']);
 
         $manager->disable('pages');
 
