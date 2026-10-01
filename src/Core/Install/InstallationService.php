@@ -33,6 +33,7 @@ final class InstallationService
         string $password,
         string $siteName = 'mCMS',
         bool $allowRegistration = true,
+        string $locale = 'en',
     ): User {
         if ($this->isInstalled()) {
             throw new RuntimeException('mCMS is already installed.');
@@ -78,6 +79,7 @@ final class InstallationService
 
         $settings = service('settings');
         $settings->set('Core.siteName', $siteName);
+        $settings->set('Core.locale', $locale);
         $settings->set('Auth.allowRegistration', $allowRegistration);
 
         Events::trigger(CoreEvents::USER_CREATED, $created);
