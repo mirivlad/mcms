@@ -28,7 +28,7 @@ final class MediaLibrary implements MediaLibraryInterface
             && ! mkdir($this->root, 0775, true)
             && ! is_dir($this->root)
         ) {
-            throw new RuntimeException('Unable to create Media storage directory.');
+            throw new RuntimeException(lang('MCMS.errors.mediaStorageCreate'));
         }
     }
 
@@ -94,19 +94,19 @@ final class MediaLibrary implements MediaLibraryInterface
         ?string $altText = null,
     ): array {
         if (! $file->isValid() || $file->hasMoved()) {
-            throw new RuntimeException($file->getErrorString() ?: 'Upload failed.');
+            throw new RuntimeException($file->getErrorString() ?: lang('MCMS.errors.uploadFailed'));
         }
 
         $maxBytes = $this->maxUploadBytes();
         $size = (int) $file->getSize();
 
         if ($size <= 0) {
-            throw new RuntimeException('The uploaded file is empty.');
+            throw new RuntimeException(lang('MCMS.errors.emptyUpload'));
         }
 
         if ($size > $maxBytes) {
             throw new RuntimeException(
-                'The file exceeds the Media upload limit of ' . $this->maxUploadMb() . ' MB.'
+                sprintf(lang('MCMS.errors.mediaFileTooLarge'), $this->maxUploadMb())
             );
         }
 
@@ -114,12 +114,12 @@ final class MediaLibrary implements MediaLibraryInterface
         $mime = $this->detectMime($tempPath);
 
         if (! in_array($mime, $this->allowedMimeTypes(), true)) {
-            throw new RuntimeException("File type {$mime} is not allowed.");
+            throw new RuntimeException(sprintf(lang('MCMS.errors.mediaTypeNotAllowed'), $mime));
         }
 
         $extension = self::MIME_EXTENSIONS[$mime] ?? null;
         if ($extension === null) {
-            throw new RuntimeException("Media does not know how to safely store {$mime}.");
+            throw new RuntimeException(sprintf(lang('MCMS.errors.mediaUnknownStorage'), $mime));
         }
 
         $width = null;
@@ -128,22 +128,20 @@ final class MediaLibrary implements MediaLibraryInterface
         if (str_starts_with($mime, 'image/')) {
             $imageInfo = @getimagesize($tempPath);
             if ($imageInfo === false) {
-                throw new RuntimeException('The uploaded file could not be decoded as an image.');
+                throw new RuntimeException(lang('MCMS.errors.imageDecode'));
             }
 
             $width = (int) $imageInfo[0];
             $height = (int) $imageInfo[1];
 
             if ($width <= 0 || $height <= 0) {
-                throw new RuntimeException('The image dimensions are invalid.');
+                throw new RuntimeException(lang('MCMS.errors.imageDimensions'));
             }
 
             $megapixels = ($width * $height) / 1_000_000;
             if ($megapixels > $this->maxImageMegapixels()) {
                 throw new RuntimeException(
-                    'The image exceeds the Media pixel limit of '
-                    . $this->maxImageMegapixels()
-                    . ' megapixels.'
+                    sprintf(lang('MCMS.errors.imageTooLarge'), $this->maxImageMegapixels())
                 );
             }
         }
@@ -156,7 +154,7 @@ final class MediaLibrary implements MediaLibraryInterface
             && ! mkdir($directory, 0775, true)
             && ! is_dir($directory)
         ) {
-            throw new RuntimeException('Unable to create Media storage directory.');
+            throw new RuntimeException(lang('MCMS.errors.mediaStorageCreate'));
         }
 
         $filename = bin2hex(random_bytes(16)) . '.' . $extension;
@@ -164,7 +162,7 @@ final class MediaLibrary implements MediaLibraryInterface
         $sha256 = hash_file('sha256', $tempPath);
 
         if (! is_string($sha256) || $sha256 === '') {
-            throw new RuntimeException('Unable to fingerprint the uploaded file.');
+            throw new RuntimeException(lang('MCMS.errors.mediaFingerprint'));
         }
 
         $file->move($directory, $filename);
@@ -196,7 +194,7 @@ final class MediaLibrary implements MediaLibraryInterface
         $stored = $this->find($id);
 
         if ($stored === null) {
-            throw new RuntimeException('Media record was created but could not be reloaded.');
+            throw new RuntimeException(lang('MCMS.errors.mediaReload'));
         }
 
         return $stored;
@@ -205,7 +203,7 @@ final class MediaLibrary implements MediaLibraryInterface
     public function updateMetadata(int $id, ?string $title, ?string $altText): array
     {
         if ($this->find($id) === null) {
-            throw new RuntimeException('Media item not found.');
+            throw new RuntimeException(lang('MCMS.errors.mediaNotFound'));
         }
 
         $this->db->table('media_files')
@@ -219,7 +217,7 @@ final class MediaLibrary implements MediaLibraryInterface
         $updated = $this->find($id);
 
         if ($updated === null) {
-            throw new RuntimeException('Media item disappeared while updating metadata.');
+            throw new RuntimeException(lang('MCMS.errors.mediaUpdateLost'));
         }
 
         return $updated;
@@ -235,7 +233,7 @@ final class MediaLibrary implements MediaLibraryInterface
         $absolutePath = $this->absolutePath((string) $media['storage_path']);
 
         if (is_file($absolutePath) && ! unlink($absolutePath)) {
-            throw new RuntimeException('Unable to delete the Media file from storage.');
+            throw new RuntimeException(lang('MCMS.errors.mediaDeleteStorage'));
         }
 
         $this->db->table('media_files')->where('id', $id)->delete();
@@ -246,13 +244,13 @@ final class MediaLibrary implements MediaLibraryInterface
         if (is_int($media)) {
             $media = $this->find($media);
             if ($media === null) {
-                throw new RuntimeException('Media item not found.');
+                throw new RuntimeException(lang('MCMS.errors.mediaNotFound'));
             }
         }
 
         $path = (string) ($media['storage_path'] ?? '');
         if ($path === '') {
-            throw new InvalidArgumentException('Media item has no storage path.');
+            throw new InvalidArgumentException(lang('MCMS.errors.mediaNoPath'));
         }
 
         return '/assets/uploads/media/' . implode(
@@ -285,7 +283,7 @@ final class MediaLibrary implements MediaLibraryInterface
         $mime = $finfo->file($path);
 
         if (! is_string($mime) || $mime === '') {
-            throw new RuntimeException('Unable to determine the uploaded file type.');
+            throw new RuntimeException(lang('MCMS.errors.mediaDetectType'));
         }
 
         return strtolower(trim($mime));
@@ -329,12 +327,12 @@ final class MediaLibrary implements MediaLibraryInterface
         $relative = str_replace('\\', '/', trim($relative, '/'));
 
         if ($relative === '') {
-            throw new InvalidArgumentException('Media storage path cannot be empty.');
+            throw new InvalidArgumentException(lang('MCMS.errors.mediaEmptyPath'));
         }
 
         foreach (explode('/', $relative) as $segment) {
             if ($segment === '' || $segment === '.' || $segment === '..') {
-                throw new InvalidArgumentException('Unsafe Media storage path.');
+                throw new InvalidArgumentException(lang('MCMS.errors.mediaUnsafePath'));
             }
         }
 
