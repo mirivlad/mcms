@@ -9,11 +9,11 @@
     <link rel="stylesheet" href="<?= esc($themeAssets . 'css/theme.css', 'attr') ?>">
 </head>
 <body class="mcms-site">
-<a class="visually-hidden-focusable mcms-skip-link" href="#main-content">Skip to content</a>
+<a class="visually-hidden-focusable mcms-skip-link" href="#main-content"><?= esc(lang('DefaultTheme.Accessibility.skipToContent')) ?></a>
 
 <header class="mcms-site-header">
     <div class="container">
-        <nav class="navbar navbar-expand-lg px-0" aria-label="Primary">
+        <nav class="navbar navbar-expand-lg px-0" aria-label="<?= esc(lang('DefaultTheme.Accessibility.primaryNavigation'), 'attr') ?>">
             <a class="navbar-brand fw-semibold" href="<?= site_url('/') ?>"><?= esc($siteName) ?></a>
         </nav>
     </div>
