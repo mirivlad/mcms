@@ -1,0 +1,26 @@
+/* mCMS administration shell overrides. Keep module-specific styles in modules. */
+.admin-mobile-account {
+    padding: .75rem 1rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, .12);
+}
+
+@media (max-width: 991.98px) {
+    .page-body {
+        margin-top: .75rem;
+    }
+
+    .page-header {
+        margin-top: .75rem;
+        margin-bottom: 1rem !important;
+    }
+
+    .navbar-vertical .navbar-collapse {
+        padding-bottom: 0;
+    }
+}
+
+@media (min-width: 992px) {
+    .admin-desktop-header {
+        min-height: 4rem;
+    }
+}
