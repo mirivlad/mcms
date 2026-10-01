@@ -52,6 +52,11 @@ jobs:
             exit 1
           fi
 
+          if printf '%s\n' "$tables" | grep -Fx pages; then
+            echo 'Pages schema must not exist before the module is enabled'
+            exit 1
+          fi
+
       - name: Complete browser installer
         run: |
           curl -fsS             -c /tmp/mcms.cookies             http://127.0.0.1:8080/install             -o /tmp/install.html
@@ -80,6 +85,7 @@ jobs:
           grep -q 'Users' /tmp/admin-users.html
           grep -q 'Access control' /tmp/admin-access.html
           grep -q 'Media' /tmp/admin-modules.html
+          grep -q 'Pages' /tmp/admin-modules.html
           grep -q 'Not installed' /tmp/admin-modules.html
           grep -q 'Settings' /tmp/admin-settings.html
           grep -q 'System' /tmp/admin-system.html
@@ -97,6 +103,7 @@ jobs:
           curl -fsS             -b /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-ru.html
           grep -q 'Модули' /tmp/modules-ru.html
           grep -q 'Медиа' /tmp/modules-ru.html
+          grep -q 'Страницы' /tmp/modules-ru.html
           grep -q 'Не установлен' /tmp/modules-ru.html
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/settings-ru.html)"
@@ -202,6 +209,84 @@ jobs:
           curl -fsS             -b /tmp/mcms.cookies             http://127.0.0.1:8080/admin/media             -o /tmp/media-reenabled.html
 
           grep -q 'Smoke image' /tmp/media-reenabled.html
+
+      - name: Enable Pages and create a published page
+        run: |
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-pages.html
+
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-pages.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/pages/enable             -o /tmp/modules-pages-enabled.html
+
+          enabled="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT enabled FROM mcms_modules WHERE module_id="pages";')"
+          test "$enabled" = "1"
+
+          media_enabled="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT enabled FROM mcms_modules WHERE module_id="media";')"
+          test "$media_enabled" = "1"
+
+          table_name="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SHOW TABLES LIKE "pages";')"
+          test "$table_name" = "pages"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/pages/create             -o /tmp/page-create.html
+
+          grep -q 'Create page' /tmp/page-create.html
+          grep -q 'Insert image from Media' /tmp/page-create.html
+
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/page-create.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "title=Smoke page"             --data-urlencode "slug=smoke-page"             --data-urlencode "body=<p>Smoke <strong>page</strong></p><script>alert(1)</script>"             --data-urlencode "status=published"             --data-urlencode "seo_title=Smoke SEO title"             --data-urlencode "seo_description=Smoke SEO description"             http://127.0.0.1:8080/admin/pages/create             -o /tmp/page-created.html
+
+          grep -q 'Smoke page' /tmp/page-created.html
+          grep -q 'Page created' /tmp/page-created.html
+
+          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM pages WHERE slug="smoke-page" AND status="published";')"
+          test "$count" = "1"
+
+          unsafe="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM pages WHERE slug="smoke-page" AND body LIKE "%<script%";')"
+          test "$unsafe" = "0"
+
+          curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page.html
+          grep -q 'Smoke SEO title' /tmp/public-page.html
+          grep -q 'Smoke SEO description' /tmp/public-page.html
+          grep -q '<strong>page</strong>' /tmp/public-page.html
+
+          curl -fsS             -b /tmp/mcms.cookies             http://127.0.0.1:8080/admin/pages/media             -o /tmp/pages-media.json
+          grep -q 'Smoke image' /tmp/pages-media.json
+
+      - name: Protect Media dependency while Pages is enabled
+        run: |
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-media-protected.html
+
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-media-protected.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/media/disable             -o /tmp/media-disable-blocked.html
+
+          enabled="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT enabled FROM mcms_modules WHERE module_id="media";')"
+          test "$enabled" = "1"
+          grep -q 'depends on it' /tmp/media-disable-blocked.html
+
+      - name: Disable and re-enable Pages without losing content
+        run: |
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-pages-disable.html
+
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-pages-disable.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/pages/disable             -o /tmp/modules-pages-disabled.html
+
+          code="$(curl -sS             -o /dev/null             -w '%{http_code}'             http://127.0.0.1:8080/smoke-page)"
+          test "$code" = "404"
+
+          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM pages WHERE slug="smoke-page";')"
+          test "$count" = "1"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-pages-reenable.html
+
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-pages-reenable.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/pages/enable             -o /tmp/modules-pages-reenabled.html
+
+          curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page-reenabled.html
+          grep -q 'Smoke page' /tmp/public-page-reenabled.html
 
       - name: Verify installer is closed after setup
         run: |
