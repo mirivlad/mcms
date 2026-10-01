@@ -17,6 +17,10 @@ return [
         'description' => 'Content, navigation and presentation are managed independently so the site can evolve without coupling modules to a concrete theme.',
         'admin' => 'Administration',
     ],
+    'Accessibility' => [
+        'skipToContent' => 'Skip to content',
+        'primaryNavigation' => 'Primary navigation',
+    ],
     'Footer' => [
         'poweredBy' => 'Powered by mCMS',
     ],
