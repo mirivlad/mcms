@@ -20,6 +20,8 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->post('modules/(:segment)/enable', 'Admin\Modules::enable/$1');
     $routes->post('modules/(:segment)/disable', 'Admin\Modules::disable/$1');
     $routes->match(['get', 'post'], 'settings', 'Admin\Settings::index', ['as' => 'admin.settings']);
+    $routes->get('themes', 'Admin\Themes::index', ['as' => 'admin.themes']);
+    $routes->post('themes/(:segment)/activate', 'Admin\Themes::activate/$1');
     $routes->get('system', 'Admin\System::index', ['as' => 'admin.system']);
 });
 
