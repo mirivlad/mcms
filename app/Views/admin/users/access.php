@@ -19,6 +19,16 @@
                 <div class="card-header"><h3 class="card-title"><?= esc(lang('MCMS.users.groups')) ?></h3></div>
                 <div class="card-body">
                     <?php foreach ($groups as $id => $group): ?>
+                        <?php
+                            $titleKey = 'MCMS.groups.' . $id . 'Title';
+                            $descriptionKey = 'MCMS.groups.' . $id . 'Description';
+                            $translatedTitle = lang($titleKey);
+                            $translatedDescription = lang($descriptionKey);
+                            $groupTitle = $translatedTitle === $titleKey ? ($group['title'] ?? $id) : $translatedTitle;
+                            $groupDescription = $translatedDescription === $descriptionKey
+                                ? ($group['description'] ?? '')
+                                : $translatedDescription;
+                        ?>
                         <label class="form-check mb-2">
                             <input
                                 class="form-check-input"
@@ -28,9 +38,9 @@
                                 <?= in_array($id, $target->getGroups() ?? [], true) ? 'checked' : '' ?>
                             >
                             <span class="form-check-label">
-                                <strong><?= esc($group['title'] ?? $id) ?></strong>
-                                <?php if (($group['description'] ?? '') !== ''): ?>
-                                    <span class="d-block text-secondary"><?= esc($group['description']) ?></span>
+                                <strong><?= esc($groupTitle) ?></strong>
+                                <?php if ($groupDescription !== ''): ?>
+                                    <span class="d-block text-secondary"><?= esc($groupDescription) ?></span>
                                 <?php endif ?>
                             </span>
                         </label>
@@ -45,6 +55,11 @@
                 <div class="card-body">
                     <p class="text-secondary"><?= esc(lang('MCMS.users.accessIntro')) ?></p>
                     <?php foreach ($permissions as $permission => $description): ?>
+                        <?php
+                            $permissionKey = 'MCMS.permissions.' . str_replace('.', '_', $permission);
+                            $translated = lang($permissionKey);
+                            $permissionDescription = $translated === $permissionKey ? $description : $translated;
+                        ?>
                         <label class="form-check mb-2">
                             <input
                                 class="form-check-input"
@@ -55,7 +70,7 @@
                             >
                             <span class="form-check-label">
                                 <code><?= esc($permission) ?></code>
-                                <span class="d-block text-secondary"><?= esc($description) ?></span>
+                                <span class="d-block text-secondary"><?= esc($permissionDescription) ?></span>
                             </span>
                         </label>
                     <?php endforeach ?>
