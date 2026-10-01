@@ -19,10 +19,11 @@ final class Page extends BaseController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        return view('MCMS\\Modules\\Pages\\Views\\show', [
-            'page' => $page,
-            'siteName' => (string) (setting('Core.siteName') ?? 'mCMS'),
-        ]);
+        return service('mcmsThemes')->render(
+            'page',
+            ['page' => $page],
+            'MCMS\\Modules\\Pages\\Views\\show',
+        );
     }
 
     private function pages(): PageRepositoryInterface
