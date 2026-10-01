@@ -46,15 +46,15 @@ final class Users extends BaseAdminController
             $validation = service('validation');
             $validation->setRules([
                 'email' => [
-                    'label' => 'Email',
+                    'label' => lang('MCMS.users.email'),
                     'rules' => 'required|valid_email|max_length[254]',
                 ],
                 'username' => [
-                    'label' => 'Username',
+                    'label' => lang('MCMS.users.username'),
                     'rules' => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]',
                 ],
                 'password' => [
-                    'label' => 'Password',
+                    'label' => lang('MCMS.install.password'),
                     'rules' => 'required|min_length[8]',
                 ],
             ]);
@@ -67,7 +67,7 @@ final class Users extends BaseAdminController
 
             if ($users->findByCredentials(['email' => $email]) !== null) {
                 return redirect()->back()->withInput()->with('errors', [
-                    'email' => 'A user with this email already exists.',
+                    'email' => lang('MCMS.errors.userExists'),
                 ]);
             }
 
@@ -90,7 +90,7 @@ final class Users extends BaseAdminController
             $created->activate();
             Events::trigger(CoreEvents::USER_CREATED, $created);
 
-            return redirect()->to('/admin/users')->with('message', 'User created.');
+            return redirect()->to('/admin/users')->with('message', lang('MCMS.messages.userCreated'));
         }
 
         return view('admin/users/create', [
@@ -109,7 +109,7 @@ final class Users extends BaseAdminController
         $target = $users->withGroups()->withPermissions()->findById($id);
 
         if (! $target instanceof User) {
-            return redirect()->to('/admin/users')->with('error', 'User not found.');
+            return redirect()->to('/admin/users')->with('error', lang('MCMS.errors.userNotFound'));
         }
 
         if ($this->request->getMethod() === 'POST') {
@@ -121,7 +121,7 @@ final class Users extends BaseAdminController
                 );
 
                 return redirect()->to('/admin/users/' . $id . '/access')
-                    ->with('message', 'User access updated.');
+                    ->with('message', lang('MCMS.messages.userAccessUpdated'));
             } catch (\Throwable $e) {
                 return redirect()->back()->withInput()->with('error', $e->getMessage());
             }
