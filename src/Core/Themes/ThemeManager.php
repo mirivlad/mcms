@@ -71,6 +71,23 @@ final class ThemeManager
         return $this->find($id);
     }
 
+    public function ensureActive(string $preferredId = 'default'): ?ThemeManifest
+    {
+        $active = $this->active();
+        if ($active !== null) {
+            return $active;
+        }
+
+        $preferred = $this->find($preferredId);
+        if ($preferred === null) {
+            return null;
+        }
+
+        $this->settings->set('Core.theme', $preferred->id);
+
+        return $preferred;
+    }
+
     public function activate(string $id): ThemeManifest
     {
         $theme = $this->find($id);
