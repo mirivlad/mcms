@@ -33,6 +33,14 @@ final class AdminRegistry
     public function menu(): array
     {
         $items = array_values($this->menu);
+
+        foreach ($items as &$item) {
+            if (is_string($item['label']) && str_starts_with($item['label'], '@')) {
+                $item['label'] = lang(substr($item['label'], 1));
+            }
+        }
+        unset($item);
+
         usort($items, static fn (array $a, array $b): int => $a['order'] <=> $b['order']);
 
         return $items;
