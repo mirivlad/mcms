@@ -3,7 +3,7 @@
 <?= $this->section('content') ?>
 <?php
     $isEdit = $page !== null;
-    $sanitizer = new \MCMS\Modules\Pages\Services\HtmlSanitizer();
+    $sanitizer = new \MCMS\Core\Content\HtmlSanitizer();
     $editorBody = $sanitizer->sanitize((string) old('body', $page['body'] ?? ''));
     $statusValue = (string) old('status', $page['status'] ?? $defaultStatus);
     $seoTitle = (string) old('seo_title', $page['seo_title'] ?? '');

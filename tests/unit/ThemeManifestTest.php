@@ -35,6 +35,8 @@ final class ThemeManifestTest extends CIUnitTestCase
         self::assertSame('mcms-default', $manifest->id);
         self::assertSame('MCMS\\Themes\\DefaultTheme\\Views\\home', $manifest->view('home'));
         self::assertSame('MCMS\\Themes\\DefaultTheme\\Views\\page', $manifest->view('page'));
+        self::assertSame('MCMS\\Themes\\DefaultTheme\\Views\\news\\index', $manifest->view('news.index'));
+        self::assertSame('MCMS\\Themes\\DefaultTheme\\Views\\news\\article', $manifest->view('news.article'));
         self::assertSame(
             ['footer.legal', 'footer.primary', 'header.primary'],
             array_keys($manifest->menuLocations),

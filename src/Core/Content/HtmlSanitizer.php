@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace MCMS\Modules\Pages\Services;
+namespace MCMS\Core\Content;
 
 use DOMDocument;
 use DOMElement;
