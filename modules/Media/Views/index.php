@@ -184,7 +184,7 @@
                                         <form
                                             method="post"
                                             action="<?= site_url('admin/media/' . $item['id'] . '/delete') ?>"
-                                            onsubmit="return confirm(<?= json_encode(lang('MCMS.media.deleteConfirm'), JSON_HEX_APOS | JSON_HEX_QUOT) ?>);"
+                                            onsubmit="return confirm(<?= esc(json_encode(lang('MCMS.media.deleteConfirm')), 'attr') ?>);"
                                         >
                                             <?= csrf_field() ?>
                                             <button class="btn btn-outline-danger btn-sm" type="submit"><?= esc(lang('MCMS.common.delete')) ?></button>
