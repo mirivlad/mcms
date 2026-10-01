@@ -22,7 +22,7 @@ final class Admin extends BaseAdminController
         $library = $this->library();
 
         return view('MCMS\Modules\Media\Views\index', [
-            'title'     => 'Media',
+            'title'     => lang('MCMS.media.title'),
             'adminMenu' => $this->adminMenu(),
             'user'      => auth()->user(),
             'query'     => $query,
@@ -44,7 +44,7 @@ final class Admin extends BaseAdminController
         $file = $this->request->getFile('file');
 
         if ($file === null) {
-            return redirect()->to('/admin/media')->with('error', 'Choose a file to upload.');
+            return redirect()->to('/admin/media')->with('error', lang('MCMS.errors.chooseUpload'));
         }
 
         try {
@@ -55,7 +55,7 @@ final class Admin extends BaseAdminController
                 (string) $this->request->getPost('alt_text'),
             );
 
-            return redirect()->to('/admin/media')->with('message', 'Media file uploaded.');
+            return redirect()->to('/admin/media')->with('message', lang('MCMS.messages.mediaUploaded'));
         } catch (\Throwable $e) {
             return redirect()->to('/admin/media')->with('error', $e->getMessage());
         }
@@ -74,7 +74,7 @@ final class Admin extends BaseAdminController
                 (string) $this->request->getPost('alt_text'),
             );
 
-            return redirect()->to('/admin/media')->with('message', 'Media metadata updated.');
+            return redirect()->to('/admin/media')->with('message', lang('MCMS.messages.mediaMetadataUpdated'));
         } catch (\Throwable $e) {
             return redirect()->to('/admin/media')->with('error', $e->getMessage());
         }
@@ -89,7 +89,7 @@ final class Admin extends BaseAdminController
         try {
             $this->library()->delete($id);
 
-            return redirect()->to('/admin/media')->with('message', 'Media file deleted.');
+            return redirect()->to('/admin/media')->with('message', lang('MCMS.messages.mediaDeleted'));
         } catch (\Throwable $e) {
             return redirect()->to('/admin/media')->with('error', $e->getMessage());
         }
@@ -113,15 +113,15 @@ final class Admin extends BaseAdminController
             ));
 
             if ($maxUploadMb < 1 || $maxUploadMb > 64) {
-                return redirect()->back()->withInput()->with('error', 'Upload limit must be between 1 and 64 MB.');
+                return redirect()->back()->withInput()->with('error', lang('MCMS.errors.uploadLimit'));
             }
 
             if ($maxMegapixels < 1 || $maxMegapixels > 200) {
-                return redirect()->back()->withInput()->with('error', 'Image limit must be between 1 and 200 megapixels.');
+                return redirect()->back()->withInput()->with('error', lang('MCMS.errors.imageLimit'));
             }
 
             if ($allowed === []) {
-                return redirect()->back()->withInput()->with('error', 'Allow at least one Media file type.');
+                return redirect()->back()->withInput()->with('error', lang('MCMS.errors.allowMediaType'));
             }
 
             $settings = service('settings');
@@ -129,11 +129,11 @@ final class Admin extends BaseAdminController
             $settings->set('media.max_image_megapixels', $maxMegapixels);
             $settings->set('media.allowed_mime_types', $allowed);
 
-            return redirect()->to('/admin/media/settings')->with('message', 'Media settings saved.');
+            return redirect()->to('/admin/media/settings')->with('message', lang('MCMS.messages.mediaSettingsSaved'));
         }
 
         return view('MCMS\Modules\Media\Views\settings', [
-            'title'          => 'Media settings',
+            'title'          => lang('MCMS.media.settings'),
             'adminMenu'      => $this->adminMenu(),
             'user'           => auth()->user(),
             'maxUploadMb'    => (int) (service('settings')->get('media.max_upload_mb') ?? 20),
@@ -165,7 +165,7 @@ final class Admin extends BaseAdminController
         $service = service('mcmsModuleServices')->get('media.library');
 
         if (! $service instanceof MediaLibraryInterface) {
-            throw new RuntimeException('The Media library service is unavailable.');
+            throw new RuntimeException(lang('MCMS.errors.mediaUnavailable'));
         }
 
         return $service;
