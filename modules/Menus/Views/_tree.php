@@ -1,0 +1,47 @@
+<?php $isRoot = $isRoot ?? false; ?>
+<ul class="menu-tree-list <?= $isRoot ? 'menu-tree-root' : '' ?>" <?= $isRoot ? 'data-menu-tree-root' : '' ?>>
+    <?php foreach ($nodes as $item): ?>
+        <li class="menu-tree-item" data-id="<?= (int) $item['id'] ?>" <?= $canManage ? 'draggable="true"' : '' ?>>
+            <div class="menu-tree-row">
+                <?php if ($canManage): ?>
+                    <span class="menu-drag-handle" title="<?= esc(lang('Menus.Admin.structureHelp'), 'attr') ?>">
+                        <i class="ti ti-grip-vertical"></i>
+                    </span>
+                <?php endif ?>
+                <div class="min-w-0 flex-fill">
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <span class="fw-semibold"><?= esc($item['label']) ?></span>
+                        <?php if (! $item['enabled']): ?>
+                            <span class="badge bg-secondary-lt"><?= esc(lang('Menus.Admin.inactive')) ?></span>
+                        <?php endif ?>
+                        <?php if ($item['open_in_new']): ?>
+                            <span class="badge bg-azure-lt"><?= esc(lang('Menus.Admin.newWindow')) ?></span>
+                        <?php endif ?>
+                    </div>
+                    <div class="text-secondary small text-truncate">
+                        <?= ($item['target'] ?? null) === null ? '—' : esc($item['target']) ?>
+                    </div>
+                </div>
+                <?php if ($canManage): ?>
+                    <div class="d-flex gap-1 ms-2">
+                        <a class="btn btn-icon btn-ghost-secondary btn-sm" href="<?= site_url('admin/menus/' . $menuId . '/edit?item=' . $item['id']) ?>#menu-item-form" title="<?= esc(lang('Menus.Admin.editAction'), 'attr') ?>">
+                            <i class="ti ti-pencil"></i>
+                        </a>
+                        <form method="post" action="<?= site_url('admin/menus/' . $menuId . '/items/' . $item['id'] . '/delete') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Menus.Admin.deleteItemConfirm')), 'attr') ?>)">
+                            <?= csrf_field() ?>
+                            <button class="btn btn-icon btn-ghost-danger btn-sm" type="submit" title="<?= esc(lang('Menus.Admin.deleteAction'), 'attr') ?>">
+                                <i class="ti ti-trash"></i>
+                            </button>
+                        </form>
+                    </div>
+                <?php endif ?>
+            </div>
+            <?= view('MCMS\\Modules\\Menus\\Views\\_tree', [
+                'nodes' => $item['children'] ?? [],
+                'menuId' => $menuId,
+                'canManage' => $canManage,
+                'isRoot' => false,
+            ]) ?>
+        </li>
+    <?php endforeach ?>
+</ul>
