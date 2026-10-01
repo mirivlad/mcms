@@ -36,7 +36,7 @@ final class InstallationService
         string $locale = 'en',
     ): User {
         if ($this->isInstalled()) {
-            throw new RuntimeException('mCMS is already installed.');
+            throw new RuntimeException(lang('MCMS.errors.alreadyInstalled'));
         }
 
         $email = trim($email);
@@ -44,17 +44,17 @@ final class InstallationService
         $siteName = trim($siteName);
 
         if ($email === '' || $username === '' || $password === '') {
-            throw new RuntimeException('Email, username and password are required.');
+            throw new RuntimeException(lang('MCMS.errors.accountRequired'));
         }
 
         if ($siteName === '') {
-            throw new RuntimeException('Site name is required.');
+            throw new RuntimeException(lang('MCMS.errors.siteNameRequired'));
         }
 
         $users = auth()->getProvider();
 
         if ($users->findByCredentials(['email' => $email]) !== null) {
-            throw new RuntimeException('A user with this email already exists.');
+            throw new RuntimeException(lang('MCMS.errors.userExists'));
         }
 
         $user = new User([
@@ -71,7 +71,7 @@ final class InstallationService
 
         $created = $users->findById($users->getInsertID());
         if (! $created instanceof User) {
-            throw new RuntimeException('Super administrator was created but could not be reloaded.');
+            throw new RuntimeException(lang('MCMS.errors.createdUserReload'));
         }
 
         $created->syncGroups('superadmin');
