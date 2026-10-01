@@ -12,6 +12,7 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use App\Filters\SiteLocale;
 
 class Filters extends BaseFilters
 {
@@ -25,6 +26,7 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'siteLocale'    => SiteLocale::class,
     ];
 
     public array $required = [
@@ -41,6 +43,7 @@ class Filters extends BaseFilters
 
     public array $globals = [
         'before' => [
+            'siteLocale',
             'csrf',
         ],
         'after' => [
