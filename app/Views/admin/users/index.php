@@ -4,11 +4,11 @@
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">Core</div>
-            <h2 class="page-title">Users</h2>
+            <div class="page-pretitle"><?= esc(lang('MCMS.common.core')) ?></div>
+            <h2 class="page-title"><?= esc(lang('MCMS.users.title')) ?></h2>
         </div>
         <div class="col-auto ms-auto">
-            <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>">Create user</a>
+            <a class="btn btn-primary" href="<?= site_url('admin/users/create') ?>"><?= esc(lang('MCMS.users.create')) ?></a>
         </div>
     </div>
 </div>
@@ -19,10 +19,10 @@
             <thead>
             <tr>
                 <th>ID</th>
-                <th>User</th>
-                <th>Email</th>
-                <th>Groups</th>
-                <th>Direct permissions</th>
+                <th><?= esc(lang('MCMS.common.user')) ?></th>
+                <th><?= esc(lang('MCMS.users.email')) ?></th>
+                <th><?= esc(lang('MCMS.users.groups')) ?></th>
+                <th><?= esc(lang('MCMS.users.directPermissions')) ?></th>
                 <?php if ($canAccess): ?><th class="w-1"></th><?php endif ?>
             </tr>
             </thead>
@@ -37,7 +37,7 @@
                     <?php if ($canAccess): ?>
                         <td>
                             <a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/users/' . $entry->id . '/access') ?>">
-                                Access
+                                <?= esc(lang('MCMS.users.access')) ?>
                             </a>
                         </td>
                     <?php endif ?>
