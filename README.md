@@ -33,8 +33,8 @@ maintenance. Content and business features are installed as modules.
 
 ## Modules
 
-Pages, News, Menus, Galleries, Shop, Orders, Delivery and other domain
-features are not part of Core. Media is provided as the first reusable module.
+News, Menus, Galleries, Shop, Orders, Delivery and other domain features are
+not part of Core. Media and Pages are provided as reusable first-party modules.
 
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
@@ -43,9 +43,9 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-mCMS has a stable modular Core foundation on `main`. The first reusable module,
-Media, is integrated and covered by clean-install CI. Current development is focused
-on the Stage 1 reusable content modules.
+mCMS has a stable modular Core foundation on `main`. Media and Pages are
+integrated as the first reusable modules and covered by clean-install CI. The next
+Stage 1 module is Menus/navigation.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,
