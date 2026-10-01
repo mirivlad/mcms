@@ -1,7 +1,7 @@
 {
   "id": "news",
   "name": "@News.Admin.menuLabel",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Modules\\News",
   "provider": "MCMS\\Modules\\News\\Module",
   "mcms": "^0.1",

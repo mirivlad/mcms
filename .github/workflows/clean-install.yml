@@ -337,7 +337,15 @@ jobs:
 
           curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies http://127.0.0.1:8080/admin/news/create -o /tmp/news-create.html
           grep -q 'Create article' /tmp/news-create.html
-          grep -q 'Smoke image' /tmp/news-create.html
+          grep -q 'Insert image' /tmp/news-create.html
+          grep -q 'Choose from Media' /tmp/news-create.html
+
+          curl -fsS -b /tmp/mcms.cookies http://127.0.0.1:8080/admin/news/media -o /tmp/news-media.json
+          if ! grep -Fq 'Smoke image' /tmp/news-media.json; then
+            echo 'News Media picker did not return the uploaded image'
+            cat /tmp/news-media.json
+            exit 1
+          fi
 
           media_id="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SELECT id FROM media_files ORDER BY id LIMIT 1;')"
           test -n "$media_id"

@@ -23,15 +23,21 @@ final class Admin extends BaseAdminController
         $status = trim((string) $this->request->getGet('status'));
         $status = in_array($status, ['draft', 'published'], true) ? $status : null;
         $news = $this->news();
+        $perPage = 50;
+        $count = $news->count($query, $status);
+        $lastPage = max(1, (int) ceil($count / $perPage));
+        $page = max(1, min((int) $this->request->getGet('page'), $lastPage));
 
         return view('MCMS\\Modules\\News\\Views\\index', [
             'title' => lang('News.Admin.title'),
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
-            'articles' => $news->list($query, $status),
-            'count' => $news->count($query, $status),
+            'articles' => $news->list($query, $status, $perPage, ($page - 1) * $perPage),
+            'count' => $count,
             'query' => $query,
             'status' => $status,
+            'page' => $page,
+            'lastPage' => $lastPage,
             'canCreate' => $this->can('news.create'),
             'canEdit' => $this->can('news.edit'),
             'canDelete' => $this->can('news.delete'),
@@ -134,10 +140,6 @@ final class Admin extends BaseAdminController
             'defaultStatus' => in_array($defaultStatus, ['draft', 'published'], true)
                 ? $defaultStatus
                 : 'draft',
-            'mediaImages' => array_values(array_filter(
-                $this->mediaLibrary()->list('', 100),
-                static fn (array $item): bool => (bool) ($item['is_image'] ?? false),
-            )),
         ]);
     }
 

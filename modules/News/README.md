@@ -15,6 +15,13 @@ News provides dated public articles independently from Pages.
 The module requires Media but does not depend on Pages. Both Pages and News use
 Core's shared `HtmlSanitizer`.
 
+## Administration
+
+- searchable/filterable article list with pagination;
+- Pages-style rich-text editor controls;
+- searchable Media picker for featured images and inline article images;
+- collapsible SEO metadata panel.
+
 ## Theme contract
 
 News renders through the active theme using:
