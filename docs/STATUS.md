@@ -7,7 +7,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
-- Public module service registry and administration contribution registry.
+- Public module service registry, administration contribution registry and generic navigable-resource registry.
 - First-run browser installer plus CLI recovery bootstrap.
 - Users, groups, permissions, Core settings and system diagnostics.
 - English/Russian localization.
@@ -29,6 +29,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Draft/published static pages with sanitized rich text.
 - Slug generation, SEO fields and Media picker integration.
 - Public service: `pages.repository`.
+- Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
 ### Menus 0.1.0
@@ -38,6 +39,8 @@ This document records the current known-good mCMS implementation checkpoint.
 - Drag-and-drop administration with non-drag parent selection fallback.
 - Public service: `menus.repository`.
 - Implements the Core `MenuSourceInterface`; it does not know theme location names.
+- Menu items support custom URLs or generic provider-backed internal resources without depending on Pages/News classes.
+- Provider-backed targets survive provider/module disablement and resolve again after re-enable.
 
 ## Themes
 
@@ -71,7 +74,8 @@ The checkpoint is covered by:
 - clean-install Docker smoke through real administration forms;
 - public theme asset checks;
 - public Home/Pages theme rendering checks;
-- menu assignment, Menus disable/re-enable and assignment restoration checks.
+- menu assignment, Menus disable/re-enable and assignment restoration checks;
+- generic Pages → Menus internal-resource discovery and resolution checks.
 
 ## Next sequence
 

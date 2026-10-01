@@ -263,6 +263,8 @@ jobs:
 
           count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM pages WHERE slug="smoke-page" AND status="published";')"
           test "$count" = "1"
+          page_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT id FROM pages WHERE slug="smoke-page";')"
+          test -n "$page_id"
 
           unsafe="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM pages WHERE slug="smoke-page" AND body LIKE "%<script%";')"
           test "$unsafe" = "0"
@@ -346,11 +348,17 @@ jobs:
 
           menu_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT id FROM menus WHERE handle="primary";')"
           test -n "$menu_id"
+          page_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT id FROM pages WHERE slug="smoke-page";')"
+          test -n "$page_id"
+
+          curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/resources?provider=pages.page&q=Smoke"             -o /tmp/menu-resources.json
+          grep -q 'Smoke page' /tmp/menu-resources.json
+          grep -q '/smoke-page' /tmp/menu-resources.json
 
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit.html)"
 
-          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=Home"             --data-urlencode "target=/"             --data-urlencode "parent_id="             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-home.html
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=Home"             --data-urlencode "target_type=custom"             --data-urlencode "target=/"             --data-urlencode "parent_id="             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-home.html
 
           home_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT id FROM menu_items WHERE menu_id=${menu_id} AND label='Home';")"
           test -n "$home_id"
@@ -358,7 +366,7 @@ jobs:
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit-about.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit-about.html)"
 
-          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=About"             --data-urlencode "target=/smoke-page"             --data-urlencode "parent_id="             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-about.html
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=About"             --data-urlencode "target_type=pages.page"             --data-urlencode "target=$page_id"             --data-urlencode "parent_id="             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-about.html
 
           about_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT id FROM menu_items WHERE menu_id=${menu_id} AND label='About';")"
           test -n "$about_id"
@@ -366,7 +374,7 @@ jobs:
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit-child.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit-child.html)"
 
-          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=Child"             --data-urlencode "target=/smoke-page#child"             --data-urlencode "parent_id=$about_id"             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-child.html
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=Child"             --data-urlencode "target_type=custom"             --data-urlencode "target=/smoke-page#child"             --data-urlencode "parent_id=$about_id"             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-child.html
 
           count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT COUNT(*) FROM menu_items WHERE menu_id=${menu_id};")"
           test "$count" = "3"

@@ -7,6 +7,7 @@ namespace MCMS\Modules\Pages;
 use CodeIgniter\Router\RouteCollection;
 use MCMS\Core\Modules\ModuleContext;
 use MCMS\Core\Modules\ModuleProviderInterface;
+use MCMS\Modules\Pages\Navigation\PageNavigationProvider;
 use MCMS\Modules\Pages\Services\HtmlSanitizer;
 use MCMS\Modules\Pages\Services\PageRepository;
 
@@ -14,13 +15,13 @@ final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
-        $context->services->register(
-            'pages.repository',
-            new PageRepository(
-                db_connect(),
-                new HtmlSanitizer(),
-            ),
+        $repository = new PageRepository(
+            db_connect(),
+            new HtmlSanitizer(),
         );
+
+        $context->services->register('pages.repository', $repository);
+        $context->navigation->register(new PageNavigationProvider($repository));
 
         $context->admin->addMenu(
             'pages',

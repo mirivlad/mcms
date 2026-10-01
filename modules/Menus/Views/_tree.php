@@ -19,7 +19,16 @@
                         <?php endif ?>
                     </div>
                     <div class="text-secondary small text-truncate">
-                        <?= ($item['target'] ?? null) === null ? '—' : esc($item['target']) ?>
+                        <?php if ($item['target_type'] === 'custom'): ?>
+                            <?= ($item['target'] ?? null) === null ? '—' : esc($item['target']) ?>
+                        <?php elseif ($item['target_available']): ?>
+                            <i class="ti ti-link me-1"></i><?= esc($item['resource_label'] ?? $item['target']) ?>
+                            <span class="text-secondary">· <?= esc($item['target_type']) ?></span>
+                        <?php else: ?>
+                            <span class="text-warning">
+                                <i class="ti ti-unlink me-1"></i><?= esc(sprintf(lang('Menus.Admin.resourceUnavailable'), $item['target_type'], $item['target'])) ?>
+                            </span>
+                        <?php endif ?>
                     </div>
                 </div>
                 <?php if ($canManage): ?>

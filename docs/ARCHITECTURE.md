@@ -18,6 +18,7 @@ Core contains:
 - module discovery, dependencies and lifecycle;
 - dependency-ordered module boot;
 - public module service registry;
+- generic navigable-resource registry for cross-module internal links;
 - module-scoped migrations;
 - core users/roles/permissions administration;
 - core settings UI;
@@ -99,6 +100,20 @@ Modules must not replace or patch Core admin templates.
 
 The current admin UI foundation is Tabler 1.6.1. The public/default theme targets Bootstrap 5.3.8.
 Both are bundled into the nginx runtime image from exact npm package versions. mCMS Core does not bundle Tabler's demo/vendor libraries.
+
+## Navigable resources
+
+Modules that expose public content may register a provider implementing
+`MCMS\Core\Navigation\NavigableResourceProviderInterface`. A provider has a
+stable ID such as `pages.page`, exposes searchable published resources and can
+resolve a stable resource ID to a current label and URL.
+
+Consumers such as Menus depend only on Core's
+`NavigableResourceRegistry`. They persist the provider ID plus opaque resource
+ID instead of copying the current URL. If a provider is disabled, the persisted
+reference remains intact but resolves as unavailable; enabling the provider
+again restores the link automatically. This prevents Menus from depending on
+Pages, News, Shop or any future content module.
 
 ## Themes
 

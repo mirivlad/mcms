@@ -6,15 +6,16 @@ namespace MCMS\Modules\Menus\Services;
 
 use CodeIgniter\Database\BaseConnection;
 use InvalidArgumentException;
+use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Modules\Menus\Api\MenuRepositoryInterface;
 use RuntimeException;
 
 final class MenuRepository implements MenuRepositoryInterface
 {
-    private const TARGET_TYPES = ['custom'];
-
-    public function __construct(private readonly BaseConnection $db)
-    {
+    public function __construct(
+        private readonly BaseConnection $db,
+        private readonly NavigableResourceRegistry $navigation,
+    ) {
     }
 
     public function list(): array
@@ -396,13 +397,20 @@ final class MenuRepository implements MenuRepositoryInterface
         }
 
         $type = trim((string) ($data['target_type'] ?? 'custom'));
-        if (! in_array($type, self::TARGET_TYPES, true)) {
-            throw new InvalidArgumentException(lang('Menus.Errors.invalidTargetType'));
-        }
-
         $target = trim((string) ($data['target'] ?? ''));
-        if ($target !== '' && ! $this->isValidCustomTarget($target)) {
-            throw new InvalidArgumentException(lang('Menus.Errors.invalidTarget'));
+
+        if ($type === 'custom') {
+            if ($target !== '' && ! $this->isValidCustomTarget($target)) {
+                throw new InvalidArgumentException(lang('Menus.Errors.invalidTarget'));
+            }
+        } else {
+            if (! $this->navigation->has($type)) {
+                throw new InvalidArgumentException(lang('Menus.Errors.invalidTargetType'));
+            }
+
+            if ($target === '' || $this->navigation->resolve($type, $target) === null) {
+                throw new InvalidArgumentException(lang('Menus.Errors.resourceNotFound'));
+            }
         }
 
         return [
@@ -560,7 +568,19 @@ final class MenuRepository implements MenuRepositoryInterface
         $row['position'] = (int) $row['position'];
         $row['enabled'] = (bool) $row['enabled'];
         $row['open_in_new'] = (bool) $row['open_in_new'];
-        $row['url'] = $row['target_type'] === 'custom' ? $row['target'] : null;
+
+        if ($row['target_type'] === 'custom') {
+            $row['url'] = $row['target'];
+            $row['resource_label'] = null;
+            $row['target_available'] = true;
+        } else {
+            $resource = $row['target'] === null
+                ? null
+                : $this->navigation->resolve((string) $row['target_type'], (string) $row['target']);
+            $row['url'] = $resource['url'] ?? null;
+            $row['resource_label'] = $resource['label'] ?? null;
+            $row['target_available'] = $resource !== null;
+        }
 
         return $row;
     }

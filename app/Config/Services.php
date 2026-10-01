@@ -8,6 +8,7 @@ use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
+use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Storage\LocalStorage;
 use MCMS\Core\Storage\StorageInterface;
 use MCMS\Core\Themes\ThemeManager;
@@ -59,6 +60,15 @@ class Services extends BaseService
         return new ModuleServiceRegistry();
     }
 
+    public static function mcmsNavigation(bool $getShared = true): NavigableResourceRegistry
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsNavigation');
+        }
+
+        return new NavigableResourceRegistry();
+    }
+
     public static function mcmsModules(bool $getShared = true): ModuleManager
     {
         if ($getShared) {
@@ -69,6 +79,8 @@ class Services extends BaseService
             db_connect(),
             static::mcmsAdmin(),
             static::mcmsModuleServices(),
+            ROOTPATH . 'modules',
+            static::mcmsNavigation(),
         );
     }
 
