@@ -30,6 +30,9 @@ final class McmsUpdate extends BaseCommand
         CLI::write('Synchronizing Core access definitions...', 'yellow');
         service('mcmsAccess')->syncCoreDefinitions();
 
+        CLI::write('Ensuring an active site theme...', 'yellow');
+        service('mcmsThemes')->ensureActive();
+
         CLI::write('Updating enabled modules...', 'yellow');
         service('mcmsModules')->updateEnabled();
 
