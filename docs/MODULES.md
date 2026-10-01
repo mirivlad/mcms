@@ -69,7 +69,7 @@ final class Module implements ModuleProviderInterface
 
         $context->admin->addMenu(
             'example',
-            'Example',
+            '@Example.Admin.menuLabel',
             '/admin/example',
             permission: 'example.manage'
         );
@@ -83,6 +83,10 @@ final class Module implements ModuleProviderInterface
     }
 }
 ```
+
+Menu labels beginning with `@` are treated as language keys and resolved in the
+active site locale when the menu is rendered. First-party modules should ship
+their own `Language/<locale>/...` files and avoid hard-coded UI strings.
 
 ## Public module services
 
