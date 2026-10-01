@@ -12,6 +12,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
 WORKDIR /var/www/html
 COPY composer.json ./
+
+# Allow dependency resolution during initial bootstrap when composer.lock is not yet present.
+# Once composer.lock is committed, it will be copied and used for reproducible builds.
 RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --no-autoloader
 
 COPY . ./
