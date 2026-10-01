@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="<?= esc(service('request')->getLocale(), 'attr') ?>">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -33,8 +33,8 @@
             <div class="container-xl">
                 <div class="navbar-nav flex-row order-md-last ms-auto">
                     <div class="nav-item d-flex align-items-center gap-3">
-                        <span><?= esc($user->username ?? $user->email ?? 'User') ?></span>
-                        <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('logout') ?>">Sign out</a>
+                        <span><?= esc($user->username ?? $user->email ?? lang('MCMS.common.user')) ?></span>
+                        <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('logout') ?>"><?= esc(lang('MCMS.common.signOut')) ?></a>
                     </div>
                 </div>
             </div>

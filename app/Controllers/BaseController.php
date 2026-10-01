@@ -39,7 +39,6 @@ abstract class BaseController extends Controller
         // Caution: Do not edit this line.
         parent::initController($request, $response, $logger);
 
-        // Preload any models, libraries, etc, here.
-        // $this->session = service('session');
+        // Site-wide locale is applied by the global SiteLocale filter.
     }
 }

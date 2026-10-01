@@ -2,8 +2,9 @@ name: mcms
 
 x-app-env: &app-env
   CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
-  MCMS_BASE_URL: ${MCMS_BASE_URL:-http://localhost:8080/}
+  MCMS_BASE_URL: ${MCMS_BASE_URL:-}
   MCMS_TIMEZONE: ${MCMS_TIMEZONE:-UTC}
+  MCMS_COOKIE_SECURE: ${MCMS_COOKIE_SECURE:-}
   MCMS_DB_HOST: db
   MCMS_DB_PORT: 3306
   MCMS_DB_NAME: ${MCMS_DB_NAME:-mcms}

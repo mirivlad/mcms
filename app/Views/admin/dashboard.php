@@ -5,7 +5,7 @@
     <div class="row g-2 align-items-center">
         <div class="col">
             <div class="page-pretitle">mCMS Core</div>
-            <h2 class="page-title">Dashboard</h2>
+            <h2 class="page-title"><?= esc(lang('MCMS.dashboard.title')) ?></h2>
         </div>
     </div>
 </div>
@@ -14,9 +14,9 @@
     <div class="col-sm-6 col-lg-4">
         <div class="card">
             <div class="card-body">
-                <div class="subheader">System</div>
-                <div class="h3 mb-0">mCMS is running</div>
-                <div class="text-secondary mt-2">Modules extend this dashboard without changing the Core layout.</div>
+                <div class="subheader"><?= esc(lang('MCMS.common.system')) ?></div>
+                <div class="h3 mb-0"><?= esc(lang('MCMS.dashboard.running')) ?></div>
+                <div class="text-secondary mt-2"><?= esc(lang('MCMS.dashboard.description')) ?></div>
             </div>
         </div>
     </div>

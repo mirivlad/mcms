@@ -104,4 +104,20 @@ class Cookie extends BaseConfig
      * @see https://tools.ietf.org/html/rfc2616#section-2.2
      */
     public bool $raw = false;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $secure = trim((string) (getenv('MCMS_COOKIE_SECURE') ?: ''));
+        if ($secure !== '') {
+            $this->secure = filter_var($secure, FILTER_VALIDATE_BOOLEAN);
+            return;
+        }
+
+        $forwarded = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+        $this->secure = $forwarded === 'https'
+            || ($forwarded === '' && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off')
+            || ($forwarded === '' && strtolower((string) ($_SERVER['REQUEST_SCHEME'] ?? '')) === 'https');
+    }
 }

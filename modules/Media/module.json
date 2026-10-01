@@ -1,0 +1,37 @@
+{
+  "id": "media",
+  "name": "Media",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Media",
+  "provider": "MCMS\\Modules\\Media\\Module",
+  "mcms": "^0.1",
+  "description": "Shared media library for images and documents.",
+  "requires": [],
+  "settings": {
+    "max_upload_mb": 20,
+    "max_image_megapixels": 40,
+    "allowed_mime_types": [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "application/pdf"
+    ]
+  },
+  "permissions": {
+    "media.view": "View the media library.",
+    "media.upload": "Upload files to the media library.",
+    "media.edit": "Edit media metadata.",
+    "media.delete": "Delete files from the media library.",
+    "media.settings": "Manage media module settings."
+  },
+  "grants": {
+    "admin": [
+      "media.view",
+      "media.upload",
+      "media.edit",
+      "media.delete",
+      "media.settings"
+    ]
+  }
+}

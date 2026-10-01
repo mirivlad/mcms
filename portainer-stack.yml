@@ -1,0 +1,76 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    restart: unless-stopped
+    environment:
+      CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
+      MCMS_BASE_URL: ${MCMS_BASE_URL:-}
+      MCMS_TIMEZONE: ${MCMS_TIMEZONE:-UTC}
+      MCMS_COOKIE_SECURE: ${MCMS_COOKIE_SECURE:-}
+      MCMS_DB_HOST: db
+      MCMS_DB_PORT: 3306
+      MCMS_DB_NAME: ${MCMS_DB_NAME:-mcms}
+      MCMS_DB_USER: ${MCMS_DB_USER:-mcms}
+      MCMS_DB_PASSWORD: ${MCMS_DB_PASSWORD}
+      MCMS_MAIL_HOST: mail
+      MCMS_MAIL_PORT: 587
+      MCMS_MAIL_FROM: ${MCMS_MAIL_FROM:-noreply@example.test}
+      MCMS_MAIL_FROM_NAME: ${MCMS_MAIL_FROM_NAME:-mCMS}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - media_data:/var/www/html/public/assets/uploads
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/nginx/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${MCMS_BIND_ADDRESS:-127.0.0.1}:${MCMS_HTTP_PORT:-8188}:80"
+    volumes:
+      - media_data:/var/www/html/public/assets/uploads:ro
+
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MCMS_DB_NAME:-mcms}
+      MARIADB_USER: ${MCMS_DB_USER:-mcms}
+      MARIADB_PASSWORD: ${MCMS_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MCMS_DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  mail:
+    image: boky/postfix:5.1.0@sha256:aafc772384232497bed875e1eb66b4d3e54ba1ebc86e2e185a6dc1dbc48182ef
+    restart: unless-stopped
+    environment:
+      ALLOWED_SENDER_DOMAINS: ${MCMS_MAIL_DOMAIN:-example.test}
+      POSTFIX_myhostname: ${MCMS_MAIL_HOSTNAME:-mail.example.test}
+      RELAYHOST: ${MCMS_SMTP_RELAYHOST:-}
+      RELAYHOST_USERNAME: ${MCMS_SMTP_RELAY_USER:-}
+      RELAYHOST_PASSWORD: ${MCMS_SMTP_RELAY_PASSWORD:-}
+      DKIM_AUTOGENERATE: ${MCMS_DKIM_AUTOGENERATE:-1}
+      DKIM_SELECTOR: ${MCMS_DKIM_SELECTOR:-mail}
+    expose:
+      - "587"
+    volumes:
+      - mail_queue:/var/spool/postfix
+      - dkim_data:/etc/opendkim/keys
+
+volumes:
+  db_data:
+  media_data:
+  mail_queue:
+  dkim_data:

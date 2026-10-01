@@ -4,8 +4,8 @@
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">Users / Access</div>
-            <h2 class="page-title"><?= esc($target->username ?? $target->email ?? ('User #' . $target->id)) ?></h2>
+            <div class="page-pretitle"><?= esc(lang('MCMS.users.title')) ?> / <?= esc(lang('MCMS.users.access')) ?></div>
+            <h2 class="page-title"><?= esc($target->username ?? $target->email ?? (lang('MCMS.common.user') . ' #' . $target->id)) ?></h2>
         </div>
     </div>
 </div>
@@ -16,9 +16,19 @@
     <div class="row row-cards">
         <div class="col-lg-5">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">Groups</h3></div>
+                <div class="card-header"><h3 class="card-title"><?= esc(lang('MCMS.users.groups')) ?></h3></div>
                 <div class="card-body">
                     <?php foreach ($groups as $id => $group): ?>
+                        <?php
+                            $titleKey = 'MCMS.groups.' . $id . 'Title';
+                            $descriptionKey = 'MCMS.groups.' . $id . 'Description';
+                            $translatedTitle = lang($titleKey);
+                            $translatedDescription = lang($descriptionKey);
+                            $groupTitle = $translatedTitle === $titleKey ? ($group['title'] ?? $id) : $translatedTitle;
+                            $groupDescription = $translatedDescription === $descriptionKey
+                                ? ($group['description'] ?? '')
+                                : $translatedDescription;
+                        ?>
                         <label class="form-check mb-2">
                             <input
                                 class="form-check-input"
@@ -28,9 +38,9 @@
                                 <?= in_array($id, $target->getGroups() ?? [], true) ? 'checked' : '' ?>
                             >
                             <span class="form-check-label">
-                                <strong><?= esc($group['title'] ?? $id) ?></strong>
-                                <?php if (($group['description'] ?? '') !== ''): ?>
-                                    <span class="d-block text-secondary"><?= esc($group['description']) ?></span>
+                                <strong><?= esc($groupTitle) ?></strong>
+                                <?php if ($groupDescription !== ''): ?>
+                                    <span class="d-block text-secondary"><?= esc($groupDescription) ?></span>
                                 <?php endif ?>
                             </span>
                         </label>
@@ -41,12 +51,15 @@
 
         <div class="col-lg-7">
             <div class="card">
-                <div class="card-header"><h3 class="card-title">Direct permissions</h3></div>
+                <div class="card-header"><h3 class="card-title"><?= esc(lang('MCMS.users.directPermissions')) ?></h3></div>
                 <div class="card-body">
-                    <p class="text-secondary">
-                        These permissions are assigned directly to the user in addition to permissions inherited from groups.
-                    </p>
+                    <p class="text-secondary"><?= esc(lang('MCMS.users.accessIntro')) ?></p>
                     <?php foreach ($permissions as $permission => $description): ?>
+                        <?php
+                            $permissionKey = 'MCMS.permissions.' . str_replace('.', '_', $permission);
+                            $translated = lang($permissionKey);
+                            $permissionDescription = $translated === $permissionKey ? $description : $translated;
+                        ?>
                         <label class="form-check mb-2">
                             <input
                                 class="form-check-input"
@@ -57,7 +70,7 @@
                             >
                             <span class="form-check-label">
                                 <code><?= esc($permission) ?></code>
-                                <span class="d-block text-secondary"><?= esc($description) ?></span>
+                                <span class="d-block text-secondary"><?= esc($permissionDescription) ?></span>
                             </span>
                         </label>
                     <?php endforeach ?>
@@ -67,8 +80,8 @@
     </div>
 
     <div class="mt-4">
-        <button class="btn btn-primary" type="submit">Save access</button>
-        <a class="btn btn-link" href="<?= site_url('admin/users') ?>">Back to users</a>
+        <button class="btn btn-primary" type="submit"><?= esc(lang('MCMS.users.saveAccess')) ?></button>
+        <a class="btn btn-link" href="<?= site_url('admin/users') ?>"><?= esc(lang('MCMS.users.back')) ?></a>
     </div>
 </form>
 <?= $this->endSection() ?>

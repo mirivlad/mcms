@@ -105,7 +105,7 @@ class App extends BaseConfig
      *
      * If false, no automatic detection will be performed.
      */
-    public bool $negotiateLocale = false;
+    public bool $negotiateLocale = true;
 
     /**
      * --------------------------------------------------------------------------
@@ -120,7 +120,7 @@ class App extends BaseConfig
      *
      * @var list<string>
      */
-    public array $supportedLocales = ['en'];
+    public array $supportedLocales = ['en', 'ru'];
 
     /**
      * --------------------------------------------------------------------------
@@ -204,13 +204,17 @@ class App extends BaseConfig
     {
         parent::__construct();
 
-        $baseUrl = getenv('MCMS_BASE_URL');
-        if ($baseUrl !== false && trim($baseUrl) !== '') {
+        $baseUrl = trim((string) (getenv('MCMS_BASE_URL') ?: ''));
+        if ($baseUrl !== '') {
             $this->baseURL = rtrim($baseUrl, '/') . '/';
-        } elseif ($baseUrl === '' && isset($_SERVER['HTTP_HOST'])) {
+        } elseif (isset($_SERVER['HTTP_HOST'])) {
             $host = (string) $_SERVER['HTTP_HOST'];
             if (preg_match('/^((\\[[0-9a-f:]+\\])|(\\d{1,3}(\\.\\d{1,3}){3})|[a-z0-9\\-.]+)(:\\d+)?$/i', $host)) {
-                $https = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off';
+                $forwarded = strtolower(trim(explode(',', (string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''))[0]));
+                $https = $forwarded === 'https'
+                    || ($forwarded === '' && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== '' && $_SERVER['HTTPS'] !== 'off')
+                    || ($forwarded === '' && strtolower((string) ($_SERVER['REQUEST_SCHEME'] ?? '')) === 'https');
+
                 $this->baseURL = ($https ? 'https' : 'http') . '://' . $host . '/';
             }
         }
