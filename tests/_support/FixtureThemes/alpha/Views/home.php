@@ -1,0 +1,1 @@
+Alpha: <?= esc($message) ?>
