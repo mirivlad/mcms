@@ -32,14 +32,16 @@
             <?php foreach ($modules as $id => $module): ?>
                 <?php
                     $enabled = (int) ($states[$id]['enabled'] ?? 0) === 1;
+                    $moduleName = $module->name;
                     $description = $module->description;
                     if ($id === 'media') {
+                        $moduleName = lang('MCMS.media.title');
                         $description = lang('MCMS.modules.mediaDescription');
                     }
                 ?>
                 <tr>
                     <td>
-                        <div class="fw-bold"><?= esc($module->name) ?></div>
+                        <div class="fw-bold"><?= esc($moduleName) ?></div>
                         <div class="text-secondary"><?= esc($description) ?></div>
                         <code><?= esc($id) ?></code>
                     </td>
