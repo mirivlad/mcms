@@ -86,7 +86,7 @@ jobs:
 
       - name: Verify Core administration routes
         run: |
-          for path in users access modules settings system; do
+          for path in users access modules themes settings system; do
             code="$(curl -sS               -b /tmp/mcms.cookies               -o "/tmp/admin-${path}.html"               -w '%{http_code}'               "http://127.0.0.1:8080/admin/${path}")"
 
             test "$code" = "200"
