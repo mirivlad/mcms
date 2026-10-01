@@ -41,6 +41,20 @@ final class ThemeManagerTest extends CIUnitTestCase
         );
     }
 
+    public function testEnsureActiveSelectsPreferredTheme(): void
+    {
+        $manager = new ThemeManager(
+            service('settings'),
+            ROOTPATH . 'tests/_support/FixtureThemes',
+        );
+
+        $theme = $manager->ensureActive('beta');
+
+        self::assertNotNull($theme);
+        self::assertSame('beta', $theme->id);
+        self::assertSame('beta', $manager->activeId());
+    }
+
     public function testUnknownThemeCannotBeActivated(): void
     {
         $manager = new ThemeManager(
