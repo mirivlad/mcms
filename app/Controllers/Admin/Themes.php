@@ -39,7 +39,7 @@ final class Themes extends BaseAdminController
             throw PageNotFoundException::forPageNotFound();
         }
 
-        if ($this->request->getMethod() === 'post') {
+        if ($this->request->getMethod() === 'POST') {
             $locations = $this->request->getPost('location');
             $menuIds = $this->request->getPost('menu_id');
             $locations = is_array($locations) ? $locations : [];

@@ -75,8 +75,8 @@ jobs:
           curl -fsS http://127.0.0.1:8080/assets/vendor/tabler/tabler.min.js -o /dev/null
           curl -fsS http://127.0.0.1:8080/assets/vendor/tabler-icons/tabler-icons.min.css -o /dev/null
           curl -fsS http://127.0.0.1:8080/assets/vendor/tabler-icons/fonts/tabler-icons.woff2 -o /dev/null
-          curl -fsS http://127.0.0.1:8080/assets/themes/mcms-default/css/theme.css -o /dev/null
-          curl -fsS http://127.0.0.1:8080/assets/themes/mcms-default/screenshot.svg -o /dev/null
+          test "$(curl -fsS http://127.0.0.1:8080/assets/themes/mcms-default/css/theme.css | wc -c)" -gt 1000
+          test "$(curl -fsS http://127.0.0.1:8080/assets/themes/mcms-default/screenshot.svg | wc -c)" -gt 500
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/install.html)"
 
