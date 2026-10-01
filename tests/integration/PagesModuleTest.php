@@ -7,6 +7,7 @@ use CodeIgniter\Test\DatabaseTestTrait;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
+use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
 
 final class PagesModuleTest extends CIUnitTestCase
@@ -38,11 +39,13 @@ final class PagesModuleTest extends CIUnitTestCase
 
         $admin = new AdminRegistry();
         $services = new ModuleServiceRegistry();
+        $navigation = new NavigableResourceRegistry();
         $manager = new ModuleManager(
             $this->db,
             $admin,
             $services,
             ROOTPATH . 'modules',
+            $navigation,
         );
 
         self::assertArrayHasKey('media', $manager->catalog());
@@ -69,6 +72,8 @@ final class PagesModuleTest extends CIUnitTestCase
         self::assertTrue($services->has('pages.repository'));
         self::assertContains('media', array_column($admin->menu(), 'id'));
         self::assertContains('pages', array_column($admin->menu(), 'id'));
+        self::assertTrue($navigation->has('pages.page'));
+        self::assertSame('Pages', $navigation->get('pages.page')->label());
 
         $repository = $services->get('pages.repository');
         self::assertInstanceOf(PageRepositoryInterface::class, $repository);
@@ -85,6 +90,11 @@ final class PagesModuleTest extends CIUnitTestCase
         self::assertSame('privet-mir', $page['slug']);
         self::assertSame('/privet-mir', $page['url']);
         self::assertSame('published', $page['status']);
+        self::assertSame([
+            'id' => (string) $page['id'],
+            'label' => 'Привет, мир!',
+            'url' => '/privet-mir',
+        ], $navigation->resolve('pages.page', (string) $page['id']));
         self::assertStringContainsString('<strong>world</strong>', $page['body']);
         self::assertStringNotContainsString('<script', $page['body']);
         self::assertStringNotContainsString('onerror', $page['body']);

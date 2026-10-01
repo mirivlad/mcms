@@ -10,6 +10,7 @@ use CodeIgniter\Events\Events;
 use CodeIgniter\Router\RouteCollection;
 use Config\Services;
 use MCMS\Core\Admin\AdminRegistry;
+use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Version;
 use MCMS\Core\Events\CoreEvents;
 use RuntimeException;
@@ -19,13 +20,16 @@ final class ModuleManager
 {
     private array $catalog = [];
     private bool $booted = false;
+    private readonly NavigableResourceRegistry $navigation;
 
     public function __construct(
         private readonly BaseConnection $db,
         private readonly AdminRegistry $admin,
         private readonly ModuleServiceRegistry $services,
         private readonly string $modulesPath = ROOTPATH . 'modules',
+        ?NavigableResourceRegistry $navigation = null,
     ) {
+        $this->navigation = $navigation ?? new NavigableResourceRegistry();
     }
 
     public function catalog(): array
@@ -146,7 +150,7 @@ final class ModuleManager
 
         foreach ($this->enabledManifests() as $manifest) {
             $this->provider($manifest)->boot(
-                new ModuleContext($manifest, $this->admin, $this->services)
+                new ModuleContext($manifest, $this->admin, $this->services, $this->navigation)
             );
         }
     }

@@ -25,13 +25,21 @@ The service can:
 
 ## Item targets
 
-The schema contains a `target_type` plus an opaque `target` value so future
-modules can add provider-backed navigation targets without changing the tree
-model. Version 0.1 exposes only the `custom` target type in the administration
-UI. It accepts local paths, anchors, queries and http(s)/mailto/tel URLs.
+The schema contains a `target_type` plus an opaque `target` value. Custom
+links use `target_type=custom` and accept local paths, anchors, queries and
+http(s)/mailto/tel URLs.
 
-Menus does not depend on Pages. A Pages/News resource picker can be added later
-through a generic target-provider contract rather than direct table access.
+Internal links use a provider ID as `target_type` and the provider's stable
+resource ID as `target`. Providers implement Core's
+`MCMS\Core\Navigation\NavigableResourceProviderInterface` and register with
+`NavigableResourceRegistry`. Menus never reads another module's tables and
+does not know provider-specific classes.
+
+Pages currently registers `pages.page`; future modules such as News can add
+their own providers without changing Menus. If a provider is disabled or the
+resource disappears, the stored target is preserved and renders as unavailable
+instead of being converted into a stale URL. Re-enabling the provider restores
+resolution automatically.
 
 ## Administration
 

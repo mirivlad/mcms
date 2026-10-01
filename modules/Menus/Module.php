@@ -15,7 +15,7 @@ final class Module implements ModuleProviderInterface
     {
         $context->services->register(
             'menus.repository',
-            new MenuRepository(db_connect()),
+            new MenuRepository(db_connect(), $context->navigation),
         );
 
         $context->admin->addMenu(
@@ -35,6 +35,7 @@ final class Module implements ModuleProviderInterface
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::create');
             $routes->match(['get', 'post'], '(:num)/edit', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::edit/$1');
             $routes->post('(:num)/delete', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::delete/$1');
+            $routes->get('resources', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::resources');
             $routes->post('(:num)/items/save', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::saveItem/$1');
             $routes->post('(:num)/items/(:num)/delete', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::deleteItem/$1/$2');
             $routes->post('(:num)/structure', '\\MCMS\\Modules\\Menus\\Controllers\\Admin::saveStructure/$1');

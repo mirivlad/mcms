@@ -12,7 +12,8 @@ First-party reusable static-pages module for mCMS.
 - lightweight rich-text editor;
 - image insertion through the public `media.library` module service;
 - English and Russian administration UI;
-- public repository service exposed as `pages.repository`.
+- public repository service exposed as `pages.repository`;
+- generic internal-link provider exposed to Core navigation as `pages.page`.
 
 ## Dependency
 

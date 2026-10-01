@@ -18,7 +18,9 @@
     $collectParents($tree);
 
     $itemLabel = (string) old('label', $editItem['label'] ?? '');
+    $itemTargetType = (string) old('target_type', $editItem['target_type'] ?? 'custom');
     $itemTarget = (string) old('target', $editItem['target'] ?? '');
+    $providerIds = array_column($navigationProviders, 'id');
     $itemParent = old('parent_id', $editItem['parent_id'] ?? '');
     $itemEnabled = old('enabled', $editItem === null || ($editItem['enabled'] ?? false) ? '1' : null) !== null;
     $itemOpenNew = old('open_in_new', ($editItem['open_in_new'] ?? false) ? '1' : null) !== null;
@@ -223,9 +225,41 @@
                             </div>
 
                             <div class="mb-3">
+                                <label class="form-label" for="item_target_type"><?= esc(lang('Menus.Admin.targetType')) ?></label>
+                                <select class="form-select" id="item_target_type" name="target_type">
+                                    <option value="custom" <?= $itemTargetType === 'custom' ? 'selected' : '' ?>>
+                                        <?= esc(lang('Menus.Admin.customTarget')) ?>
+                                    </option>
+                                    <?php foreach ($navigationProviders as $provider): ?>
+                                        <option value="<?= esc($provider['id'], 'attr') ?>" <?= $itemTargetType === $provider['id'] ? 'selected' : '' ?>>
+                                            <?= esc($provider['label']) ?>
+                                        </option>
+                                    <?php endforeach ?>
+                                    <?php if ($itemTargetType !== 'custom' && ! in_array($itemTargetType, $providerIds, true)): ?>
+                                        <option value="<?= esc($itemTargetType, 'attr') ?>" selected>
+                                            <?= esc(sprintf(lang('Menus.Admin.unavailableProvider'), $itemTargetType)) ?>
+                                        </option>
+                                    <?php endif ?>
+                                </select>
+                                <div class="form-hint"><?= esc(lang('Menus.Admin.targetTypeHint')) ?></div>
+                            </div>
+
+                            <div class="mb-3" id="custom-target-field">
                                 <label class="form-label" for="item_target"><?= esc(lang('Menus.Admin.target')) ?></label>
                                 <input class="form-control font-monospace" id="item_target" name="target" maxlength="500" placeholder="/about" value="<?= esc($itemTarget) ?>">
                                 <div class="form-hint"><?= esc(lang('Menus.Admin.targetHint')) ?></div>
+                            </div>
+
+                            <div class="mb-3 d-none" id="resource-target-field">
+                                <label class="form-label" for="item_resource"><?= esc(lang('Menus.Admin.resource')) ?></label>
+                                <div class="input-group mb-2">
+                                    <input class="form-control" type="search" id="resource-search" placeholder="<?= esc(lang('Menus.Admin.resourceSearch'), 'attr') ?>">
+                                    <button class="btn btn-outline-secondary" type="button" id="resource-search-button">
+                                        <i class="ti ti-search"></i>
+                                    </button>
+                                </div>
+                                <select class="form-select" id="item_resource" data-current="<?= esc($itemTarget, 'attr') ?>"></select>
+                                <div class="form-hint" id="resource-status"><?= esc(lang('Menus.Admin.resourceHint')) ?></div>
                             </div>
 
                             <div class="mb-3">
@@ -267,6 +301,123 @@
             <?php endif ?>
         </div>
     </div>
+
+    <?php if ($canManage): ?>
+        <script>
+        (() => {
+            const type = document.getElementById('item_target_type');
+            const customField = document.getElementById('custom-target-field');
+            const customTarget = document.getElementById('item_target');
+            const resourceField = document.getElementById('resource-target-field');
+            const resourceSelect = document.getElementById('item_resource');
+            const resourceSearch = document.getElementById('resource-search');
+            const resourceSearchButton = document.getElementById('resource-search-button');
+            const resourceStatus = document.getElementById('resource-status');
+            const endpoint = <?= json_encode(site_url('admin/menus/resources'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
+            const labels = <?= json_encode([
+                'loading' => lang('Menus.Admin.resourceLoading'),
+                'empty' => lang('Menus.Admin.resourceEmpty'),
+                'error' => lang('Menus.Admin.resourceLoadError'),
+            ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
+            let lastProvider = null;
+
+            const loadResources = async () => {
+                const provider = type.value;
+                if (provider === 'custom') {
+                    return;
+                }
+
+                resourceStatus.textContent = labels.loading;
+                resourceSelect.disabled = true;
+
+                const url = new URL(endpoint, window.location.origin);
+                url.searchParams.set('provider', provider);
+                const query = resourceSearch.value.trim();
+                if (query) {
+                    url.searchParams.set('q', query);
+                }
+
+                try {
+                    const response = await fetch(url, {
+                        headers: {'Accept': 'application/json'},
+                        credentials: 'same-origin',
+                        cache: 'no-store',
+                    });
+                    if (! response.ok) {
+                        throw new Error('resource request failed');
+                    }
+
+                    const payload = await response.json();
+                    const items = Array.isArray(payload.items) ? payload.items : [];
+                    const current = resourceSelect.dataset.current || '';
+                    resourceSelect.replaceChildren();
+
+                    for (const item of items) {
+                        const option = document.createElement('option');
+                        option.value = String(item.id);
+                        option.textContent = item.label;
+                        option.selected = String(item.id) === current;
+                        resourceSelect.appendChild(option);
+                    }
+
+                    if (current && ! items.some((item) => String(item.id) === current)) {
+                        const option = document.createElement('option');
+                        option.value = current;
+                        option.textContent = '— ' + current;
+                        option.selected = true;
+                        resourceSelect.prepend(option);
+                    }
+
+                    resourceStatus.textContent = items.length === 0 ? labels.empty : '';
+                    resourceSelect.disabled = false;
+                } catch (_) {
+                    resourceSelect.replaceChildren();
+                    const current = resourceSelect.dataset.current || '';
+                    if (current) {
+                        const option = document.createElement('option');
+                        option.value = current;
+                        option.textContent = '— ' + current;
+                        option.selected = true;
+                        resourceSelect.appendChild(option);
+                        resourceSelect.disabled = false;
+                    }
+                    resourceStatus.textContent = labels.error;
+                }
+            };
+
+            const syncType = async () => {
+                const isCustom = type.value === 'custom';
+                customField.classList.toggle('d-none', ! isCustom);
+                resourceField.classList.toggle('d-none', isCustom);
+                customTarget.name = isCustom ? 'target' : '';
+                resourceSelect.name = isCustom ? '' : 'target';
+
+                if (! isCustom && lastProvider !== type.value) {
+                    lastProvider = type.value;
+                    await loadResources();
+                }
+            };
+
+            type.addEventListener('change', () => {
+                resourceSelect.dataset.current = '';
+                resourceSearch.value = '';
+                syncType();
+            });
+            resourceSearchButton.addEventListener('click', loadResources);
+            resourceSearch.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    loadResources();
+                }
+            });
+            resourceSelect.addEventListener('change', () => {
+                resourceSelect.dataset.current = resourceSelect.value;
+            });
+
+            syncType();
+        })();
+        </script>
+    <?php endif ?>
 
     <?php if ($canManage && $items !== []): ?>
         <script>

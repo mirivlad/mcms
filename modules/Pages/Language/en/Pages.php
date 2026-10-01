@@ -48,6 +48,9 @@ return [
         'permalink' => 'Permalink',
         'seoHint' => 'Optional search-engine metadata.',
     ],
+    'Navigation' => [
+        'provider' => 'Pages',
+    ],
     'Permissions' => [
         'view' => 'View pages in the administration area.',
         'create' => 'Create pages.',

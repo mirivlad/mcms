@@ -7,6 +7,7 @@ use CodeIgniter\Test\DatabaseTestTrait;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
+use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Themes\MenuSourceInterface;
 use MCMS\Modules\Menus\Api\MenuRepositoryInterface;
 
@@ -22,6 +23,14 @@ final class MenusModuleTest extends CIUnitTestCase
 
     protected function tearDown(): void
     {
+        $this->migrations
+            ->setNamespace('MCMS\\Modules\\Pages')
+            ->regress(0, 'tests');
+
+        $this->migrations
+            ->setNamespace('MCMS\\Modules\\Media')
+            ->regress(0, 'tests');
+
         $this->migrations
             ->setNamespace('MCMS\\Modules\\Menus')
             ->regress(0, 'tests');
@@ -158,6 +167,99 @@ final class MenusModuleTest extends CIUnitTestCase
         $manager->enable('menus');
         self::assertSame(1, (int) $manager->states()['menus']['enabled']);
         self::assertSame(4, $this->db->table('menu_items')->countAllResults());
+    }
+
+    public function testInternalResourcesResolveWithoutMenusDependingOnPages(): void
+    {
+        service('language')->setLocale('en');
+
+        $services = new ModuleServiceRegistry();
+        $navigation = new NavigableResourceRegistry();
+        $manager = new ModuleManager(
+            $this->db,
+            new AdminRegistry(),
+            $services,
+            ROOTPATH . 'modules',
+            $navigation,
+        );
+
+        $manager->enable('pages');
+        $manager->enable('menus');
+        $manager->bootEnabled();
+
+        self::assertTrue($navigation->has('pages.page'));
+
+        $pages = $services->get('pages.repository');
+        $page = $pages->create([
+            'title' => 'About us',
+            'slug' => 'about-us',
+            'body' => '<p>About</p>',
+            'status' => 'published',
+            'seo_title' => '',
+            'seo_description' => '',
+        ]);
+
+        $menus = $services->get('menus.repository');
+        self::assertInstanceOf(MenuRepositoryInterface::class, $menus);
+
+        $menu = $menus->createMenu([
+            'name' => 'Primary',
+            'handle' => 'primary',
+            'description' => '',
+        ]);
+        $item = $menus->saveItem($menu['id'], null, [
+            'label' => 'About',
+            'target_type' => 'pages.page',
+            'target' => (string) $page['id'],
+            'enabled' => true,
+            'open_in_new' => false,
+        ]);
+
+        self::assertSame('pages.page', $item['target_type']);
+        self::assertSame((string) $page['id'], $item['target']);
+        self::assertSame('/about-us', $item['url']);
+        self::assertSame('About us', $item['resource_label']);
+        self::assertTrue($item['target_available']);
+
+        $manager->disable('pages');
+
+        $servicesWithoutPages = new ModuleServiceRegistry();
+        $navigationWithoutPages = new NavigableResourceRegistry();
+        $nextRequest = new ModuleManager(
+            $this->db,
+            new AdminRegistry(),
+            $servicesWithoutPages,
+            ROOTPATH . 'modules',
+            $navigationWithoutPages,
+        );
+        $nextRequest->bootEnabled();
+
+        self::assertFalse($navigationWithoutPages->has('pages.page'));
+        $menusWithoutPages = $servicesWithoutPages->get('menus.repository');
+        $preserved = $menusWithoutPages->findItem($menu['id'], $item['id']);
+        self::assertNotNull($preserved);
+        self::assertSame('pages.page', $preserved['target_type']);
+        self::assertSame((string) $page['id'], $preserved['target']);
+        self::assertNull($preserved['url']);
+        self::assertFalse($preserved['target_available']);
+
+        $nextRequest->enable('pages');
+
+        $servicesRestored = new ModuleServiceRegistry();
+        $navigationRestored = new NavigableResourceRegistry();
+        $restoredRequest = new ModuleManager(
+            $this->db,
+            new AdminRegistry(),
+            $servicesRestored,
+            ROOTPATH . 'modules',
+            $navigationRestored,
+        );
+        $restoredRequest->bootEnabled();
+
+        self::assertTrue($navigationRestored->has('pages.page'));
+        $restored = $servicesRestored->get('menus.repository')->findItem($menu['id'], $item['id']);
+        self::assertSame('/about-us', $restored['url']);
+        self::assertTrue($restored['target_available']);
     }
 
     public function testMenusRejectsUnsafeCustomTargetsAndDeletesSubtrees(): void
