@@ -3,13 +3,16 @@ FROM node:24-alpine AS ui
 WORKDIR /ui
 RUN npm init -y \
     && npm install --save-exact --ignore-scripts --omit=optional --no-audit --no-fund \
-        @tabler/core@1.6.1 bootstrap@5.3.8 \
+        @tabler/core@1.6.1 @tabler/icons-webfont@3.48.0 bootstrap@5.3.8 \
     && mkdir -p \
         /out/tabler \
+        /out/tabler-icons/fonts \
         /out/bootstrap/css \
         /out/bootstrap/js \
     && cp node_modules/@tabler/core/dist/css/tabler.min.css /out/tabler/tabler.min.css \
     && cp node_modules/@tabler/core/dist/js/tabler.min.js /out/tabler/tabler.min.js \
+    && cp node_modules/@tabler/icons-webfont/dist/tabler-icons.min.css /out/tabler-icons/tabler-icons.min.css \
+    && cp node_modules/@tabler/icons-webfont/dist/fonts/tabler-icons.* /out/tabler-icons/fonts/ \
     && cp node_modules/bootstrap/dist/css/bootstrap.min.css /out/bootstrap/css/bootstrap.min.css \
     && cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js /out/bootstrap/js/bootstrap.bundle.min.js
 
