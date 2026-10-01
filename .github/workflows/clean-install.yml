@@ -373,9 +373,15 @@ jobs:
           grep -q 'Smoke news excerpt' /tmp/public-news-index.html
 
           curl -fsS http://127.0.0.1:8080/news/smoke-news -o /tmp/public-news-article.html
-          grep -q 'Smoke news SEO' /tmp/public-news-article.html
-          grep -q '<strong>news</strong>' /tmp/public-news-article.html
-          grep -q '/assets/uploads/media/' /tmp/public-news-article.html
+          python3 - <<'PY'
+          from html import unescape
+          from pathlib import Path
+
+          article = unescape(Path('/tmp/public-news-article.html').read_text())
+          for needle in ('Smoke news SEO', '<strong>news</strong>', '/assets/uploads/media/'):
+              if needle not in article:
+                  raise SystemExit(f'Missing public news content: {needle}\n{article}')
+          PY
 
           curl -fsS -b /tmp/mcms.cookies http://127.0.0.1:8080/admin/news/media -o /tmp/news-media.json
           grep -q 'Smoke image' /tmp/news-media.json
