@@ -54,6 +54,12 @@ final class ThemeManifest
             );
         }
 
+        if (basename(dirname($manifestPath)) !== $id) {
+            throw new InvalidArgumentException(
+                "Theme directory name must match theme id {$id}."
+            );
+        }
+
         $name = self::requiredString($data, 'name', $manifestPath);
         $version = self::requiredString($data, 'version', $manifestPath);
         if (preg_match('/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/', $version) !== 1) {
