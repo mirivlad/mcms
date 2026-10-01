@@ -1,0 +1,21 @@
+{
+  "id": "menus",
+  "name": "@Menus.Admin.menuLabel",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Menus",
+  "provider": "MCMS\\Modules\\Menus\\Module",
+  "mcms": "^0.1",
+  "description": "@Menus.Admin.description",
+  "requires": [],
+  "settings": {},
+  "permissions": {
+    "menus.view": "@Menus.Permissions.view",
+    "menus.manage": "@Menus.Permissions.manage"
+  },
+  "grants": {
+    "admin": [
+      "menus.view",
+      "menus.manage"
+    ]
+  }
+}
