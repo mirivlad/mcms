@@ -64,7 +64,7 @@ jobs:
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/install.html)"
 
-          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "site_name=CI Test mCMS"             --data-urlencode "email=admin@example.test"             --data-urlencode "username=admin"             --data-urlencode "password=Correct-Horse-Battery-Staple-42!"             --data-urlencode "password_confirm=Correct-Horse-Battery-Staple-42!"             --data-urlencode "allow_registration=1"             http://127.0.0.1:8080/install             -o /tmp/admin.html
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "site_name=CI Test mCMS"             --data-urlencode "locale=en"             --data-urlencode "email=admin@example.test"             --data-urlencode "username=admin"             --data-urlencode "password=Correct-Horse-Battery-Staple-42!"             --data-urlencode "password_confirm=Correct-Horse-Battery-Staple-42!"             --data-urlencode "allow_registration=1"             http://127.0.0.1:8080/install             -o /tmp/admin.html
 
           grep -q 'Dashboard' /tmp/admin.html
           grep -q 'mCMS is running' /tmp/admin.html
@@ -92,7 +92,7 @@ jobs:
 
           settings="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT COUNT(*) FROM settings;')"
 
-          test "$settings" -ge "2"
+          test "$settings" -ge "3"
 
       - name: Enable Media through Modules UI
         run: |
