@@ -247,13 +247,15 @@ jobs:
 
           curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page.html
 
-          for needle in 'Smoke SEO title' 'Smoke SEO description' '<strong>page</strong>'; do
-            if ! grep -Fq "$needle" /tmp/public-page.html; then
-              echo "Missing public page content: $needle"
-              cat /tmp/public-page.html
-              exit 1
-            fi
-          done
+          python3 - <<'PY'
+          from html import unescape
+          from pathlib import Path
+
+          page = unescape(Path('/tmp/public-page.html').read_text())
+          for needle in ('Smoke SEO title', 'Smoke SEO description', '<strong>page</strong>'):
+              if needle not in page:
+                  raise SystemExit(f'Missing public page content: {needle}\n{page}')
+          PY
 
           curl -fsS             -b /tmp/mcms.cookies             http://127.0.0.1:8080/admin/pages/media             -o /tmp/pages-media.json
           if ! grep -Fq 'Smoke image' /tmp/pages-media.json; then
