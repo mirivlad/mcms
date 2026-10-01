@@ -39,22 +39,6 @@ abstract class BaseController extends Controller
         // Caution: Do not edit this line.
         parent::initController($request, $response, $logger);
 
-        // Installed sites use one site-wide locale from Core settings.
-        // Before installation CI4 may negotiate en/ru from the browser.
-        try {
-            if (service('mcmsInstaller')->isInstalled()) {
-                $app = config('App');
-                $locale = (string) (service('settings')->get('Core.locale') ?? $app->defaultLocale);
-
-                if (! in_array($locale, $app->supportedLocales, true)) {
-                    $locale = $app->defaultLocale;
-                }
-
-                $request->setLocale($locale);
-                service('language')->setLocale($locale);
-            }
-        } catch (\Throwable) {
-            // A clean install may not have the settings/auth tables yet.
-        }
+        // Site-wide locale is applied by the global SiteLocale filter.
     }
 }
