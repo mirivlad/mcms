@@ -20,5 +20,16 @@ FROM nginx:stable-alpine
 
 COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY public/ /var/www/html/public/
+COPY themes/ /tmp/mcms-themes/
+RUN set -eu; \
+    mkdir -p /var/www/html/public/assets/themes; \
+    for theme in /tmp/mcms-themes/*; do \
+        [ -d "$theme" ] || continue; \
+        [ -d "$theme/assets" ] || continue; \
+        id="$(basename "$theme")"; \
+        mkdir -p "/var/www/html/public/assets/themes/$id"; \
+        cp -R "$theme/assets/." "/var/www/html/public/assets/themes/$id/"; \
+    done; \
+    rm -rf /tmp/mcms-themes
 COPY --from=ui /out/ /var/www/html/public/assets/vendor/
 COPY THIRD_PARTY_NOTICES.md /usr/share/licenses/mcms/THIRD_PARTY_NOTICES.md
