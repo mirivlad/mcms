@@ -75,7 +75,7 @@ jobs:
 
           grep -q 'Dashboard' /tmp/admin.html
           grep -q 'mCMS is running' /tmp/admin.html
-          grep -q 'ti ti-home' /tmp/admin.html
+          grep -q 'ti-home' /tmp/admin.html
 
       - name: Verify Core administration routes
         run: |
