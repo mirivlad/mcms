@@ -20,18 +20,23 @@
 }
 .mcms-editor-toolbar {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: .25rem;
     padding: .5rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
     border-bottom: 1px solid var(--tblr-border-color);
     background: var(--tblr-bg-surface-secondary);
 }
 .mcms-editor-toolbar .btn {
+    flex: 0 0 2.25rem;
     width: 2.25rem;
     height: 2.25rem;
     padding: 0;
 }
 .mcms-editor-toolbar .mcms-editor-toolbar-separator {
+    flex: 0 0 1px;
     width: 1px;
     align-self: stretch;
     margin: 0 .25rem;
@@ -62,6 +67,41 @@
 .mcms-seo-summary::-webkit-details-marker {
     display: none;
 }
+.mcms-permalink-group {
+    flex-wrap: nowrap;
+    overflow: hidden;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    background: var(--tblr-bg-surface, #fff);
+}
+.mcms-permalink-group .input-group-text,
+.mcms-permalink-group .form-control {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent;
+}
+.mcms-permalink-group .form-control {
+    border-left: 1px solid var(--tblr-border-color) !important;
+}
+.mcms-permalink-group .form-control {
+    min-width: 0;
+}
+.mcms-permalink-group:focus-within {
+    border-color: var(--tblr-primary);
+}
+@media (max-width: 767.98px) {
+    .mcms-editor {
+        min-height: 22rem;
+        padding: 1rem;
+    }
+    .mcms-editor-toolbar {
+        scrollbar-width: none;
+    }
+    .mcms-editor-toolbar::-webkit-scrollbar {
+        display: none;
+    }
+}
 #media-dialog {
     width: min(1000px, 94vw);
     max-height: 88vh;
@@ -78,8 +118,11 @@
             <h2 class="page-title"><?= esc(lang($isEdit ? 'Pages.Admin.edit' : 'Pages.Admin.create')) ?></h2>
         </div>
         <div class="col-12 col-md-auto ms-md-auto">
-            <a class="btn btn-outline-secondary" href="<?= site_url('admin/pages') ?>">
+            <a class="btn btn-outline-secondary d-none d-md-inline-flex" href="<?= site_url('admin/pages') ?>">
                 <i class="ti ti-arrow-left me-1"></i><?= esc(lang('MCMS.common.back')) ?>
+            </a>
+            <a class="d-inline-flex d-md-none align-items-center gap-1 text-secondary text-decoration-none small" href="<?= site_url('admin/pages') ?>">
+                <i class="ti ti-arrow-left"></i><?= esc(lang('MCMS.common.back')) ?>
             </a>
         </div>
     </div>
@@ -103,9 +146,10 @@
                     >
 
                     <label class="form-label" for="page_slug"><?= esc(lang('Pages.Admin.permalink')) ?></label>
-                    <div class="input-group input-group-flat">
-                        <span class="input-group-text"><i class="ti ti-link"></i></span>
-                        <span class="input-group-text">/</span>
+                    <div class="input-group mcms-permalink-group">
+                        <span class="input-group-text">
+                            <i class="ti ti-link"></i><span class="ms-2">/</span>
+                        </span>
                         <input
                             class="form-control font-monospace"
                             id="page_slug"
@@ -234,7 +278,7 @@
                         <?php if ($isEdit && $page['status'] === 'published'): ?>
                             <div class="mb-3">
                                 <a
-                                    class="btn btn-outline-secondary w-100"
+                                    class="btn btn-outline-secondary w-100 text-wrap"
                                     href="<?= esc(site_url(ltrim($page['url'], '/'))) ?>"
                                     target="_blank"
                                     rel="noopener"
