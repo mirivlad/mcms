@@ -3,12 +3,12 @@
 <?= $this->section('content') ?>
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
-        <div class="col">
+        <div class="col-12 col-md">
             <div class="page-pretitle"><?= esc(lang('MCMS.common.module')) ?></div>
             <h2 class="page-title"><?= esc(lang('Pages.Admin.title')) ?></h2>
-            <div class="text-secondary mt-1"><?= esc((string) $count) ?></div>
+            <div class="text-secondary mt-1"><?= esc(sprintf(lang('Pages.Admin.count'), $count)) ?></div>
         </div>
-        <div class="col-auto ms-auto d-flex gap-2">
+        <div class="col-12 col-md-auto ms-md-auto d-flex flex-wrap gap-2">
             <?php if ($canSettings): ?>
                 <a class="btn btn-outline-secondary" href="<?= site_url('admin/pages/settings') ?>">
                     <i class="ti ti-settings me-1"></i><?= esc(lang('Pages.Admin.settings')) ?>
