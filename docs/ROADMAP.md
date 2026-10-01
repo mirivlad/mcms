@@ -27,8 +27,8 @@
 - [x] Pages.
 - [x] Menus/navigation.
 - [x] Theme API and administration.
-- [ ] Default theme with declared menu locations.
-- [ ] Menus ↔ theme-location assignment.
+- [x] Default theme with declared menu locations.
+- [x] Menus ↔ theme-location assignment.
 - [ ] News.
 - [ ] Galleries.
 

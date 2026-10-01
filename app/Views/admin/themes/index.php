@@ -25,6 +25,14 @@
             <?php $isActive = $activeId === $theme->id; ?>
             <div class="col-md-6 col-xl-4">
                 <div class="card h-100 <?= $isActive ? 'border-primary' : '' ?>">
+                    <?php if ($theme->screenshot !== null): ?>
+                        <img
+                            src="<?= esc($manager->assetUrl($theme->screenshot, $theme), 'attr') ?>"
+                            class="card-img-top"
+                            alt="<?= esc($manager->displayName($theme), 'attr') ?>"
+                            style="aspect-ratio: 16 / 10; object-fit: cover;"
+                        >
+                    <?php endif ?>
                     <div class="card-body d-flex flex-column">
                         <div class="d-flex align-items-start gap-3">
                             <div class="avatar avatar-lg bg-primary-lt">
@@ -70,18 +78,23 @@
                                 </div>
                             <?php endif ?>
 
-                            <?php if (! $isActive): ?>
-                                <form method="post" action="<?= site_url('admin/themes/' . $theme->id . '/activate') ?>">
-                                    <?= csrf_field() ?>
-                                    <button class="btn btn-primary" type="submit">
-                                        <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.activate')) ?>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php if (! $isActive): ?>
+                                    <form method="post" action="<?= site_url('admin/themes/' . $theme->id . '/activate') ?>">
+                                        <?= csrf_field() ?>
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.activate')) ?>
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <button class="btn btn-outline-primary" type="button" disabled>
+                                        <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.active')) ?>
                                     </button>
-                                </form>
-                            <?php else: ?>
-                                <button class="btn btn-outline-primary" type="button" disabled>
-                                    <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.active')) ?>
-                                </button>
-                            <?php endif ?>
+                                <?php endif ?>
+                                <a class="btn btn-outline-secondary" href="<?= site_url('admin/themes/' . $theme->id) ?>">
+                                    <i class="ti ti-adjustments me-1"></i><?= esc(lang('MCMS.themes.configure')) ?>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
