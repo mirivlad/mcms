@@ -16,13 +16,14 @@
 - [x] Add Core user/group/permission administration.
 - [x] Add Core settings UI.
 - [x] Add diagnostics/system page.
+- [x] Add English/Russian localization and site locale selection.
 - [x] Add local/runtime packaging for Bootstrap and Tabler assets.
 - [x] Enforce mCMS and module dependency version constraints.
 - [x] Add module lifecycle and fresh-install integration tests.
 
 ## Stage 1 — first reusable modules
 
-- [ ] Media.
+- [x] Media.
 - [ ] Pages.
 - [ ] News.
 - [ ] Menus/navigation.
