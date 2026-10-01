@@ -32,12 +32,12 @@
             <?php foreach ($modules as $id => $module): ?>
                 <?php
                     $enabled = (int) ($states[$id]['enabled'] ?? 0) === 1;
-                    $moduleName = $module->name;
-                    $description = $module->description;
-                    if ($id === 'media') {
-                        $moduleName = lang('MCMS.media.title');
-                        $description = lang('MCMS.modules.mediaDescription');
-                    }
+                    $moduleName = str_starts_with($module->name, '@')
+                        ? lang(substr($module->name, 1))
+                        : $module->name;
+                    $description = str_starts_with($module->description, '@')
+                        ? lang(substr($module->description, 1))
+                        : $module->description;
                 ?>
                 <tr>
                     <td>
