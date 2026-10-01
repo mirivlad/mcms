@@ -25,7 +25,7 @@
 
 - [x] Media.
 - [x] Pages.
-- [ ] Menus/navigation.
+- [x] Menus/navigation.
 - [ ] Theme API and administration.
 - [ ] Default theme with declared menu locations.
 - [ ] Menus ↔ theme-location assignment.
