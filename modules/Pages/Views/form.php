@@ -6,7 +6,71 @@
     $sanitizer = new \MCMS\Modules\Pages\Services\HtmlSanitizer();
     $editorBody = $sanitizer->sanitize((string) old('body', $page['body'] ?? ''));
     $statusValue = (string) old('status', $page['status'] ?? $defaultStatus);
+    $seoTitle = (string) old('seo_title', $page['seo_title'] ?? '');
+    $seoDescription = (string) old('seo_description', $page['seo_description'] ?? '');
+    $seoOpen = $seoTitle !== '' || $seoDescription !== '';
 ?>
+
+<style>
+.mcms-editor-shell {
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    overflow: hidden;
+    background: var(--tblr-bg-surface);
+}
+.mcms-editor-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+    padding: .5rem;
+    border-bottom: 1px solid var(--tblr-border-color);
+    background: var(--tblr-bg-surface-secondary);
+}
+.mcms-editor-toolbar .btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+}
+.mcms-editor-toolbar .mcms-editor-toolbar-separator {
+    width: 1px;
+    align-self: stretch;
+    margin: 0 .25rem;
+    background: var(--tblr-border-color);
+}
+.mcms-editor {
+    min-height: 34rem;
+    padding: 1.25rem;
+    outline: none;
+    overflow: auto;
+    line-height: 1.65;
+}
+.mcms-editor:focus {
+    box-shadow: inset 0 0 0 1px var(--tblr-primary);
+}
+.mcms-editor img {
+    max-width: 100%;
+    height: auto;
+}
+.mcms-editor h2,
+.mcms-editor h3 {
+    margin-top: 1.5rem;
+}
+.mcms-seo-summary {
+    cursor: pointer;
+    list-style: none;
+}
+.mcms-seo-summary::-webkit-details-marker {
+    display: none;
+}
+#media-dialog {
+    width: min(1000px, 94vw);
+    max-height: 88vh;
+}
+#media-dialog::backdrop {
+    background: rgba(0, 0, 0, .45);
+}
+</style>
+
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
         <div class="col">
@@ -14,7 +78,9 @@
             <h2 class="page-title"><?= esc(lang($isEdit ? 'Pages.Admin.edit' : 'Pages.Admin.create')) ?></h2>
         </div>
         <div class="col-auto ms-auto">
-            <a class="btn btn-link" href="<?= site_url('admin/pages') ?>"><?= esc(lang('MCMS.common.back')) ?></a>
+            <a class="btn btn-outline-secondary" href="<?= site_url('admin/pages') ?>">
+                <i class="ti ti-arrow-left me-1"></i><?= esc(lang('MCMS.common.back')) ?>
+            </a>
         </div>
     </div>
 </div>
@@ -23,90 +89,103 @@
     <?= csrf_field() ?>
 
     <div class="row row-cards">
-        <div class="col-xl-8">
+        <div class="col-xl-9">
             <div class="card mb-3">
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label" for="page_title"><?= esc(lang('MCMS.common.title')) ?></label>
+                    <input
+                        class="form-control form-control-lg mb-3"
+                        id="page_title"
+                        name="title"
+                        maxlength="255"
+                        required
+                        placeholder="<?= esc(lang('MCMS.common.title'), 'attr') ?>"
+                        value="<?= esc(old('title', $page['title'] ?? '')) ?>"
+                    >
+
+                    <label class="form-label" for="page_slug"><?= esc(lang('Pages.Admin.permalink')) ?></label>
+                    <div class="input-group input-group-flat">
+                        <span class="input-group-text"><i class="ti ti-link"></i></span>
+                        <span class="input-group-text">/</span>
                         <input
-                            class="form-control"
-                            id="page_title"
-                            name="title"
-                            maxlength="255"
-                            required
-                            value="<?= esc(old('title', $page['title'] ?? '')) ?>"
+                            class="form-control font-monospace"
+                            id="page_slug"
+                            name="slug"
+                            maxlength="190"
+                            pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
+                            value="<?= esc(old('slug', $page['slug'] ?? '')) ?>"
                         >
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label" for="page_slug"><?= esc(lang('Pages.Admin.slug')) ?></label>
-                        <div class="input-group">
-                            <span class="input-group-text">/</span>
-                            <input
-                                class="form-control font-monospace"
-                                id="page_slug"
-                                name="slug"
-                                maxlength="190"
-                                pattern="[a-z0-9]+(?:-[a-z0-9]+)*"
-                                value="<?= esc(old('slug', $page['slug'] ?? '')) ?>"
-                            >
-                        </div>
-                        <div class="form-hint"><?= esc(lang('Pages.Admin.slugHint')) ?></div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label"><?= esc(lang('Pages.Admin.body')) ?></label>
-
-                        <div class="btn-list mb-2" id="editor-toolbar">
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-command="bold">
-                                <?= esc(lang('Pages.Admin.bold')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-command="italic">
-                                <?= esc(lang('Pages.Admin.italic')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-format="h2">
-                                <?= esc(lang('Pages.Admin.heading')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-format="p">
-                                <?= esc(lang('Pages.Admin.paragraph')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-command="insertUnorderedList">
-                                <?= esc(lang('Pages.Admin.bulletList')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-command="insertOrderedList">
-                                <?= esc(lang('Pages.Admin.numberedList')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-format="blockquote">
-                                <?= esc(lang('Pages.Admin.quote')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" id="editor-link">
-                                <?= esc(lang('Pages.Admin.link')) ?>
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm" type="button" data-command="removeFormat">
-                                <?= esc(lang('Pages.Admin.clearFormatting')) ?>
-                            </button>
-                            <button class="btn btn-outline-primary btn-sm" type="button" id="open-media">
-                                <?= esc(lang('Pages.Admin.mediaPicker')) ?>
-                            </button>
-                        </div>
-
-                        <div
-                            id="page-editor"
-                            class="form-control"
-                            contenteditable="true"
-                            role="textbox"
-                            aria-multiline="true"
-                            style="min-height: 28rem; overflow:auto"
-                        ><?= $editorBody ?></div>
-                        <textarea id="page_body" name="body" class="d-none"><?= esc($editorBody) ?></textarea>
-                    </div>
+                    <div class="form-hint"><?= esc(lang('Pages.Admin.slugHint')) ?></div>
                 </div>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title"><?= esc(lang('Pages.Admin.seo')) ?></h3>
+            <div class="mb-3">
+                <label class="form-label"><?= esc(lang('Pages.Admin.body')) ?></label>
+
+                <div class="mcms-editor-shell">
+                    <div class="mcms-editor-toolbar" id="editor-toolbar">
+                        <button class="btn btn-ghost-secondary" type="button" data-command="bold" title="<?= esc(lang('Pages.Admin.bold'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.bold'), 'attr') ?>">
+                            <i class="ti ti-bold"></i>
+                        </button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="italic" title="<?= esc(lang('Pages.Admin.italic'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.italic'), 'attr') ?>">
+                            <i class="ti ti-italic"></i>
+                        </button>
+
+                        <span class="mcms-editor-toolbar-separator"></span>
+
+                        <button class="btn btn-ghost-secondary" type="button" data-format="h2" title="<?= esc(lang('Pages.Admin.heading'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.heading'), 'attr') ?>">
+                            <i class="ti ti-heading"></i>
+                        </button>
+                        <button class="btn btn-ghost-secondary" type="button" data-format="p" title="<?= esc(lang('Pages.Admin.paragraph'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.paragraph'), 'attr') ?>">
+                            <i class="ti ti-letter-case"></i>
+                        </button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="insertUnorderedList" title="<?= esc(lang('Pages.Admin.bulletList'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.bulletList'), 'attr') ?>">
+                            <i class="ti ti-list"></i>
+                        </button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="insertOrderedList" title="<?= esc(lang('Pages.Admin.numberedList'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.numberedList'), 'attr') ?>">
+                            <i class="ti ti-list-numbers"></i>
+                        </button>
+                        <button class="btn btn-ghost-secondary" type="button" data-format="blockquote" title="<?= esc(lang('Pages.Admin.quote'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.quote'), 'attr') ?>">
+                            <i class="ti ti-blockquote"></i>
+                        </button>
+
+                        <span class="mcms-editor-toolbar-separator"></span>
+
+                        <button class="btn btn-ghost-secondary" type="button" id="editor-link" title="<?= esc(lang('Pages.Admin.link'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.link'), 'attr') ?>">
+                            <i class="ti ti-link"></i>
+                        </button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="removeFormat" title="<?= esc(lang('Pages.Admin.clearFormatting'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.clearFormatting'), 'attr') ?>">
+                            <i class="ti ti-clear-formatting"></i>
+                        </button>
+
+                        <span class="mcms-editor-toolbar-separator"></span>
+
+                        <button class="btn btn-ghost-primary" type="button" id="open-media" title="<?= esc(lang('Pages.Admin.mediaPicker'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.mediaPicker'), 'attr') ?>">
+                            <i class="ti ti-photo-plus"></i>
+                        </button>
+                    </div>
+
+                    <div
+                        id="page-editor"
+                        class="mcms-editor"
+                        contenteditable="true"
+                        role="textbox"
+                        aria-multiline="true"
+                    ><?= $editorBody ?></div>
                 </div>
+
+                <textarea id="page_body" name="body" class="d-none"><?= esc($editorBody) ?></textarea>
+            </div>
+
+            <details class="card" <?= $seoOpen ? 'open' : '' ?>>
+                <summary class="card-header mcms-seo-summary">
+                    <div>
+                        <h3 class="card-title mb-0">
+                            <i class="ti ti-world-search me-2"></i><?= esc(lang('Pages.Admin.seo')) ?>
+                        </h3>
+                        <div class="text-secondary small mt-1"><?= esc(lang('Pages.Admin.seoHint')) ?></div>
+                    </div>
+                </summary>
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label" for="seo_title"><?= esc(lang('Pages.Admin.seoTitle')) ?></label>
@@ -115,7 +194,7 @@
                             id="seo_title"
                             name="seo_title"
                             maxlength="255"
-                            value="<?= esc(old('seo_title', $page['seo_title'] ?? '')) ?>"
+                            value="<?= esc($seoTitle) ?>"
                         >
                     </div>
                     <div>
@@ -126,52 +205,70 @@
                             name="seo_description"
                             maxlength="320"
                             rows="3"
-                        ><?= esc(old('seo_description', $page['seo_description'] ?? '')) ?></textarea>
+                        ><?= esc($seoDescription) ?></textarea>
                     </div>
                 </div>
-            </div>
+            </details>
         </div>
 
-        <div class="col-xl-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label" for="page_status"><?= esc(lang('MCMS.common.status')) ?></label>
-                        <select class="form-select" id="page_status" name="status">
-                            <option value="draft" <?= $statusValue === 'draft' ? 'selected' : '' ?>>
-                                <?= esc(lang('Pages.Admin.statusDraft')) ?>
-                            </option>
-                            <option value="published" <?= $statusValue === 'published' ? 'selected' : '' ?>>
-                                <?= esc(lang('Pages.Admin.statusPublished')) ?>
-                            </option>
-                        </select>
+        <div class="col-xl-3">
+            <div class="position-sticky" style="top:1rem">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="ti ti-send me-2"></i><?= esc(lang('MCMS.common.status')) ?>
+                        </h3>
                     </div>
-
-                    <?php if ($isEdit && $page['status'] === 'published'): ?>
+                    <div class="card-body">
                         <div class="mb-3">
-                            <a class="btn btn-outline-secondary w-100" href="<?= esc(site_url(ltrim($page['url'], '/'))) ?>" target="_blank" rel="noopener">
-                                <?= esc(lang('Pages.Admin.viewPublic')) ?>
-                            </a>
+                            <select class="form-select" id="page_status" name="status">
+                                <option value="draft" <?= $statusValue === 'draft' ? 'selected' : '' ?>>
+                                    <?= esc(lang('Pages.Admin.statusDraft')) ?>
+                                </option>
+                                <option value="published" <?= $statusValue === 'published' ? 'selected' : '' ?>>
+                                    <?= esc(lang('Pages.Admin.statusPublished')) ?>
+                                </option>
+                            </select>
                         </div>
-                    <?php endif ?>
 
-                    <button class="btn btn-primary w-100" type="submit">
-                        <?= esc(lang($isEdit ? 'Pages.Admin.saveSubmit' : 'Pages.Admin.createSubmit')) ?>
-                    </button>
+                        <?php if ($isEdit && $page['status'] === 'published'): ?>
+                            <div class="mb-3">
+                                <a
+                                    class="btn btn-outline-secondary w-100"
+                                    href="<?= esc(site_url(ltrim($page['url'], '/'))) ?>"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    <i class="ti ti-external-link me-1"></i><?= esc(lang('Pages.Admin.viewPublic')) ?>
+                                </a>
+                            </div>
+                        <?php endif ?>
+
+                        <button class="btn btn-primary w-100" type="submit">
+                            <i class="ti ti-device-floppy me-1"></i>
+                            <?= esc(lang($isEdit ? 'Pages.Admin.saveSubmit' : 'Pages.Admin.createSubmit')) ?>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </form>
 
-<dialog id="media-dialog" class="border-0 rounded shadow-lg p-0" style="width:min(900px, 94vw)">
+<dialog id="media-dialog" class="border-0 rounded shadow-lg p-0">
     <div class="card mb-0">
         <div class="card-header">
-            <h3 class="card-title"><?= esc(lang('Pages.Admin.mediaPicker')) ?></h3>
-            <button class="btn-close ms-auto" type="button" id="close-media" aria-label="Close"></button>
+            <h3 class="card-title">
+                <i class="ti ti-photo me-2"></i><?= esc(lang('Pages.Admin.mediaPicker')) ?>
+            </h3>
+            <button class="btn btn-icon btn-ghost-secondary ms-auto" type="button" id="close-media" aria-label="Close">
+                <i class="ti ti-x"></i>
+            </button>
         </div>
+
         <div class="card-body">
             <div class="input-group mb-3">
+                <span class="input-group-text"><i class="ti ti-search"></i></span>
                 <input
                     class="form-control"
                     id="media-search"
@@ -182,8 +279,30 @@
                     <?= esc(lang('MCMS.common.search')) ?>
                 </button>
             </div>
+
+            <div id="media-loading" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary mb-3" role="status"></div>
+                <div class="text-secondary"><?= esc(lang('Pages.Admin.mediaLoading')) ?></div>
+            </div>
+
+            <div id="media-error" class="alert alert-danger d-none">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="ti ti-alert-circle"></i>
+                    <span class="flex-fill"><?= esc(lang('Pages.Admin.mediaLoadError')) ?></span>
+                    <button class="btn btn-outline-danger btn-sm" type="button" id="media-retry">
+                        <i class="ti ti-refresh me-1"></i><?= esc(lang('Pages.Admin.retry')) ?>
+                    </button>
+                </div>
+            </div>
+
             <div id="media-results" class="row row-cards"></div>
-            <div id="media-empty" class="text-secondary d-none"><?= esc(lang('Pages.Admin.mediaEmpty')) ?></div>
+
+            <div id="media-empty" class="empty d-none">
+                <div class="empty-img">
+                    <i class="ti ti-photo-off" style="font-size:4rem"></i>
+                </div>
+                <p class="empty-title"><?= esc(lang('Pages.Admin.mediaEmpty')) ?></p>
+            </div>
         </div>
     </div>
 </dialog>
@@ -196,6 +315,8 @@
     const dialog = document.getElementById('media-dialog');
     const results = document.getElementById('media-results');
     const empty = document.getElementById('media-empty');
+    const loading = document.getElementById('media-loading');
+    const error = document.getElementById('media-error');
     const mediaSearch = document.getElementById('media-search');
     const mediaEndpoint = <?= json_encode(site_url('admin/pages/media'), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?>;
     const insertLabel = <?= json_encode(lang('Pages.Admin.insertImage'), JSON_UNESCAPED_UNICODE) ?>;
@@ -281,33 +402,8 @@
         editor.focus();
     };
 
-    const loadMedia = async () => {
+    const renderMedia = (items) => {
         results.replaceChildren();
-        empty.classList.add('d-none');
-
-        const url = new URL(mediaEndpoint, window.location.origin);
-        const query = mediaSearch.value.trim();
-        if (query) {
-            url.searchParams.set('q', query);
-        }
-
-        const response = await fetch(url, {
-            headers: {'Accept': 'application/json'},
-            credentials: 'same-origin',
-        });
-
-        if (! response.ok) {
-            empty.classList.remove('d-none');
-            return;
-        }
-
-        const payload = await response.json();
-        const items = Array.isArray(payload.items) ? payload.items : [];
-
-        if (items.length === 0) {
-            empty.classList.remove('d-none');
-            return;
-        }
 
         for (const item of items) {
             const col = document.createElement('div');
@@ -316,12 +412,16 @@
             const card = document.createElement('div');
             card.className = 'card h-100';
 
+            const preview = document.createElement('div');
+            preview.className = 'card-img-top d-flex align-items-center justify-content-center bg-body-tertiary overflow-hidden';
+            preview.style.height = '180px';
+
             const image = document.createElement('img');
             image.src = item.url;
             image.alt = item.alt_text || '';
-            image.className = 'card-img-top';
-            image.style.height = '160px';
-            image.style.objectFit = 'cover';
+            image.className = 'w-100 h-100';
+            image.style.objectFit = 'contain';
+            image.loading = 'lazy';
 
             const cardBody = document.createElement('div');
             cardBody.className = 'card-body';
@@ -332,14 +432,55 @@
 
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'btn btn-outline-primary btn-sm w-100';
-            button.textContent = insertLabel;
+            button.className = 'btn btn-primary btn-sm w-100';
+            button.innerHTML = '<i class="ti ti-photo-plus me-1"></i>' + insertLabel;
             button.addEventListener('click', () => insertImage(item));
 
+            preview.appendChild(image);
             cardBody.append(name, button);
-            card.append(image, cardBody);
+            card.append(preview, cardBody);
             col.appendChild(card);
             results.appendChild(col);
+        }
+    };
+
+    const loadMedia = async () => {
+        results.replaceChildren();
+        empty.classList.add('d-none');
+        error.classList.add('d-none');
+        loading.classList.remove('d-none');
+
+        const url = new URL(mediaEndpoint, window.location.origin);
+        const query = mediaSearch.value.trim();
+        if (query) {
+            url.searchParams.set('q', query);
+        }
+
+        try {
+            const response = await fetch(url, {
+                headers: {'Accept': 'application/json'},
+                credentials: 'same-origin',
+                cache: 'no-store',
+            });
+
+            if (! response.ok) {
+                throw new Error('media request failed');
+            }
+
+            const payload = await response.json();
+            const items = Array.isArray(payload.items) ? payload.items : [];
+
+            loading.classList.add('d-none');
+
+            if (items.length === 0) {
+                empty.classList.remove('d-none');
+                return;
+            }
+
+            renderMedia(items);
+        } catch (_) {
+            loading.classList.add('d-none');
+            error.classList.remove('d-none');
         }
     };
 
@@ -351,6 +492,8 @@
 
     document.getElementById('close-media').addEventListener('click', () => dialog.close());
     document.getElementById('media-search-button').addEventListener('click', loadMedia);
+    document.getElementById('media-retry').addEventListener('click', loadMedia);
+
     mediaSearch.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
