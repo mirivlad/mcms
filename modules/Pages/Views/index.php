@@ -11,12 +11,12 @@
         <div class="col-auto ms-auto d-flex gap-2">
             <?php if ($canSettings): ?>
                 <a class="btn btn-outline-secondary" href="<?= site_url('admin/pages/settings') ?>">
-                    <?= esc(lang('Pages.Admin.settings')) ?>
+                    <i class="ti ti-settings me-1"></i><?= esc(lang('Pages.Admin.settings')) ?>
                 </a>
             <?php endif ?>
             <?php if ($canCreate): ?>
                 <a class="btn btn-primary" href="<?= site_url('admin/pages/create') ?>">
-                    <?= esc(lang('Pages.Admin.create')) ?>
+                    <i class="ti ti-plus me-1"></i><?= esc(lang('Pages.Admin.create')) ?>
                 </a>
             <?php endif ?>
         </div>
@@ -47,7 +47,7 @@
                 </select>
             </div>
             <div class="col-auto">
-                <button class="btn btn-outline-primary" type="submit"><?= esc(lang('MCMS.common.search')) ?></button>
+                <button class="btn btn-outline-primary" type="submit"><i class="ti ti-search me-1"></i><?= esc(lang('MCMS.common.search')) ?></button>
             </div>
             <?php if ($query !== '' || $status !== null): ?>
                 <div class="col-auto">
@@ -96,12 +96,12 @@
                         <div class="btn-list flex-nowrap">
                             <?php if ($page['status'] === 'published'): ?>
                                 <a class="btn btn-outline-secondary btn-sm" href="<?= esc(site_url(ltrim($page['url'], '/'))) ?>" target="_blank" rel="noopener">
-                                    <?= esc(lang('Pages.Admin.viewPublic')) ?>
+                                    <i class="ti ti-external-link me-1"></i><?= esc(lang('Pages.Admin.viewPublic')) ?>
                                 </a>
                             <?php endif ?>
                             <?php if ($canEdit): ?>
                                 <a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/pages/' . $page['id'] . '/edit') ?>">
-                                    <?= esc(lang('Pages.Admin.edit')) ?>
+                                    <i class="ti ti-pencil me-1"></i><?= esc(lang('Pages.Admin.edit')) ?>
                                 </a>
                             <?php endif ?>
                             <?php if ($canDelete): ?>
@@ -111,7 +111,7 @@
                                     onsubmit="return confirm(<?= esc(json_encode(lang('Pages.Admin.deleteConfirm')), 'attr') ?>);"
                                 >
                                     <?= csrf_field() ?>
-                                    <button class="btn btn-outline-danger btn-sm" type="submit"><?= esc(lang('MCMS.common.delete')) ?></button>
+                                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="ti ti-trash me-1"></i><?= esc(lang('MCMS.common.delete')) ?></button>
                                 </form>
                             <?php endif ?>
                         </div>
