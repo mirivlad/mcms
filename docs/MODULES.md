@@ -84,9 +84,13 @@ final class Module implements ModuleProviderInterface
 }
 ```
 
-Menu labels beginning with `@` are treated as language keys and resolved in the
-active site locale when the menu is rendered. First-party modules should ship
-their own `Language/<locale>/...` files and avoid hard-coded UI strings.
+Module manifest `name`, `description`, permission descriptions, and admin menu
+labels may begin with `@`. Such values are language keys and are resolved in the
+active site locale after module discovery registers the module namespace.
+
+First-party modules should ship their own `Language/<locale>/...` files and avoid
+hard-coded UI strings. This keeps module translations inside the module instead of
+growing Core's language catalogue.
 
 ## Public module services
 
