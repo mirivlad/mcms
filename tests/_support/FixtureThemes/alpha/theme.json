@@ -1,0 +1,23 @@
+{
+  "id": "alpha",
+  "name": "Alpha theme",
+  "version": "1.0.0",
+  "namespace": "Tests\\Support\\FixtureThemes\\Alpha",
+  "description": "Fixture alpha theme.",
+  "author": "Tests",
+  "templates": {
+    "home": "home",
+    "page": "content/page"
+  },
+  "menu_locations": {
+    "header.primary": {
+      "label": "Primary navigation",
+      "description": "Header navigation.",
+      "max_depth": 2
+    },
+    "footer": {
+      "label": "Footer navigation",
+      "max_depth": 1
+    }
+  }
+}
