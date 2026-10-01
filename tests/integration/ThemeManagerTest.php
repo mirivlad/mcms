@@ -43,6 +43,8 @@ final class ThemeManagerTest extends CIUnitTestCase
 
     public function testEnsureActiveSelectsPreferredTheme(): void
     {
+        service('settings')->forget('Core.theme');
+
         $manager = new ThemeManager(
             service('settings'),
             ROOTPATH . 'tests/_support/FixtureThemes',
