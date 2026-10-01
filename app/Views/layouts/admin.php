@@ -7,6 +7,7 @@
     <title><?= esc($title ?? 'mCMS') ?></title>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/tabler/tabler.min.css') ?>">
     <link rel="stylesheet" href="<?= site_url('assets/vendor/tabler-icons/tabler-icons.min.css') ?>">
+    <link rel="stylesheet" href="<?= site_url('assets/css/admin.css') ?>">
 </head>
 <body>
 <?php $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>
@@ -48,12 +49,20 @@
                         </li>
                     <?php endforeach ?>
                 </ul>
+                <div class="admin-mobile-account d-lg-none">
+                    <div class="text-white-50 small text-truncate mb-2">
+                        <?= esc($user->username ?? $user->email ?? lang('MCMS.common.user')) ?>
+                    </div>
+                    <a class="btn btn-outline-light btn-sm w-100" href="<?= site_url('logout') ?>">
+                        <i class="ti ti-logout me-1"></i><?= esc(lang('MCMS.common.signOut')) ?>
+                    </a>
+                </div>
             </div>
         </div>
     </aside>
 
     <div class="page-wrapper">
-        <header class="navbar navbar-expand-md d-print-none">
+        <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none admin-desktop-header">
             <div class="container-xl">
                 <div class="navbar-nav flex-row order-md-last ms-auto">
                     <div class="nav-item d-flex align-items-center gap-3">
