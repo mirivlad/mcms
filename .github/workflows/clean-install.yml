@@ -57,6 +57,13 @@ jobs:
             exit 1
           fi
 
+          for table in menus menu_items; do
+            if printf '%s\n' "$tables" | grep -Fx "$table"; then
+              echo "Menus schema must not exist before the module is enabled: $table"
+              exit 1
+            fi
+          done
+
       - name: Complete browser installer
         run: |
           curl -fsS             -c /tmp/mcms.cookies             http://127.0.0.1:8080/install             -o /tmp/install.html
@@ -89,6 +96,7 @@ jobs:
           grep -q 'Access control' /tmp/admin-access.html
           grep -q 'Media' /tmp/admin-modules.html
           grep -q 'Pages' /tmp/admin-modules.html
+          grep -q 'Menus' /tmp/admin-modules.html
           grep -q 'Not installed' /tmp/admin-modules.html
           grep -q 'Settings' /tmp/admin-settings.html
           grep -q 'System' /tmp/admin-system.html
@@ -107,6 +115,7 @@ jobs:
           grep -q 'Модули' /tmp/modules-ru.html
           grep -q 'Медиа' /tmp/modules-ru.html
           grep -q 'Страницы' /tmp/modules-ru.html
+          grep -q 'Меню' /tmp/modules-ru.html
           grep -q 'Не установлен' /tmp/modules-ru.html
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/settings-ru.html)"
@@ -301,6 +310,83 @@ jobs:
 
           curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page-reenabled.html
           grep -q 'Smoke page' /tmp/public-page-reenabled.html
+
+      - name: Enable Menus and preserve a navigation tree
+        run: |
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-menus.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-menus.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/menus/enable             -o /tmp/modules-menus-enabled.html
+
+          enabled="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT enabled FROM mcms_modules WHERE module_id="menus";')"
+          test "$enabled" = "1"
+
+          for table in menus menu_items; do
+            found="$(docker compose exec -T db mariadb               -umcms -pci-test mcms               --batch --skip-column-names               -e "SHOW TABLES LIKE '$table';")"
+            test "$found" = "$table"
+          done
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/menus/create             -o /tmp/menu-create.html
+          grep -q 'Create menu' /tmp/menu-create.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-create.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "name=Primary navigation"             --data-urlencode "handle=primary"             --data-urlencode "description=Smoke navigation"             http://127.0.0.1:8080/admin/menus/create             -o /tmp/menu-created.html
+
+          grep -q 'Menu created' /tmp/menu-created.html
+
+          menu_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e 'SELECT id FROM menus WHERE handle="primary";')"
+          test -n "$menu_id"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=Home"             --data-urlencode "target=/"             --data-urlencode "parent_id="             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-home.html
+
+          home_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT id FROM menu_items WHERE menu_id=${menu_id} AND label='Home';")"
+          test -n "$home_id"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit-about.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit-about.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=About"             --data-urlencode "target=/smoke-page"             --data-urlencode "parent_id="             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-about.html
+
+          about_id="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT id FROM menu_items WHERE menu_id=${menu_id} AND label='About';")"
+          test -n "$about_id"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit-child.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit-child.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "label=Child"             --data-urlencode "target=/smoke-page#child"             --data-urlencode "parent_id=$about_id"             --data-urlencode "enabled=1"             "http://127.0.0.1:8080/admin/menus/${menu_id}/items/save"             -o /tmp/menu-child.html
+
+          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT COUNT(*) FROM menu_items WHERE menu_id=${menu_id};")"
+          test "$count" = "3"
+
+          parent="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT parent_id FROM menu_items WHERE menu_id=${menu_id} AND label='Child';")"
+          test "$parent" = "$about_id"
+
+          curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-tree.html
+          grep -q 'Home' /tmp/menu-tree.html
+          grep -q 'About' /tmp/menu-tree.html
+          grep -q 'Child' /tmp/menu-tree.html
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-menus-disable.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-menus-disable.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/menus/disable             -o /tmp/modules-menus-disabled.html
+
+          code="$(curl -sS             -b /tmp/mcms.cookies             -o /dev/null             -w '%{http_code}'             http://127.0.0.1:8080/admin/menus)"
+          test "$code" = "404"
+
+          count="$(docker compose exec -T db mariadb             -umcms -pci-test mcms             --batch --skip-column-names             -e "SELECT COUNT(*) FROM menu_items WHERE menu_id=${menu_id};")"
+          test "$count" = "3"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-menus-reenable.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-menus-reenable.html)"
+
+          curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/modules/menus/enable             -o /tmp/modules-menus-reenabled.html
+
+          curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-tree-reenabled.html
+          grep -q 'Child' /tmp/menu-tree-reenabled.html
 
       - name: Verify installer is closed after setup
         run: |
