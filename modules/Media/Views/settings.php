@@ -5,10 +5,10 @@
     <div class="row g-2 align-items-center">
         <div class="col">
             <div class="page-pretitle">Media</div>
-            <h2 class="page-title">Settings</h2>
+            <h2 class="page-title"><?= esc(lang('MCMS.media.settings')) ?></h2>
         </div>
         <div class="col-auto ms-auto">
-            <a class="btn btn-link" href="<?= site_url('admin/media') ?>">Back to Media</a>
+            <a class="btn btn-link" href="<?= site_url('admin/media') ?>"><?= esc(lang('MCMS.media.back')) ?></a>
         </div>
     </div>
 </div>
@@ -20,7 +20,7 @@
 
             <div class="row">
                 <div class="col-md-6 mb-3">
-                    <label class="form-label" for="max_upload_mb">Maximum upload size</label>
+                    <label class="form-label" for="max_upload_mb"><?= esc(lang('MCMS.media.maximumUpload')) ?></label>
                     <div class="input-group">
                         <input
                             class="form-control"
@@ -34,11 +34,11 @@
                         >
                         <span class="input-group-text">MB</span>
                     </div>
-                    <div class="form-hint">The nginx hard limit is currently 64 MB.</div>
+                    <div class="form-hint"><?= esc(lang('MCMS.media.nginxLimit')) ?></div>
                 </div>
 
                 <div class="col-md-6 mb-3">
-                    <label class="form-label" for="max_image_megapixels">Maximum decoded image size</label>
+                    <label class="form-label" for="max_image_megapixels"><?= esc(lang('MCMS.media.maximumImage')) ?></label>
                     <div class="input-group">
                         <input
                             class="form-control"
@@ -52,12 +52,12 @@
                         >
                         <span class="input-group-text">MP</span>
                     </div>
-                    <div class="form-hint">Protects the application from unexpectedly huge decoded images.</div>
+                    <div class="form-hint"><?= esc(lang('MCMS.media.imageLimitHint')) ?></div>
                 </div>
             </div>
 
             <div class="mb-4">
-                <label class="form-label">Allowed file types</label>
+                <label class="form-label"><?= esc(lang('MCMS.media.allowedTypes')) ?></label>
                 <?php foreach ($supported as $mime => $extension): ?>
                     <label class="form-check mb-2">
                         <input
@@ -75,7 +75,7 @@
                 <?php endforeach ?>
             </div>
 
-            <button class="btn btn-primary" type="submit">Save Media settings</button>
+            <button class="btn btn-primary" type="submit"><?= esc(lang('MCMS.media.saveSettings')) ?></button>
         </form>
     </div>
 </div>
