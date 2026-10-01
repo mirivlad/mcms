@@ -1,11 +1,11 @@
 {
   "id": "media",
-  "name": "Media",
+  "name": "@MCMS.media.title",
   "version": "0.1.0",
   "namespace": "MCMS\\Modules\\Media",
   "provider": "MCMS\\Modules\\Media\\Module",
   "mcms": "^0.1",
-  "description": "Shared media library for images and documents.",
+  "description": "@MCMS.modules.mediaDescription",
   "requires": [],
   "settings": {
     "max_upload_mb": 20,
@@ -19,11 +19,11 @@
     ]
   },
   "permissions": {
-    "media.view": "View the media library.",
-    "media.upload": "Upload files to the media library.",
-    "media.edit": "Edit media metadata.",
-    "media.delete": "Delete files from the media library.",
-    "media.settings": "Manage media module settings."
+    "media.view": "@MCMS.permissions.media_view",
+    "media.upload": "@MCMS.permissions.media_upload",
+    "media.edit": "@MCMS.permissions.media_edit",
+    "media.delete": "@MCMS.permissions.media_delete",
+    "media.settings": "@MCMS.permissions.media_settings"
   },
   "grants": {
     "admin": [
