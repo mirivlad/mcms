@@ -24,27 +24,38 @@ final class Install extends BaseController
             $password = (string) $this->request->getPost('password');
             $passwordConfirm = (string) $this->request->getPost('password_confirm');
             $allowRegistration = $this->request->getPost('allow_registration') === '1';
+            $locale = trim((string) $this->request->getPost('locale'));
+            $supportedLocales = config('App')->supportedLocales;
+
+            if (! in_array($locale, $supportedLocales, true)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('errors', ['locale' => lang('MCMS.errors.invalidLocale')]);
+            }
+
+            $this->request->setLocale($locale);
+            service('language')->setLocale($locale);
 
             $validation = service('validation');
             $validation->setRules([
                 'site_name' => [
-                    'label' => 'Site name',
+                    'label' => lang('MCMS.install.siteName'),
                     'rules' => 'required|max_length[120]',
                 ],
                 'email' => [
-                    'label' => 'Email',
+                    'label' => lang('MCMS.users.email'),
                     'rules' => 'required|valid_email|max_length[254]',
                 ],
                 'username' => [
-                    'label' => 'Username',
+                    'label' => lang('MCMS.users.username'),
                     'rules' => 'required|min_length[3]|max_length[30]|regex_match[/\A[a-zA-Z0-9\.]+\z/]',
                 ],
                 'password' => [
-                    'label' => 'Password',
+                    'label' => lang('MCMS.install.password'),
                     'rules' => 'required|min_length[8]',
                 ],
                 'password_confirm' => [
-                    'label' => 'Password confirmation',
+                    'label' => lang('MCMS.install.passwordConfirm'),
                     'rules' => 'required|matches[password]',
                 ],
             ]);
@@ -68,12 +79,13 @@ final class Install extends BaseController
                     $password,
                     $siteName,
                     $allowRegistration,
+                    $locale,
                 );
 
                 auth('session')->getAuthenticator()->login($user);
 
                 return redirect()->to('/admin')
-                    ->with('message', 'mCMS installation completed.');
+                    ->with('message', lang('MCMS.messages.installComplete'));
             } catch (RuntimeException $e) {
                 return redirect()->back()
                     ->withInput()
