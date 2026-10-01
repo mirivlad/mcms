@@ -34,6 +34,10 @@ final class PagesModuleTest extends CIUnitTestCase
 
     public function testPagesEnablesMediaAndPublishesSanitizedContent(): void
     {
+        service('language')->setLocale('ru');
+        self::assertSame('Страницы', lang('Pages.Admin.menuLabel'));
+        self::assertSame('Создание страниц.', lang('Pages.Permissions.create'));
+
         service('language')->setLocale('en');
 
         $admin = new AdminRegistry();
