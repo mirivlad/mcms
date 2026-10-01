@@ -7,6 +7,7 @@ namespace MCMS\Modules\Pages\Services;
 use CodeIgniter\Database\BaseConnection;
 use InvalidArgumentException;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
+use MCMS\Core\Content\HtmlSanitizer;
 use RuntimeException;
 
 final class PageRepository implements PageRepositoryInterface

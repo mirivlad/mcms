@@ -29,7 +29,7 @@
 - [x] Theme API and administration.
 - [x] Default theme with declared menu locations.
 - [x] Menus ↔ theme-location assignment.
-- [ ] News.
+- [x] News.
 - [ ] Galleries.
 
 ## Stage 2 — commerce modules

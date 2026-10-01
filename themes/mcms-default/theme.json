@@ -1,14 +1,16 @@
 {
   "id": "mcms-default",
   "name": "@MCMS.themes.defaultName",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "namespace": "MCMS\\Themes\\DefaultTheme",
   "description": "@MCMS.themes.defaultDescription",
   "author": "mCMS",
   "screenshot": "screenshot.svg",
   "templates": {
     "home": "home",
-    "page": "page"
+    "page": "page",
+    "news.index": "news/index",
+    "news.article": "news/article"
   },
   "menu_locations": {
     "header.primary": {

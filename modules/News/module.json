@@ -1,0 +1,33 @@
+{
+  "id": "news",
+  "name": "@News.Admin.menuLabel",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\News",
+  "provider": "MCMS\\Modules\\News\\Module",
+  "mcms": "^0.1",
+  "description": "@News.Admin.description",
+  "requires": [
+    {
+      "id": "media",
+      "version": "^0.1"
+    }
+  ],
+  "settings": {
+    "default_status": "draft",
+    "per_page": 10
+  },
+  "permissions": {
+    "news.view": "@News.Permissions.view",
+    "news.create": "@News.Permissions.create",
+    "news.edit": "@News.Permissions.edit",
+    "news.delete": "@News.Permissions.delete"
+  },
+  "grants": {
+    "admin": [
+      "news.view",
+      "news.create",
+      "news.edit",
+      "news.delete"
+    ]
+  }
+}

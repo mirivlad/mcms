@@ -323,6 +323,69 @@ jobs:
           curl -fsS http://127.0.0.1:8080/smoke-page -o /tmp/public-page-reenabled.html
           grep -q 'Smoke page' /tmp/public-page-reenabled.html
 
+      - name: Enable News and publish an article
+        run: |
+          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies http://127.0.0.1:8080/admin/modules -o /tmp/modules-news.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/modules-news.html)"
+
+          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies -L --data-urlencode "csrf_test_name=$csrf" http://127.0.0.1:8080/admin/modules/news/enable -o /tmp/modules-news-enabled.html
+
+          enabled="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SELECT enabled FROM mcms_modules WHERE module_id="news";')"
+          test "$enabled" = "1"
+          table_name="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SHOW TABLES LIKE "news_articles";')"
+          test "$table_name" = "news_articles"
+
+          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies http://127.0.0.1:8080/admin/news/create -o /tmp/news-create.html
+          grep -q 'Create article' /tmp/news-create.html
+          grep -q 'Smoke image' /tmp/news-create.html
+
+          media_id="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SELECT id FROM media_files ORDER BY id LIMIT 1;')"
+          test -n "$media_id"
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/news-create.html)"
+
+          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies -L \
+            --data-urlencode "csrf_test_name=$csrf" \
+            --data-urlencode "title=Smoke news" \
+            --data-urlencode "slug=smoke-news" \
+            --data-urlencode "excerpt=Smoke news excerpt" \
+            --data-urlencode "body=<p>Smoke <strong>news</strong></p><script>alert(1)</script>" \
+            --data-urlencode "status=published" \
+            --data-urlencode "published_at=" \
+            --data-urlencode "featured_media_id=$media_id" \
+            --data-urlencode "seo_title=Smoke news SEO" \
+            --data-urlencode "seo_description=Smoke news description" \
+            http://127.0.0.1:8080/admin/news/create -o /tmp/news-created.html
+
+          grep -q 'Smoke news' /tmp/news-created.html
+          grep -q 'News article created' /tmp/news-created.html
+
+          count="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SELECT COUNT(*) FROM news_articles WHERE slug="smoke-news" AND status="published";')"
+          test "$count" = "1"
+          news_id="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SELECT id FROM news_articles WHERE slug="smoke-news";')"
+          test -n "$news_id"
+
+          unsafe="$(docker compose exec -T db mariadb -umcms -pci-test mcms --batch --skip-column-names -e 'SELECT COUNT(*) FROM news_articles WHERE slug="smoke-news" AND body LIKE "%<script%";')"
+          test "$unsafe" = "0"
+
+          curl -fsS http://127.0.0.1:8080/news -o /tmp/public-news-index.html
+          grep -q 'data-theme="mcms-default"' /tmp/public-news-index.html
+          grep -q 'Smoke news' /tmp/public-news-index.html
+          grep -q 'Smoke news excerpt' /tmp/public-news-index.html
+
+          curl -fsS http://127.0.0.1:8080/news/smoke-news -o /tmp/public-news-article.html
+          python3 - <<'PY'
+          from html import unescape
+          from pathlib import Path
+
+          article = unescape(Path('/tmp/public-news-article.html').read_text())
+          for needle in ('Smoke news SEO', '<strong>news</strong>', '/assets/uploads/media/'):
+              if needle not in article:
+                  raise SystemExit(f'Missing public news content: {needle}\n{article}')
+          PY
+
+          curl -fsS -b /tmp/mcms.cookies http://127.0.0.1:8080/admin/news/media -o /tmp/news-media.json
+          grep -q 'Smoke image' /tmp/news-media.json
+
       - name: Enable Menus and preserve a navigation tree
         run: |
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/modules             -o /tmp/modules-menus.html
@@ -354,6 +417,14 @@ jobs:
           curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/resources?provider=pages.page&q=Smoke"             -o /tmp/menu-resources.json
           grep -q 'Smoke page' /tmp/menu-resources.json
           grep -q '/smoke-page' /tmp/menu-resources.json
+
+          curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/resources?provider=news.article&q=Smoke"             -o /tmp/menu-news-resources.json
+          grep -q 'Smoke news' /tmp/menu-news-resources.json
+          grep -q '/news/smoke-news' /tmp/menu-news-resources.json
+
+          curl -fsS             -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/resources?provider=news.archive"             -o /tmp/menu-news-archive.json
+          grep -q '"id":"index"' /tmp/menu-news-archive.json
+          grep -q '"url":"/news"' /tmp/menu-news-archive.json
 
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/menus/${menu_id}/edit"             -o /tmp/menu-edit.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/menu-edit.html)"

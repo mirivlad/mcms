@@ -8,7 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 use MCMS\Core\Modules\ModuleContext;
 use MCMS\Core\Modules\ModuleProviderInterface;
 use MCMS\Modules\Pages\Navigation\PageNavigationProvider;
-use MCMS\Modules\Pages\Services\HtmlSanitizer;
+use MCMS\Core\Content\HtmlSanitizer;
 use MCMS\Modules\Pages\Services\PageRepository;
 
 final class Module implements ModuleProviderInterface
