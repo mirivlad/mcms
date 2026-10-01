@@ -28,7 +28,7 @@
             <h1 class="navbar-brand navbar-brand-autodark">
                 <a href="<?= site_url('/admin') ?>">mCMS</a>
             </h1>
-            <div class="collapse navbar-collapse" id="admin-sidebar-menu">
+            <div class="collapse navbar-collapse admin-sidebar-collapse" id="admin-sidebar-menu">
                 <ul class="navbar-nav pt-lg-3">
                     <?php foreach ($adminMenu ?? [] as $item): ?>
                         <?php
@@ -49,7 +49,7 @@
                         </li>
                     <?php endforeach ?>
                 </ul>
-                <div class="admin-mobile-account d-lg-none">
+                <div class="admin-account">
                     <div class="text-white-50 small text-truncate mb-2">
                         <?= esc($user->username ?? $user->email ?? lang('MCMS.common.user')) ?>
                     </div>
@@ -62,19 +62,6 @@
     </aside>
 
     <div class="page-wrapper">
-        <header class="navbar navbar-expand-md d-none d-lg-flex d-print-none admin-desktop-header">
-            <div class="container-xl">
-                <div class="navbar-nav flex-row order-md-last ms-auto">
-                    <div class="nav-item d-flex align-items-center gap-3">
-                        <span><?= esc($user->username ?? $user->email ?? lang('MCMS.common.user')) ?></span>
-                        <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('logout') ?>">
-                            <i class="ti ti-logout me-1"></i><?= esc(lang('MCMS.common.signOut')) ?>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </header>
-
         <div class="page-body">
             <div class="container-xl">
                 <?php if (session()->getFlashdata('message')): ?>

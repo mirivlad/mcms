@@ -204,6 +204,13 @@ class App extends BaseConfig
     {
         parent::__construct();
 
+        $trustedProxies = trim((string) (getenv('MCMS_TRUSTED_PROXIES')
+            ?: '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'));
+
+        foreach (array_filter(array_map('trim', explode(',', $trustedProxies))) as $proxy) {
+            $this->proxyIPs[$proxy] = 'X-Forwarded-For';
+        }
+
         $baseUrl = trim((string) (getenv('MCMS_BASE_URL') ?: ''));
         if ($baseUrl !== '') {
             $this->baseURL = rtrim($baseUrl, '/') . '/';

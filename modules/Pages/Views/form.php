@@ -61,11 +61,25 @@
     margin-top: 1.5rem;
 }
 .mcms-seo-summary {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     cursor: pointer;
     list-style: none;
 }
+.mcms-seo-summary > div {
+    flex: 1 1 auto;
+    min-width: 0;
+}
 .mcms-seo-summary::-webkit-details-marker {
     display: none;
+}
+.mcms-seo-chevron {
+    flex: 0 0 auto;
+    transition: transform .15s ease;
+}
+details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
+    transform: rotate(-90deg);
 }
 .mcms-permalink-group {
     flex-wrap: nowrap;
@@ -229,6 +243,7 @@
                         </h3>
                         <div class="text-secondary small mt-1"><?= esc(lang('Pages.Admin.seoHint')) ?></div>
                     </div>
+                    <i class="ti ti-chevron-down mcms-seo-chevron text-secondary" aria-hidden="true"></i>
                 </summary>
                 <div class="card-body">
                     <div class="mb-3">
