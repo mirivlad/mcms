@@ -4,17 +4,17 @@
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
         <div class="col">
-            <div class="page-pretitle">Module</div>
-            <h2 class="page-title">Media</h2>
+            <div class="page-pretitle"><?= esc(lang('MCMS.common.module')) ?></div>
+            <h2 class="page-title"><?= esc(lang('MCMS.media.title')) ?></h2>
             <div class="text-secondary mt-1">
-                <?= esc((string) $count) ?> item<?= $count === 1 ? '' : 's' ?>
-                <?= $query !== '' ? 'matching “' . esc($query) . '”' : 'in the library' ?>
+                <?= esc(sprintf(lang($count === 1 ? 'MCMS.media.item' : 'MCMS.media.items'), $count)) ?>
+                <?= $query !== '' ? esc(sprintf(lang('MCMS.media.matching'), $query)) : esc(lang('MCMS.media.inLibrary')) ?>
             </div>
         </div>
         <?php if ($canSettings): ?>
             <div class="col-auto ms-auto">
                 <a class="btn btn-outline-secondary" href="<?= site_url('admin/media/settings') ?>">
-                    Settings
+                    <?= esc(lang('MCMS.media.settings')) ?>
                 </a>
             </div>
         <?php endif ?>
@@ -26,14 +26,14 @@
         <div class="col-lg-4">
             <div class="card">
                 <div class="card-header">
-                    <h3 class="card-title">Upload</h3>
+                    <h3 class="card-title"><?= esc(lang('MCMS.media.upload')) ?></h3>
                 </div>
                 <div class="card-body">
                     <form method="post" action="<?= site_url('admin/media/upload') ?>" enctype="multipart/form-data">
                         <?= csrf_field() ?>
 
                         <div class="mb-3">
-                            <label class="form-label" for="media_file">File</label>
+                            <label class="form-label" for="media_file"><?= esc(lang('MCMS.media.file')) ?></label>
                             <input
                                 class="form-control"
                                 id="media_file"
@@ -45,17 +45,17 @@
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" for="media_title">Title</label>
+                            <label class="form-label" for="media_title"><?= esc(lang('MCMS.common.title')) ?></label>
                             <input class="form-control" id="media_title" name="title" maxlength="255">
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label" for="media_alt">Alt text</label>
+                            <label class="form-label" for="media_alt"><?= esc(lang('MCMS.media.altText')) ?></label>
                             <input class="form-control" id="media_alt" name="alt_text" maxlength="255">
-                            <div class="form-hint">Useful for images that will be embedded into content.</div>
+                            <div class="form-hint"><?= esc(lang('MCMS.media.altHint')) ?></div>
                         </div>
 
-                        <button class="btn btn-primary w-100" type="submit">Upload file</button>
+                        <button class="btn btn-primary w-100" type="submit"><?= esc(lang('MCMS.media.uploadFile')) ?></button>
                     </form>
                 </div>
             </div>
@@ -71,15 +71,15 @@
                             class="form-control"
                             name="q"
                             value="<?= esc($query) ?>"
-                            placeholder="Search filename, title or alt text"
+                            placeholder="<?= esc(lang('MCMS.media.searchPlaceholder'), 'attr') ?>"
                         >
                     </div>
                     <div class="col-auto">
-                        <button class="btn btn-outline-primary" type="submit">Search</button>
+                        <button class="btn btn-outline-primary" type="submit"><?= esc(lang('MCMS.common.search')) ?></button>
                     </div>
                     <?php if ($query !== ''): ?>
                         <div class="col-auto">
-                            <a class="btn btn-link" href="<?= site_url('admin/media') ?>">Clear</a>
+                            <a class="btn btn-link" href="<?= site_url('admin/media') ?>"><?= esc(lang('MCMS.common.clear')) ?></a>
                         </div>
                     <?php endif ?>
                 </form>
@@ -91,7 +91,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body text-secondary">
-                            No media files found.
+                            <?= esc(lang('MCMS.media.empty')) ?>
                         </div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@
                                         <span class="input-group-text">URL</span>
                                         <input class="form-control" readonly value="<?= esc($item['url']) ?>">
                                         <a class="btn btn-outline-secondary" href="<?= esc($item['url']) ?>" target="_blank" rel="noopener">
-                                            Open
+                                            <?= esc(lang('MCMS.common.open')) ?>
                                         </a>
                                     </div>
 
@@ -150,7 +150,7 @@
                                                     class="form-control form-control-sm"
                                                     name="title"
                                                     maxlength="255"
-                                                    placeholder="Title"
+                                                    placeholder="<?= esc(lang('MCMS.common.title'), 'attr') ?>"
                                                     value="<?= esc((string) ($item['title'] ?? '')) ?>"
                                                 >
                                             </div>
@@ -159,19 +159,19 @@
                                                     class="form-control form-control-sm"
                                                     name="alt_text"
                                                     maxlength="255"
-                                                    placeholder="Alt text"
+                                                    placeholder="<?= esc(lang('MCMS.media.altText'), 'attr') ?>"
                                                     value="<?= esc((string) ($item['alt_text'] ?? '')) ?>"
                                                 >
                                             </div>
                                             <div class="col-auto">
                                                 <button class="btn btn-outline-primary btn-sm" type="submit">
-                                                    Save metadata
+                                                    <?= esc(lang('MCMS.media.saveMetadata')) ?>
                                                 </button>
                                             </div>
                                         </form>
                                     <?php else: ?>
                                         <?php if (($item['title'] ?? null) !== null): ?>
-                                            <div><strong>Title:</strong> <?= esc($item['title']) ?></div>
+                                            <div><strong><?= esc(lang('MCMS.common.title')) ?>:</strong> <?= esc($item['title']) ?></div>
                                         <?php endif ?>
                                         <?php if (($item['alt_text'] ?? null) !== null): ?>
                                             <div><strong>Alt:</strong> <?= esc($item['alt_text']) ?></div>
@@ -184,10 +184,10 @@
                                         <form
                                             method="post"
                                             action="<?= site_url('admin/media/' . $item['id'] . '/delete') ?>"
-                                            onsubmit="return confirm('Delete this media file?');"
+                                            onsubmit="return confirm(<?= json_encode(lang('MCMS.media.deleteConfirm'), JSON_HEX_APOS | JSON_HEX_QUOT) ?>);"
                                         >
                                             <?= csrf_field() ?>
-                                            <button class="btn btn-outline-danger btn-sm" type="submit">Delete</button>
+                                            <button class="btn btn-outline-danger btn-sm" type="submit"><?= esc(lang('MCMS.common.delete')) ?></button>
                                         </form>
                                     </div>
                                 <?php endif ?>
