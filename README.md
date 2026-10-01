@@ -33,8 +33,8 @@ maintenance. Content and business features are installed as modules.
 
 ## Modules
 
-News, Menus, Galleries, Shop, Orders, Delivery and other domain features are
-not part of Core. Media and Pages are provided as reusable first-party modules.
+News, Galleries, Shop, Orders, Delivery and other domain features are not part
+of Core. Media, Pages and Menus are provided as reusable first-party modules.
 
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
@@ -43,17 +43,17 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-The 2026-10-01 baseline on `main` contains a stable modular Core, the Media and
-Pages first-party modules, the Tabler administration shell, HTTPS reverse-proxy
-support and clean-install CI coverage. See [docs/STATUS.md](docs/STATUS.md) for the
-exact checkpoint.
+The 2026-10-01 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
+Media, Pages and Menus are implemented as the first reusable modules and covered
+by module/integration checks.
 
 The next implementation sequence is:
 
-1. Menus/navigation;
-2. Theme API + the first default theme, including declared menu locations;
-3. News;
-4. Galleries.
+1. Theme API + administration;
+2. the first default theme with declared menu locations;
+3. Menus ↔ theme-location assignment;
+4. News;
+5. Galleries.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,
