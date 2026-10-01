@@ -2,8 +2,8 @@
 
 This stack is intended for a Docker Standalone environment managed by Portainer.
 
-For the first Media-module acceptance test, deploy directly from the Git repository
-so Portainer has the repository as the Docker build context.
+Deploy directly from the Git repository so Portainer has the repository as the
+Docker build context.
 
 ## 1. Create the stack
 
@@ -12,7 +12,7 @@ In Portainer:
 1. Open **Stacks** → **Add stack**.
 2. Choose **Repository**.
 3. Use the mCMS Git repository.
-4. For the current Media test, select branch `feature/media`.
+4. Select branch `main` for the current stable development baseline.
 5. Set **Compose path** to `portainer-stack.yml`.
 6. If the repository is private, configure the Git credentials/token in Portainer.
 
@@ -24,8 +24,10 @@ MCMS_DB_ROOT_PASSWORD=<different strong random password>
 ```
 
 The public base URL and secure-cookie mode are auto-detected from the incoming
-`Host` and `X-Forwarded-Proto` headers. `MCMS_BASE_URL` and
-`MCMS_COOKIE_SECURE` are optional overrides for unusual proxy setups.
+`Host` and `X-Forwarded-Proto` headers. mCMS trusts private Docker/LAN proxy
+ranges by default through `MCMS_TRUSTED_PROXIES`; override that value when the
+deployment uses a different proxy network. `MCMS_BASE_URL` and
+`MCMS_COOKIE_SECURE` remain optional overrides for unusual proxy setups.
 
 Other settings such as `MCMS_HTTP_PORT`, database name/user and mail identity
 have safe defaults and can be overridden when needed.
