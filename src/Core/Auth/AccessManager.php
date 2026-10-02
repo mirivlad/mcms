@@ -64,7 +64,24 @@ final class AccessManager
         $settings->set('AuthGroups.matrix', $matrix);
     }
 
-    public function saveGroup(string $id, string $title, string $description, array $permissions): void
+    public function protectedGroups(): array
+    {
+        $config = config('AuthGroups');
+
+        return array_values(array_unique(['superadmin', $config->defaultGroup, ...array_keys($config->groups)]));
+    }
+
+    public function groupMemberCounts(): array
+    {
+        $rows = $this->db->table('auth_groups_users')
+            ->select('group, COUNT(*) AS members')
+            ->groupBy('group')
+            ->get()->getResultArray();
+
+        return array_column($rows, 'members', 'group');
+    }
+
+    public function saveGroup(string $id, string $title, string $description, array $permissions, bool $create = false): void
     {
         $id = trim($id);
         $title = trim($title);
@@ -94,6 +111,13 @@ final class AccessManager
         $groups = $this->groups();
         $matrix = $this->matrix();
 
+        if ($create && array_key_exists($id, $groups)) {
+            throw new InvalidArgumentException(lang('MCMS.errors.groupExists'));
+        }
+        if (! $create && ! array_key_exists($id, $groups)) {
+            throw new InvalidArgumentException(sprintf(lang('MCMS.errors.unknownGroup'), $id));
+        }
+
         $groups[$id] = [
             'title' => $title,
             'description' => $description,
@@ -108,6 +132,37 @@ final class AccessManager
 
         $settings->set('AuthGroups.groups', $groups);
         $settings->set('AuthGroups.matrix', $matrix);
+    }
+
+    public function deleteGroup(string $id): void
+    {
+        $groups = $this->groups();
+        if (! array_key_exists($id, $groups)) {
+            throw new InvalidArgumentException(sprintf(lang('MCMS.errors.unknownGroup'), $id));
+        }
+        if (in_array($id, $this->protectedGroups(), true)) {
+            throw new RuntimeException(lang('MCMS.errors.protectedGroup'));
+        }
+
+        $matrix = $this->matrix();
+        unset($groups[$id], $matrix[$id]);
+
+        if (! $this->db->transBegin()) {
+            throw new RuntimeException(lang('MCMS.errors.groupDeleteFailed'));
+        }
+        try {
+            $this->db->table('auth_groups_users')->where('group', $id)->delete();
+            $settings = service('settings');
+            $settings->set('AuthGroups.groups', $groups);
+            $settings->set('AuthGroups.matrix', $matrix);
+            if (! $this->db->transStatus() || ! $this->db->transCommit()) {
+                throw new RuntimeException(lang('MCMS.errors.groupDeleteFailed'));
+            }
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            \Config\Services::resetSingle('settings');
+            throw $e;
+        }
     }
 
     public function syncUserAccess(User $user, array $groups, array $permissions): void

@@ -7,7 +7,7 @@
     <title><?= esc($title ?? 'mCMS') ?></title>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/tabler/tabler.min.css') ?>">
     <link rel="stylesheet" href="<?= site_url('assets/vendor/tabler-icons/tabler-icons.min.css') ?>">
-    <link rel="stylesheet" href="<?= site_url('assets/css/admin.css') ?>">
+    <link rel="stylesheet" href="<?= site_url('assets/css/admin.css') ?>?v=<?= substr(hash_file('sha256', FCPATH . 'assets/css/admin.css'), 0, 12) ?>">
 </head>
 <body>
 <?php $currentPath = trim(service('request')->getUri()->getPath(), '/'); ?>

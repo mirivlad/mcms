@@ -4,6 +4,38 @@
     border-top: 1px solid rgba(255, 255, 255, .12);
 }
 
+.access-dialog {
+    width: min(720px, calc(100vw - 2rem));
+    max-height: 90vh;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    color: var(--tblr-body-color);
+    background: var(--tblr-bg-surface);
+}
+
+.access-dialog[open], .access-dialog form {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.access-dialog::backdrop { background: rgba(15, 23, 42, .45); }
+.access-dialog .card-header, .access-dialog .card-footer { flex-shrink: 0; }
+.access-dialog .card-header { padding: 1rem 1.25rem; border-bottom: 1px solid var(--tblr-border-color); }
+.access-dialog .card-footer { padding: 1rem 1.25rem; border-top: 1px solid var(--tblr-border-color); }
+.access-dialog .card-title { margin: 0; }
+.access-dialog-body { padding: 1.25rem; overflow: auto; }
+.access-dialog [hidden] { display: none !important; }
+.access-delete-dialog { width: min(520px, calc(100vw - 2rem)); }
+
+@media (max-width: 767.98px) {
+    .access-groups-table thead { display: none; }
+    .access-groups-table tr { display: block; padding: .75rem 1rem; border-bottom: 1px solid var(--tblr-border-color); }
+    .access-groups-table td { display: block; padding: .35rem 0 !important; border: 0; white-space: normal; overflow-wrap: anywhere; }
+    .access-groups-table td::before { content: attr(data-label); display: block; font-size: .75rem; color: var(--tblr-secondary); margin-bottom: .25rem; }
+}
+
 @media (max-width: 991.98px) {
     .page-body {
         margin-top: .75rem;

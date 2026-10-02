@@ -61,6 +61,38 @@ if not args.cookies:
 for name in ('pages', 'news', 'menus', 'galleries', 'feedback', 'seo'):
     module(name)
 
+# Group management uses one editor dialog and a separate deletion confirmation.
+access_page = request('/admin/access')[0]
+assert '<table' in access_page and 'id="access-create-group"' in access_page
+assert 'id="access-group-dialog"' in access_page and 'id="access-delete-dialog"' in access_page
+for script in re.findall(r'<script\b[^>]*>(.*?)</script>', access_page, re.S):
+    if script.strip():
+        subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
+group_fields = [('mode', 'create'), ('id', 'smoke_editors'), ('title', 'Smoke editors'),
+                ('description', 'Content team'), ('permissions[]', 'core.admin'), ('permissions[]', 'pages.edit')]
+created, _ = post('/admin/access/group', group_fields, '/admin/access')
+assert 'Access group saved.' in created and 'data-edit-group="smoke_editors"' in created
+duplicate, _ = post('/admin/access/group', {**dict(group_fields), 'title': 'Duplicate attempt'}, '/admin/access')
+assert 'A group with this ID already exists.' in duplicate
+assert '<strong>Smoke editors</strong>' in duplicate and '<strong>Duplicate attempt</strong>' not in duplicate
+assert '"mode":"create"' in duplicate and '"title":"Duplicate attempt"' in duplicate
+invalid, _ = post('/admin/access/group', {'mode': 'edit', 'id': 'smoke_editors', 'title': '',
+                                        'description': 'Keep input', 'permissions[]': 'core.admin'}, '/admin/access')
+assert 'Group title is required.' in invalid and '"mode":"edit"' in invalid and 'Keep input' in invalid
+edited, _ = post('/admin/access/group', {'mode': 'edit', 'id': 'smoke_editors', 'title': 'Smoke writers',
+                                       'description': 'Updated team', 'permissions[]': 'core.admin'}, '/admin/access')
+assert '<strong>Smoke writers</strong>' in edited and 'Updated team' in edited
+unconfirmed, _ = post('/admin/access/group/delete', {'id': 'smoke_editors'}, '/admin/access')
+assert 'Confirm group deletion.' in unconfirmed and 'data-edit-group="smoke_editors"' in unconfirmed
+for group in ('superadmin', 'admin', 'user'):
+    protected, _ = post('/admin/access/group/delete', {'id': group, 'confirm': '1'}, '/admin/access')
+    assert 'System groups and the default registration group cannot be deleted.' in protected
+    assert re.search(r'data-delete-group="' + group + r'"[^>]*disabled', protected)
+deleted, _ = post('/admin/access/group/delete', {'id': 'smoke_editors', 'confirm': '1'}, '/admin/access')
+assert 'Access group deleted.' in deleted and 'data-edit-group="smoke_editors"' not in deleted
+stale, _ = post('/admin/access/group', {'mode': 'edit', 'id': 'smoke_editors', 'title': 'Stale editor'}, '/admin/access')
+assert 'Unknown group: smoke_editors' in stale and 'data-edit-group="smoke_editors"' not in stale
+
 # Real multipart uploads, with a deterministic PNG and no image-library dependency.
 def png(color):
     def chunk(kind, value):
@@ -248,4 +280,4 @@ module('galleries')
 assert 'Image unavailable' in request('/galleries/site-smoke-album')[0]
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 assert 'Site smoke album' in request('/admin/galleries')[0]
-print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery display modes/pickers and Signature theme switching.')
+print('Site HTTP smoke passed: group management/confirmation, Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery display modes/pickers and Signature theme switching.')

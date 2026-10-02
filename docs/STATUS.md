@@ -12,6 +12,8 @@ This document records the current known-good mCMS implementation checkpoint.
 - Shared safe rich-text sanitizer used by content modules without introducing module-to-module dependencies.
 - First-run browser installer plus CLI recovery bootstrap.
 - Users, groups, permissions, Core settings and system diagnostics.
+- Access groups shown in a responsive table/list with member and permission counts; creation and editing use a shared modal with input recovery after errors.
+- Group deletion requires confirmation, atomically removes group grants and memberships, and preserves accounts, other groups and direct permissions. Core/default registration groups cannot be deleted.
 - English/Russian localization.
 - Tabler 1.6.1 administration shell with responsive navigation.
 - HTTPS reverse-proxy support and standard CodeIgniter error views.
@@ -115,7 +117,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 53 tests / 410 assertions,
+Fresh local verification for this checkpoint includes 60 tests / 439 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -124,6 +126,11 @@ Media-picker JavaScript was not exercised in an authenticated browser. The Galle
 The display-mode checkpoint also covers slider independence, indicators and keyboard wrapping;
 carousel scrolling and focus at its boundaries; Signature card lightbox integration;
 390px responsive layouts without page overflow; and editor insertion/album shortcode generation for all views.
+The access-management checkpoint also covers group creation/edit/deletion through HTTP forms,
+duplicate/stale edits, server-side deletion confirmation and protected groups;
+membership preservation and rollback after a simulated settings-write failure;
+and unauthenticated copies of the rendered dialogs at desktop/390px sizes, including
+permission selection, error input recovery, Escape/focus restoration and visible form actions.
 
 The checkpoint is covered by:
 

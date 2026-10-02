@@ -17,6 +17,7 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->match(['get', 'post'], 'users/(:num)/access', 'Admin\Users::access/$1', ['as' => 'admin.users.access']);
     $routes->get('access', 'Admin\Access::index', ['as' => 'admin.access']);
     $routes->post('access/group', 'Admin\Access::saveGroup');
+    $routes->post('access/group/delete', 'Admin\Access::deleteGroup');
     $routes->get('modules', 'Admin\Modules::index', ['as' => 'admin.modules']);
     $routes->post('modules/(:segment)/enable', 'Admin\Modules::enable/$1');
     $routes->post('modules/(:segment)/disable', 'Admin\Modules::disable/$1');
