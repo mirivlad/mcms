@@ -10,9 +10,13 @@ use CodeIgniter\HTTP\ResponseInterface;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
 use MCMS\Modules\News\Api\NewsRepositoryInterface;
 use RuntimeException;
+use MCMS\Core\Content\ContentWorkflow;
+use MCMS\Core\Content\ContentWorkflowActions;
 
 final class Admin extends BaseAdminController
 {
+    use ContentWorkflowActions;
+
     public function index(): string|RedirectResponse
     {
         if (($redirect = $this->guard('news.view')) !== null) {
@@ -57,6 +61,8 @@ final class Admin extends BaseAdminController
                     auth()->id() === null ? null : (int) auth()->id(),
                 );
 
+                $this->workflow()->discardDraft((int) auth()->id(), 0);
+
                 return redirect()->to('/admin/news/' . $article['id'] . '/edit')
                     ->with('message', lang('News.Messages.created'));
             } catch (\Throwable $e) {
@@ -85,6 +91,8 @@ final class Admin extends BaseAdminController
                     $this->formData(),
                     auth()->id() === null ? null : (int) auth()->id(),
                 );
+
+                $this->workflow()->discardDraft((int) auth()->id(), $id);
 
                 return redirect()->to('/admin/news/' . $article['id'] . '/edit')
                     ->with('message', lang('News.Messages.updated'));
@@ -168,6 +176,30 @@ final class Admin extends BaseAdminController
                 ? $defaultStatus
                 : 'draft',
         ]);
+    }
+
+    private function workflowDraftData(): array
+    {
+        $data = $this->formData();
+        $media = service('mcmsModuleServices')->get('media.library');
+        $image = $media instanceof MediaLibraryInterface ? $media->find((int) $data['featured_media_id']) : null;
+        $data['featured_image_url'] = $image === null ? null : $media->url($image);
+        return $data;
+    }
+
+    private function workflow(): ContentWorkflow
+    {
+        return new ContentWorkflow(db_connect(), 'news');
+    }
+
+    private function workflowPermission(int $id): bool
+    {
+        return $this->can('news.' . ($id > 0 ? 'edit' : 'create'));
+    }
+
+    private function workflowContent(int $id): ?array
+    {
+        return $this->news()->find($id);
     }
 
     private function formData(): array

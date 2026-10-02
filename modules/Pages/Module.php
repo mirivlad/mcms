@@ -43,6 +43,10 @@ final class Module implements ModuleProviderInterface
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::create');
             $routes->match(['get', 'post'], 'settings', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::settings');
             $routes->post('preview', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::preview');
+            $routes->match(['get', 'post'], 'draft', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::draft');
+            $routes->post('draft/discard', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::discardDraft');
+            $routes->get('(:num)/history', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::history/$1');
+            $routes->get('(:num)/history/(:num)', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::revision/$1/$2');
             $routes->get('media', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::media');
             $routes->match(['get', 'post'], '(:num)/edit', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::edit/$1');
             $routes->post('(:num)/delete', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::delete/$1');

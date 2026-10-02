@@ -222,3 +222,15 @@ A fresh mCMS installation starts from an empty database.
 - Each module owns its tables in its namespace.
 
 No client database dump is ever part of mCMS.
+
+### Editor workflow
+
+Pages and News own their drafts and revisions tables. Core supplies storage helpers
+and session-only controller actions; it does not query module content tables. Each
+manual save records a snapshot in the same transaction as content. Imported records
+without history get a baseline snapshot before their first edit. Deleting content
+removes its workflow records. Disabling a module preserves them. Drafts are keyed
+by authenticated user and content ID (zero for a new item); incomplete forms are
+allowed and bodies are sanitized. Recovery and version restoration only populate
+the editor and require a subsequent manual save to affect the website. Editor
+POSTs are serialized, updating CSRF before the next request or manual submission.

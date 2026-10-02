@@ -145,6 +145,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 <form method="post" id="page-form">
     <input type="hidden" name="content_id" value="<?= (int) ($page['id'] ?? 0) ?>">
     <?= csrf_field() ?>
+    <?= view('admin/content/request') ?>
+    <?= view('admin/content/workflow', ['workflowUrl' => site_url('admin/pages'), 'contentId' => (int) ($page['id'] ?? 0), 'editorId' => 'page-editor']) ?>
     <?= view('admin/content/preview', ['previewUrl' => site_url('admin/pages/preview'), 'editorId' => 'page-editor']) ?>
 
     <div class="row row-cards">

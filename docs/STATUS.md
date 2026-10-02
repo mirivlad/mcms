@@ -30,7 +30,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cached proportional previews, image-only browsing and administration pagination.
 - Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.4.0
+### Pages 0.5.0
 
 - Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
 - Tags and manual keywords; private unsaved preview through the active theme without database writes.
@@ -41,7 +41,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.4.0
+### News 0.5.0
 
 - Draft and published news articles with optional future publication time.
 - Tags and manual keywords; private unsaved preview with featured image and shortcode rendering.
@@ -123,7 +123,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 62 tests / 470 assertions,
+Fresh local verification for this checkpoint includes 63 tests / 510 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -159,3 +159,10 @@ Commerce remains a separate contract-definition stage.
 
 1. Agree Catalogue product, variant, price and stock contracts.
 2. Implement commerce modules after that agreement.
+
+The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,
+paginated revision history and confirmed restoration into the editor. Content and its
+revision are committed together; autosave and preview never publish. HTTP smoke covers
+editor permissions, incomplete drafts, user isolation, clearing on save and history
+reads without publication. Unauthenticated copies of real forms cover autosave/reload/
+recovery, sequential preview CSRF requests and version restoration at desktop/390px sizes.

@@ -8,6 +8,7 @@ use CodeIgniter\Database\BaseConnection;
 use InvalidArgumentException;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
 use MCMS\Core\Content\HtmlSanitizer;
+use MCMS\Core\Content\ContentWorkflow;
 use RuntimeException;
 use CodeIgniter\Events\Events;
 use MCMS\Core\Events\CoreEvents;
@@ -124,22 +125,25 @@ final class PageRepository implements PageRepositoryInterface
         $normalized = $this->normalize($data, null);
         $now = date('Y-m-d H:i:s');
 
-        $this->db->table('pages')->insert([
-            ...$normalized,
-            'created_by' => $this->validUserId($userId),
-            'updated_by' => $this->validUserId($userId),
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        return $this->workflow()->transaction(function () use ($normalized, $now, $userId): array {
+            $this->db->table('pages')->insert([
+                ...$normalized,
+                'created_by' => $this->validUserId($userId),
+                'updated_by' => $this->validUserId($userId),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
 
-        $id = (int) $this->db->insertID();
-        $page = $this->find($id);
+            $id = (int) $this->db->insertID();
+            $page = $this->find($id);
 
-        if ($page === null) {
-            throw new RuntimeException(lang('Pages.Errors.notFound'));
-        }
+            if ($page === null) {
+                throw new RuntimeException(lang('Pages.Errors.notFound'));
+            }
 
-        return $page;
+            $this->workflow()->record((int) $page['id'], $page, $userId);
+            return $page;
+        });
     }
 
     public function update(int $id, array $data, ?int $userId = null): array
@@ -151,18 +155,25 @@ final class PageRepository implements PageRepositoryInterface
 
         $normalized = $this->normalize($data, $current);
 
-        $this->db->table('pages')
-            ->where('id', $id)
-            ->update([
-                ...$normalized,
-                'updated_by' => $this->validUserId($userId),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
+        $page = $this->workflow()->transaction(function () use ($id, $normalized, $current, $userId): array {
+            if (! $this->workflow()->hasRevisions($id)) {
+                $this->workflow()->record($id, $current, $current['updated_by']);
+            }
+            $this->db->table('pages')
+                ->where('id', $id)
+                ->update([
+                    ...$normalized,
+                    'updated_by' => $this->validUserId($userId),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
 
-        $page = $this->find($id);
-        if ($page === null) {
-            throw new RuntimeException(lang('Pages.Errors.notFound'));
-        }
+            $page = $this->find($id);
+            if ($page === null) {
+                throw new RuntimeException(lang('Pages.Errors.notFound'));
+            }
+            $this->workflow()->record($id, $page, $userId);
+            return $page;
+        });
 
         if ($current['slug'] !== $page['slug']) {
             Events::trigger(CoreEvents::RESOURCE_MOVED, 'pages.page', (string) $id, $this->url($current), $this->url($page));
@@ -174,7 +185,10 @@ final class PageRepository implements PageRepositoryInterface
     public function delete(int $id): void
     {
         if ($id > 0) {
-            $this->db->table('pages')->where('id', $id)->delete();
+            $this->workflow()->transaction(function () use ($id): void {
+                $this->workflow()->delete($id);
+                $this->db->table('pages')->where('id', $id)->delete();
+            });
         }
     }
 
@@ -193,6 +207,11 @@ final class PageRepository implements PageRepositoryInterface
         }
 
         return '/' . rawurlencode($slug);
+    }
+
+    private function workflow(): ContentWorkflow
+    {
+        return new ContentWorkflow($this->db, 'pages');
     }
 
     private function normalize(array $data, ?array $currentPage): array

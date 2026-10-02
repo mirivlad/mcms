@@ -7,6 +7,7 @@ namespace MCMS\Modules\News\Services;
 use CodeIgniter\Database\BaseConnection;
 use InvalidArgumentException;
 use MCMS\Core\Content\HtmlSanitizer;
+use MCMS\Core\Content\ContentWorkflow;
 use MCMS\Core\Content\ShortcodeRenderer;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
 use MCMS\Modules\News\Api\NewsRepositoryInterface;
@@ -124,15 +125,19 @@ final class NewsRepository implements NewsRepositoryInterface
         $normalized = $this->normalize($data, null);
         $now = date('Y-m-d H:i:s');
 
-        $this->db->table('news_articles')->insert([
-            ...$normalized,
-            'created_by' => $this->validUserId($userId),
-            'updated_by' => $this->validUserId($userId),
-            'created_at' => $now,
-            'updated_at' => $now,
-        ]);
+        return $this->workflow()->transaction(function () use ($normalized, $now, $userId): array {
+            $this->db->table('news_articles')->insert([
+                ...$normalized,
+                'created_by' => $this->validUserId($userId),
+                'updated_by' => $this->validUserId($userId),
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
 
-        return $this->required((int) $this->db->insertID());
+            $article = $this->required((int) $this->db->insertID());
+            $this->workflow()->record((int) $article['id'], $article, $userId);
+            return $article;
+        });
     }
 
     public function update(int $id, array $data, ?int $userId = null): array
@@ -142,15 +147,23 @@ final class NewsRepository implements NewsRepositoryInterface
             throw new RuntimeException(lang('News.Errors.notFound'));
         }
 
-        $this->db->table('news_articles')
-            ->where('id', $id)
-            ->update([
-                ...$this->normalize($data, $current),
-                'updated_by' => $this->validUserId($userId),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ]);
+        $article = $this->workflow()->transaction(function () use ($id, $data, $current, $userId): array {
+            if (! $this->workflow()->hasRevisions($id)) {
+                $this->workflow()->record($id, $current, $current['updated_by']);
+            }
+            $this->db->table('news_articles')
+                ->where('id', $id)
+                ->update([
+                    ...$this->normalize($data, $current),
+                    'updated_by' => $this->validUserId($userId),
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
 
-        $article = $this->required($id);
+            $article = $this->required($id);
+            $this->workflow()->record($id, $article, $userId);
+            return $article;
+        });
+
         if ($current['slug'] !== $article['slug']) {
             Events::trigger(CoreEvents::RESOURCE_MOVED, 'news.article', (string) $id, $this->url($current), $this->url($article));
         }
@@ -160,7 +173,10 @@ final class NewsRepository implements NewsRepositoryInterface
     public function delete(int $id): void
     {
         if ($id > 0) {
-            $this->db->table('news_articles')->where('id', $id)->delete();
+            $this->workflow()->transaction(function () use ($id): void {
+                $this->workflow()->delete($id);
+                $this->db->table('news_articles')->where('id', $id)->delete();
+            });
         }
     }
 
@@ -179,6 +195,11 @@ final class NewsRepository implements NewsRepositoryInterface
         }
 
         return '/news/' . rawurlencode($slug);
+    }
+
+    private function workflow(): ContentWorkflow
+    {
+        return new ContentWorkflow($this->db, 'news');
     }
 
     private function normalize(array $data, ?array $current): array

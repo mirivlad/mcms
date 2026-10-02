@@ -318,6 +318,26 @@ for theme in ('mcms-default', 'mcms-signature'):
             if script.strip(): subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
         post(form_path, fields)
 
+# Personal autosave never changes live content. History returns fields for the editor only.
+for kind, fields, content_id, public_path in [('pages', page_fields, page_id, '/site-smoke-page-renamed'),
+                                            ('news', news_fields, news_id, '/news/site-smoke-article')]:
+    form_path = '/admin/' + kind + '/' + str(content_id) + '/edit'
+    before = request(public_path)[0]
+    draft_fields = {**fields, 'content_id': content_id, 'title': '', 'body': '<p>Incomplete autosave</p><script>bad()</script>'}
+    saved, _ = post('/admin/' + kind + '/draft', draft_fields, form_path)
+    assert json.loads(saved)['saved']
+    draft = json.loads(request('/admin/' + kind + '/draft?content_id=' + str(content_id))[0])['draft']
+    assert draft['data']['title'] == '' and draft['data']['body'] == '<p>Incomplete autosave</p>'
+    assert before == request(public_path)[0]
+    history = json.loads(request('/admin/' + kind + '/' + str(content_id) + '/history')[0])
+    assert history['count'] > 1 and history['items'][0]['created_by']
+    restored = json.loads(request('/admin/' + kind + '/' + str(content_id) + '/history/' + str(history['items'][-1]['id']))[0])
+    assert restored['data']['title'] and before == request(public_path)[0]
+    expect_404('/admin/' + kind + '/999999/history/' + str(history['items'][0]['id']))
+    post(form_path, fields)
+    assert json.loads(request('/admin/' + kind + '/draft?content_id=' + str(content_id))[0])['draft'] is None
+    post('/admin/' + kind + '/draft', {'content_id': 0, 'title': '', 'body': 'Admin private draft'}, '/admin/' + kind + '/create')
+
 # A create-only editor cannot preview an existing record by posting its ID.
 created_user, _ = post('/admin/users/create', {'email': 'previewer@example.test', 'username': 'previewer',
                                              'password': 'Preview-Smoke-2026!'}, '/admin/users/create')
@@ -340,7 +360,22 @@ try:
         result, _ = post('/admin/' + kind + '/preview', fields, '/admin/' + kind + '/create')
         assert 'Private draft' in json.loads(result)['html']
         assert '1970' not in json.loads(result)['html']
+        for endpoint in ('draft?content_id=' + str(content_id), str(content_id) + '/history'):
+            try:
+                request('/admin/' + kind + '/' + endpoint)
+                raise AssertionError('Create-only editor read existing draft/history')
+            except urllib.error.HTTPError as error:
+                assert error.code == 403 and 'no-store' in error.headers.get('Cache-Control', '')
+        assert json.loads(request('/admin/' + kind + '/draft?content_id=0')[0])['draft'] is None
+        post('/admin/' + kind + '/draft', {'title': '', 'body': 'Create-only private draft'}, '/admin/' + kind + '/create')
+        assert json.loads(request('/admin/' + kind + '/draft?content_id=0')[0])['draft']['data']['body'] == 'Create-only private draft'
+        post('/admin/' + kind + '/draft/discard', {}, '/admin/' + kind + '/create')
+        assert json.loads(request('/admin/' + kind + '/draft?content_id=0')[0])['draft'] is None
 finally:
     opener = admin_opener
 
-print('Site HTTP smoke passed: SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')
+for kind in ('pages', 'news'):
+    assert json.loads(request('/admin/' + kind + '/draft?content_id=0')[0])['draft']['data']['body'] == 'Admin private draft'
+    post('/admin/' + kind + '/draft/discard', {}, '/admin/' + kind + '/create')
+
+print('Site HTTP smoke passed: personal autosave, revisions,  SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')

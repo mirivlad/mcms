@@ -156,6 +156,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 <form method="post" id="news-form">
     <input type="hidden" name="content_id" value="<?= (int) ($article['id'] ?? 0) ?>">
     <?= csrf_field() ?>
+    <?= view('admin/content/request') ?>
+    <?= view('admin/content/workflow', ['workflowUrl' => site_url('admin/news'), 'contentId' => (int) ($article['id'] ?? 0), 'editorId' => 'news-editor']) ?>
     <?= view('admin/content/preview', ['previewUrl' => site_url('admin/news/preview'), 'editorId' => 'news-editor']) ?>
     <div class="row row-cards">
         <div class="col-xl-9">
@@ -409,6 +411,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         featuredImage.src = item.thumbnail_url || item.url;
         featuredPreview.classList.remove('d-none');
         removeFeatured.classList.remove('d-none');
+        featuredId.dispatchEvent(new Event('change', {bubbles:true}));
     };
 
     const insertInlineImage = (item) => {
@@ -517,6 +520,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         featuredImage.src = '';
         featuredPreview.classList.add('d-none');
         removeFeatured.classList.add('d-none');
+        featuredId.dispatchEvent(new Event('change', {bubbles:true}));
     });
 })();
 </script>

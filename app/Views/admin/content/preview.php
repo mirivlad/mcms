@@ -49,11 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
         dialog.showModal();
         editor.dispatchEvent(new Event('input', {bubbles:true}));
         try {
-            const response = await fetch(<?= json_encode($previewUrl) ?>, {method:'POST',body:new FormData(form),credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'}});
-            const data = await response.json();
-            if (data.csrfHash) form.querySelector('[name="<?= esc(csrf_token(), 'attr') ?>"]').value = data.csrfHash;
+            const data = await form.mcmsRequest(<?= json_encode($previewUrl) ?>, new FormData(form));
             if (currentRequest !== requestId || !dialog.open) return;
-            if (!response.ok || !data.html) throw new Error(data.error || <?= json_encode(lang('MCMS.content.previewFailed')) ?>);
+            if (!data.html) throw new Error(data.error || <?= json_encode(lang('MCMS.content.previewFailed')) ?>);
             frame.srcdoc = data.html;
             loading.hidden = true;
         } catch (failure) {

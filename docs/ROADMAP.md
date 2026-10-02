@@ -43,7 +43,7 @@
 
 - [x] SEO title/description templates and manual/tag-derived keywords.
 - [x] Private unsaved Pages/News preview in the active theme.
-- [ ] Autosave/recovery and revision history.
+- [x] Autosave/recovery and revision history.
 - [ ] Per-theme logo, favicon, color and contact settings.
 - [ ] News categories, tags, filters and public search.
 

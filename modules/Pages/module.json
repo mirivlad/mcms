@@ -1,7 +1,7 @@
 {
   "id": "pages",
   "name": "@Pages.Admin.menuLabel",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "namespace": "MCMS\\Modules\\Pages",
   "provider": "MCMS\\Modules\\Pages\\Module",
   "mcms": "^0.1.3",

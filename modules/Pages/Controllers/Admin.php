@@ -10,9 +10,13 @@ use CodeIgniter\HTTP\ResponseInterface;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
 use RuntimeException;
+use MCMS\Core\Content\ContentWorkflow;
+use MCMS\Core\Content\ContentWorkflowActions;
 
 final class Admin extends BaseAdminController
 {
+    use ContentWorkflowActions;
+
     public function index(): string|RedirectResponse
     {
         if (($redirect = $this->guard('pages.view')) !== null) {
@@ -58,6 +62,8 @@ final class Admin extends BaseAdminController
                     auth()->id() === null ? null : (int) auth()->id(),
                 );
 
+                $this->workflow()->discardDraft((int) auth()->id(), 0);
+
                 return redirect()->to('/admin/pages/' . $page['id'] . '/edit')
                     ->with('message', lang('Pages.Messages.created'));
             } catch (\Throwable $e) {
@@ -86,6 +92,8 @@ final class Admin extends BaseAdminController
                     $this->formData(),
                     auth()->id() === null ? null : (int) auth()->id(),
                 );
+
+                $this->workflow()->discardDraft((int) auth()->id(), $id);
 
                 return redirect()->to('/admin/pages/' . $page['id'] . '/edit')
                     ->with('message', lang('Pages.Messages.updated'));
@@ -221,6 +229,21 @@ final class Admin extends BaseAdminController
                 ? $defaultStatus
                 : 'draft',
         ]);
+    }
+
+    private function workflow(): ContentWorkflow
+    {
+        return new ContentWorkflow(db_connect(), 'pages');
+    }
+
+    private function workflowPermission(int $id): bool
+    {
+        return $this->can('pages.' . ($id > 0 ? 'edit' : 'create'));
+    }
+
+    private function workflowContent(int $id): ?array
+    {
+        return $this->pages()->find($id);
     }
 
     private function formData(): array

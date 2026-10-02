@@ -303,6 +303,60 @@ final class SiteModulesTest extends CIUnitTestCase
         }
     }
 
+    public function testDraftIsolationRevisionHistoryAndTransactionalRollback(): void
+    {
+        [, $services] = $this->boot(['pages', 'news']);
+        foreach (['pages', 'news'] as $prefix) {
+            $repository = $services->get($prefix . '.repository');
+            $workflow = new \MCMS\Core\Content\ContentWorkflow($this->db, $prefix);
+            $original = $repository->create(['title' => 'Original', 'body' => '<p>Public</p>', 'status' => 'published'], 11);
+            $id = $original['id'];
+            $workflow->saveDraft(11, $id, ['title' => '', 'body' => '<p>Incomplete</p><script>bad()</script>']);
+            $workflow->saveDraft(12, $id, ['title' => 'Other editor', 'body' => '<p>Other</p>']);
+            $workflow->saveDraft(11, $id, ['title' => '', 'body' => '<p>Latest</p><img src="/ok" onerror="bad()">']);
+            self::assertSame('', $workflow->draft(11, $id)['data']['title']);
+            self::assertStringNotContainsString('onerror', $workflow->draft(11, $id)['data']['body']);
+            self::assertSame('Other editor', $workflow->draft(12, $id)['data']['title']);
+            self::assertNull($workflow->draft(13, $id));
+            self::assertSame($original, $repository->find($id));
+            self::assertSame(1, $workflow->history($id)['count']);
+            $updated = $repository->update($id, ['title' => 'Changed', 'body' => '<p>Changed</p>', 'status' => 'draft'], 12);
+            $history = $workflow->history($id);
+            self::assertSame(2, $history['count']);
+            self::assertSame(12, (int) $history['items'][0]['created_by']);
+            $version = $workflow->revision($id, (int) $history['items'][1]['id']);
+            self::assertSame('Original', $version['title']);
+            self::assertNull($workflow->revision($id + 1, (int) $history['items'][1]['id']));
+            self::assertSame($updated, $repository->find($id));
+            $workflow->discardDraft(11, $id);
+            self::assertNull($workflow->draft(11, $id));
+            self::assertNotNull($workflow->draft(12, $id));
+            // Simulate an imported record without revisions: capture it before its first edit.
+            $this->db->table($prefix . '_revisions')->where('content_id', $id)->delete();
+            $repository->update($id, ['title' => 'Imported edit', 'body' => '<p>Edit</p>', 'status' => 'draft'], 11);
+            self::assertSame(2, $workflow->history($id)['count']);
+            for ($i = 0; $i < 22; $i++) {
+                $workflow->record($id, $version, 11);
+            }
+            self::assertCount(20, $workflow->history($id)['items']);
+            self::assertCount(4, $workflow->history($id, 20)['items']);
+            $before = $repository->find($id);
+            try {
+                $workflow->transaction(function () use ($repository, $id, $workflow): void {
+                    $repository->update($id, ['title' => 'Rollback', 'body' => '', 'status' => 'draft']);
+                    $workflow->record($id, ['invalidJson' => NAN], 11);
+                });
+                self::fail('Failure recording history must roll back content and its version.');
+            } catch (JsonException) {
+                self::assertSame($before, $repository->find($id));
+                self::assertSame(24, $workflow->history($id)['count']);
+            }
+            $repository->delete($id);
+            self::assertSame(0, $workflow->history($id)['count']);
+            self::assertNull($workflow->draft(12, $id));
+        }
+    }
+
     private function boot(array $modules): array
     {
         $services = new ModuleServiceRegistry();
