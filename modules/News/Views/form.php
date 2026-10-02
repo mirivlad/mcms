@@ -208,6 +208,11 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                         <button class="btn btn-ghost-secondary" type="button" data-command="removeFormat" title="<?= esc(lang('News.Admin.clearFormatting'), 'attr') ?>" aria-label="<?= esc(lang('News.Admin.clearFormatting'), 'attr') ?>"><i class="ti ti-clear-formatting"></i></button>
                         <span class="mcms-editor-toolbar-separator"></span>
                         <button class="btn btn-ghost-primary" type="button" id="news-insert-media" title="<?= esc(lang('News.Admin.insertImage'), 'attr') ?>" aria-label="<?= esc(lang('News.Admin.insertImage'), 'attr') ?>"><i class="ti ti-photo-plus"></i></button>
+                        <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+                        <button class="btn btn-ghost-primary" type="button" data-gallery-picker data-editor="news-editor" aria-haspopup="dialog" aria-controls="content-gallery-dialog" title="<?= esc(lang('Galleries.Admin.insertGallery'), 'attr') ?>" aria-label="<?= esc(lang('Galleries.Admin.insertGallery'), 'attr') ?>">
+                            <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
+                        </button>
+                        <?php endif ?>
                     </div>
                     <div id="news-editor" class="mcms-editor" contenteditable="true" role="textbox" aria-multiline="true"><?= $bodyValue ?></div>
                 </div>
@@ -503,4 +508,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     });
 })();
 </script>
+<?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+<?= view('MCMS\\Modules\\Galleries\\Views\\content_picker') ?>
+<?php endif ?>
 <?= $this->endSection() ?>

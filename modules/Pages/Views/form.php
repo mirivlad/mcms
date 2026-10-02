@@ -221,6 +221,11 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                         <button class="btn btn-ghost-primary" type="button" id="open-media" title="<?= esc(lang('Pages.Admin.mediaPicker'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.mediaPicker'), 'attr') ?>">
                             <i class="ti ti-photo-plus"></i>
                         </button>
+                        <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+                        <button class="btn btn-ghost-primary" type="button" data-gallery-picker data-editor="page-editor" aria-haspopup="dialog" aria-controls="content-gallery-dialog" title="<?= esc(lang('Galleries.Admin.insertGallery'), 'attr') ?>" aria-label="<?= esc(lang('Galleries.Admin.insertGallery'), 'attr') ?>">
+                            <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
+                        </button>
+                        <?php endif ?>
                     </div>
 
                     <div
@@ -565,4 +570,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     form.addEventListener('submit', syncBody);
 })();
 </script>
+<?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+<?= view('MCMS\\Modules\\Galleries\\Views\\content_picker') ?>
+<?php endif ?>
 <?= $this->endSection() ?>

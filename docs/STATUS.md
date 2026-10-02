@@ -64,6 +64,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Paginated image picker using Media API; album removal preserves files.
 - Public archive/album, theme fallbacks and generic navigation providers.
 - Stable-ID gallery shortcodes in Pages/News/Home, following live publication state.
+- Gallery buttons in Pages/News editors: published-album search, pagination and insertion at the saved cursor or selection.
 - Disabled albums preserve data and remain visible to Media usage inspection.
 
 ### Feedback 0.1.0
@@ -117,7 +118,7 @@ PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
 gallery keyboard navigation/Escape/focus restoration. Administrative forms were exercised via HTTP; interactive
-Media-picker JavaScript was not exercised in an authenticated browser.
+Media-picker JavaScript was not exercised in an authenticated browser. The Gallery picker was additionally exercised in unauthenticated copies of server-rendered Pages/News forms: cursor/selection insertion, hidden-body synchronization, keyboard selection and Escape/focus restoration. Its real HTTP endpoint was checked for search, pagination, draft exclusion and editor permissions.
 
 The checkpoint is covered by:
 

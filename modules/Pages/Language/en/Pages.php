@@ -2,7 +2,7 @@
 
 return [
     'Admin' => [
-        'galleryHint' => 'To embed a published album, copy its [gallery id="12"] shortcode from Galleries into this text.',
+        'galleryHint' => 'Use the Gallery button to insert a published album at the cursor.',
         'homePage' => 'Home page',
         'defaultHome' => 'Built-in home page',
         'homeHint' => 'Only published pages are shown. If the selected page becomes a draft, is deleted, or Pages is disabled, the built-in home page is used.',

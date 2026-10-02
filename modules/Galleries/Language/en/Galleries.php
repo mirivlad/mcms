@@ -2,6 +2,14 @@
 
 return [
     'Admin' => [
+        'insertGallery' => 'Insert gallery',
+        'galleryButton' => 'Gallery',
+        'pickerHint' => 'Choose a published album to insert its shortcode into the text.',
+        'pickerLoading' => 'Loading albums…',
+        'pickerEmpty' => 'No published albums found.',
+        'pickerError' => 'Could not load albums. Try Search again.',
+        'previousPage' => 'Previous page',
+        'nextPage' => 'Next page',
         'shortcode' => 'Embed in Pages or News',
         'shortcodeHint' => 'Copy this shortcode into the text of a page or article. Only published albums are shown.',
         'title' => 'Galleries',

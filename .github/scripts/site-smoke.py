@@ -121,6 +121,28 @@ picker = json.loads(request('/admin/galleries/media?page=1')[0])
 assert {first['id'], second['id']} <= {item['id'] for item in picker['items']}
 assert all(item['is_image'] for item in picker['items'])
 shortcode = '[gallery id="' + str(album_id) + '"]'
+gallery_picker = json.loads(request('/admin/galleries/picker?q=Site%20smoke%20album')[0])
+assert gallery_picker['items'] == [{'id': album_id, 'title': 'Site smoke album', 'thumbnail_url': first['thumbnail_url']}]
+for path in ('/admin/pages/' + str(page_id) + '/edit', '/admin/news/' + str(news_id) + '/edit'):
+    editor_form = request(path)[0]
+    assert 'data-gallery-picker' in editor_form and 'id="content-gallery-dialog"' in editor_form
+    assert 'Galleries.Admin.' not in editor_form and 'MCMS.common.' not in editor_form
+    for script in re.findall(r'<script\b[^>]*>(.*?)</script>', editor_form, re.S):
+        if script.strip():
+            subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
+picker_fixture_ids = []
+for index in range(32):
+    _, fixture_url = post('/admin/galleries/create', {'title': 'Picker fixture ' + str(index), 'status': 'published' if index < 31 else 'draft'})
+    picker_fixture_ids.append(int(re.search(r'/([0-9]+)/edit$', fixture_url).group(1)))
+gallery_picker = json.loads(request('/admin/galleries/picker?q=Picker%20fixture&page=1')[0])
+assert len(gallery_picker['items']) == 30 and gallery_picker['lastPage'] == 2
+second_page = json.loads(request('/admin/galleries/picker?q=Picker%20fixture&page=999')[0])
+assert len(second_page['items']) == 1 and second_page['page'] == 2
+assert len({item['id'] for item in gallery_picker['items'] + second_page['items']}) == 31
+assert picker_fixture_ids[-1] not in {item['id'] for item in gallery_picker['items'] + second_page['items']}
+assert json.loads(request('/admin/galleries/picker?q=missing-picker-album')[0])['items'] == []
+for fixture_id in picker_fixture_ids:
+    post('/admin/galleries/' + str(fixture_id) + '/delete', {}, '/admin/galleries')
 page_fields['body'] = body + '<p>' + shortcode + '</p>'
 post('/admin/pages/' + str(page_id) + '/edit', page_fields)
 post('/admin/news/' + str(news_id) + '/edit', {**news_fields, 'body': '<p>Embedded news ' + shortcode + '</p>'})
@@ -137,6 +159,9 @@ resources = json.loads(request('/admin/menus/resources?provider=galleries.album&
 assert 'Site smoke album' in str(resources)
 module('galleries', 'disable')
 expect_404('/galleries/site-smoke-album')
+expect_404('/admin/galleries/picker')
+assert 'data-gallery-picker' not in request('/admin/pages/' + str(page_id) + '/edit')[0]
+assert 'data-gallery-picker' not in request('/admin/news/' + str(news_id) + '/edit')[0]
 assert shortcode not in request('/site-smoke-page-renamed')[0]
 assert 'data-gallery-id=' not in request('/site-smoke-page-renamed')[0]
 module('galleries')
@@ -199,4 +224,4 @@ module('galleries')
 assert 'Image unavailable' in request('/galleries/site-smoke-album')[0]
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 assert 'Site smoke album' in request('/admin/galleries')[0]
-print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery shortcodes and Signature theme switching.')
+print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery shortcode pickers and Signature theme switching.')

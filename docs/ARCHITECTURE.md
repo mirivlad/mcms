@@ -123,6 +123,9 @@ Enabled modules register public `ShortcodeProviderInterface` services; Core does
 not know gallery tables or semantics. Galleries renders only published albums,
 using the `galleries.embed` theme template or its phrasing-HTML fallback.
 Disabled, deleted and draft embeds disappear without rewriting stored bodies.
+Pages/News optionally use the Galleries-owned editor picker when its shortcode
+service is enabled. Its session-protected endpoint lists published albums for
+users allowed to create or edit Pages/News, without requiring album-management permissions.
 
 ## Themes
 

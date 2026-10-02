@@ -48,7 +48,7 @@ Media, Pages, Menus, News, Galleries, Feedback and SEO are implemented as reusab
 module/integration checks.
 
 Theme API, two first-party themes and Menus ↔ theme-location assignment are implemented.
-Both mCMS Default and [mCMS Signature](themes/mcms-signature/README.md) render Home, Pages, News, Galleries and Feedback through logical templates. Published albums can be embedded in Pages/News with `[gallery id="12"]`.
+Both mCMS Default and [mCMS Signature](themes/mcms-signature/README.md) render Home, Pages, News, Galleries and Feedback through logical templates. The Gallery button in Pages/News editors searches published albums and inserts `[gallery id="12"]` at the cursor.
 
 The next implementation sequence is:
 

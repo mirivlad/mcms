@@ -38,6 +38,7 @@ final class Module implements ModuleProviderInterface
             $routes->match(['get', 'post'], '(:num)/edit', '\\MCMS\\Modules\\Galleries\\Controllers\\Admin::edit/$1');
             $routes->post('(:num)/delete', '\\MCMS\\Modules\\Galleries\\Controllers\\Admin::delete/$1');
             $routes->get('media', '\\MCMS\\Modules\\Galleries\\Controllers\\Admin::media');
+            $routes->get('picker', '\\MCMS\\Modules\\Galleries\\Controllers\\Admin::picker');
         });
         $routes->get('galleries', '\\MCMS\\Modules\\Galleries\\Controllers\\Galleries::index');
         $routes->get('galleries/(:segment)', '\\MCMS\\Modules\\Galleries\\Controllers\\Galleries::show/$1');

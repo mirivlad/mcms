@@ -74,6 +74,21 @@ final class Admin extends BaseAdminController
         return $this->response->setJSON(['items' => $media->list($query, 30, ($page - 1) * 30, true), 'page' => $page, 'lastPage' => $lastPage]);
     }
 
+    public function picker(): ResponseInterface
+    {
+        if (! $this->can('pages.create') && ! $this->can('pages.edit') && ! $this->can('news.create') && ! $this->can('news.edit')) {
+            return $this->response->setStatusCode(403)->setJSON(['items' => []]);
+        }
+        $query = trim((string) $this->request->getGet('q'));
+        $lastPage = max(1, (int) ceil($this->repository()->countPublished($query) / 30));
+        $page = max(1, min($lastPage, (int) $this->request->getGet('page')));
+        $items = array_map(static fn (array $album): array => [
+            'id' => $album['id'], 'title' => $album['title'],
+            'thumbnail_url' => $album['cover']['thumbnail_url'] ?? null,
+        ], $this->repository()->listPublished($query, 30, ($page - 1) * 30));
+        return $this->response->setJSON(['items' => $items, 'page' => $page, 'lastPage' => $lastPage]);
+    }
+
     private function form(?array $album): string|RedirectResponse
     {
         $data = $this->request->getMethod() === 'POST' ? [
