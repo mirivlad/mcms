@@ -185,6 +185,57 @@ final class SiteModulesTest extends CIUnitTestCase
         self::assertStringNotContainsString('href="' . site_url('galleries') . '"', $html);
     }
 
+    public function testGalleryDisplayModesPreserveOrderEscapeCaptionsAndHandleMissingImages(): void
+    {
+        [, $services] = $this->boot(['pages', 'news', 'galleries']);
+        $ids = [];
+        for ($i = 0; $i < 3; $i++) {
+            $this->db->table('media_files')->insert([
+                'original_name' => 'display-' . $i . '.png', 'storage_path' => 'gallery-display-tests/' . $i . '.png',
+                'mime_type' => 'image/png', 'extension' => 'png', 'size_bytes' => 100, 'width' => 960, 'height' => 480,
+                'alt_text' => 'Alt ' . $i, 'sha256' => str_repeat('a', 64), 'created_at' => date('Y-m-d H:i:s'),
+            ]);
+            $ids[] = (int) $this->db->insertID();
+        }
+        $albums = $services->get('galleries.repository');
+        $album = $albums->create(['title' => '<Album>', 'status' => 'published', 'media_ids' => $ids,
+            'positions' => [$ids[0] => 10, $ids[1] => 0, $ids[2] => 20],
+            'captions' => [$ids[0] => 'Later', $ids[1] => '<script>Caption</script>', $ids[2] => 'Missing']]);
+        $renderer = service('mcmsShortcodes');
+        foreach (['mcms-default', 'mcms-signature'] as $theme) {
+            service('mcmsThemes')->activate($theme);
+            foreach (['slider', 'carousel', 'cards'] as $mode) {
+                $source = '<p>Before [gallery view="' . $mode . '" id="' . $album['id'] . '"] after</p>';
+                $html = $renderer->render($source);
+                self::assertStringContainsString('mcms-gallery-' . $mode, $html);
+                self::assertStringContainsString('&lt;script&gt;Caption&lt;/script&gt;', $html);
+                self::assertLessThan(strpos($html, 'Later'), strpos($html, '&lt;script&gt;Caption'));
+                self::assertStringContainsString('Before ', $html);
+                self::assertStringContainsString(' after', $html);
+                self::assertStringNotContainsString('<script>Caption', $html);
+                self::assertStringNotContainsString('[gallery', $html);
+            }
+        }
+        foreach (['view="unknown"', 'view="../slider"', 'extra="value"'] as $invalid) {
+            self::assertSame('', $renderer->render('[gallery id="' . $album['id'] . '" ' . $invalid . ']'));
+        }
+        $services->get('media.library')->delete($ids[2], true);
+        $slider = $renderer->render('[gallery id="' . $album['id'] . '" view="slider"]');
+        $document = new DOMDocument();
+        $document->loadHTML($slider);
+        self::assertSame(2, (new DOMXPath($document))->query('//span[@data-slide]')->length);
+        self::assertStringNotContainsString('Missing', $slider);
+        self::assertStringContainsString(lang('Galleries.Public.missing'), $renderer->render('[gallery id="' . $album['id'] . '" view="cards"]'));
+        foreach (['slider', 'carousel', 'cards'] as $mode) {
+            $draft = $albums->update($album['id'], ['title' => 'Draft', 'status' => 'draft']);
+            self::assertSame('', $renderer->render('[gallery id="' . $draft['id'] . '" view="' . $mode . '"]'));
+        }
+        $empty = $albums->create(['title' => 'Empty', 'status' => 'published']);
+        self::assertStringContainsString(lang('Galleries.Public.noImages'), $renderer->render('[gallery id="' . $empty['id'] . '" view="slider"]'));
+        $single = $albums->create(['title' => 'Single', 'status' => 'published', 'media_ids' => [$ids[0]]]);
+        self::assertStringNotContainsString('data-slider-controls', $renderer->render('[gallery id="' . $single['id'] . '" view="slider"]'));
+    }
+
     private function boot(array $modules): array
     {
         $services = new ModuleServiceRegistry();

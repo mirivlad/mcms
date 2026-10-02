@@ -20,13 +20,20 @@ final class GalleryShortcode implements ShortcodeProviderInterface
 
     public function render(array $attributes): string
     {
-        if (array_keys($attributes) !== ['id'] || preg_match('/^[1-9][0-9]{0,18}$/', $attributes['id']) !== 1) {
+        $display = $attributes['view'] ?? 'grid';
+        if (array_diff(array_keys($attributes), ['id', 'view']) !== [] || ! isset($attributes['id'])
+            || preg_match('/^[1-9][0-9]{0,18}$/', $attributes['id']) !== 1
+            || ! in_array($display, ['grid', 'slider', 'carousel', 'cards'], true)) {
             return '';
         }
         $album = $this->galleries->find((int) $attributes['id']);
         if ($album === null || ! $album['is_live']) {
             return '';
         }
-        return service('mcmsThemes')->render('galleries.embed', ['album' => $album], 'MCMS\\Modules\\Galleries\\Views\\embed');
+        if ($display === 'grid') {
+            return service('mcmsThemes')->render('galleries.embed', ['album' => $album], 'MCMS\\Modules\\Galleries\\Views\\embed');
+        }
+        return service('mcmsThemes')->render('galleries.' . $display, ['album' => $album, 'display' => $display],
+            'MCMS\\Modules\\Galleries\\Views\\' . ($display === 'slider' ? 'slider' : 'collection'));
     }
 }

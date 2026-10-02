@@ -27,6 +27,9 @@ $menuUrl = static function (?string $url): ?string {
     <?php endif ?>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= esc($themeAssets . 'css/theme.css?v=' . rawurlencode($theme?->version ?? '0'), 'attr') ?>">
+<?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+<?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
+<?php endif ?>
 </head>
 <body>
 <header class="site-header">

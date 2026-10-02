@@ -48,7 +48,7 @@ Media, Pages, Menus, News, Galleries, Feedback and SEO are implemented as reusab
 module/integration checks.
 
 Theme API, two first-party themes and Menus ↔ theme-location assignment are implemented.
-Both mCMS Default and [mCMS Signature](themes/mcms-signature/README.md) render Home, Pages, News, Galleries and Feedback through logical templates. The Gallery button in Pages/News editors searches published albums and inserts `[gallery id="12"]` at the cursor.
+Both mCMS Default and [mCMS Signature](themes/mcms-signature/README.md) render Home, Pages, News, Galleries and Feedback through logical templates. The Gallery button in Pages/News editors searches published albums and inserts a shortcode at the cursor. Choose a thumbnail grid, a large banner slider, a horizontal carousel or cards with captions. The same album can use different views on different pages; existing `[gallery id="12"]` shortcodes keep their grid layout. For example: `[gallery id="12" view="slider"]`, `[gallery id="12" view="carousel"]` or `[gallery id="12" view="cards"]`. The album editor also generates a shortcode for the selected view.
 
 The next implementation sequence is:
 

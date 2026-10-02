@@ -126,6 +126,14 @@ Disabled, deleted and draft embeds disappear without rewriting stored bodies.
 Pages/News optionally use the Galleries-owned editor picker when its shortcode
 service is enabled. Its session-protected endpoint lists published albums for
 users allowed to create or edit Pages/News, without requiring album-management permissions.
+The optional `view` attribute accepts `grid`, `slider`, `carousel` and `cards`.
+Galleries owns the display fallback views and assets; themes can override logical
+`galleries.slider`, `galleries.carousel` and `galleries.cards` templates. The
+first-party layouts and Pages/News fallback documents include the module-owned
+`public_assets` view only while Galleries is enabled. Public asset delivery is
+restricted to the two CSS/JS filenames and uses content-hash URLs for cache invalidation.
+Sliders keep only available images, while grids, carousels and cards preserve
+missing-image placeholders and captions. Each embedded slider/carousel has independent state.
 
 ## Themes
 

@@ -6,11 +6,23 @@ namespace MCMS\Modules\Galleries\Controllers;
 
 use App\Controllers\BaseController;
 use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\ResponseInterface;
 use MCMS\Modules\Galleries\Api\GalleryRepositoryInterface;
 use RuntimeException;
 
 final class Galleries extends BaseController
 {
+    public function asset(string $name): ResponseInterface
+    {
+        $types = ['display.css' => 'text/css; charset=UTF-8', 'display.js' => 'text/javascript; charset=UTF-8'];
+        if (! isset($types[$name])) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        return $this->response->setHeader('Content-Type', $types[$name])
+            ->setHeader('Cache-Control', 'private, max-age=86400')
+            ->setBody(file_get_contents(dirname(__DIR__) . '/assets/' . $name));
+    }
+
     public function index(): string
     {
         $galleries = $this->galleries();

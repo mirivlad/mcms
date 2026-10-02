@@ -7,6 +7,9 @@
 <meta name="description" content="<?= esc((string) ($article['seo_description'] ?? $article['excerpt']), 'attr') ?>">
 <?php endif ?>
 <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
+<?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+<?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
+<?php endif ?>
 </head>
 <body><main class="container py-5">
 <article class="mx-auto" style="max-width:900px">

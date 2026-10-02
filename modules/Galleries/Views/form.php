@@ -4,7 +4,15 @@
 <?php if ($error !== null): ?><div class="alert alert-danger" role="alert"><?= esc($error) ?></div><?php endif ?>
 <form method="post">
     <?= csrf_field() ?>
-    <?php if ($album !== null): ?><div class="alert alert-info"><label class="form-label" for="gallery-shortcode"><?= esc(lang('Galleries.Admin.shortcode')) ?></label><input class="form-control font-monospace" id="gallery-shortcode" readonly value="<?= esc('[gallery id="' . (int) $album['id'] . '"]', 'attr') ?>"><div class="mt-2"><?= esc(lang('Galleries.Admin.shortcodeHint')) ?></div></div><?php endif ?>
+    <?php if ($album !== null): ?><div class="alert alert-info">
+        <label class="form-label" for="gallery-embed-view"><?= esc(lang('Galleries.Admin.display')) ?></label>
+        <select class="form-select mb-3" id="gallery-embed-view">
+            <?php foreach (['grid' => 'displayGrid', 'slider' => 'displaySlider', 'carousel' => 'displayCarousel', 'cards' => 'displayCards'] as $mode => $label): ?><option value="<?= $mode ?>"><?= esc(lang('Galleries.Admin.' . $label)) ?></option><?php endforeach ?>
+        </select>
+        <label class="form-label" for="gallery-shortcode"><?= esc(lang('Galleries.Admin.shortcode')) ?></label>
+        <input class="form-control font-monospace" id="gallery-shortcode" data-album-id="<?= (int) $album['id'] ?>" readonly value="<?= esc('[gallery id="' . (int) $album['id'] . '"]', 'attr') ?>">
+        <div class="mt-2"><?= esc(lang('Galleries.Admin.shortcodeHint')) ?></div>
+    </div><?php endif ?>
     <div class="card mb-3"><div class="card-body">
         <div class="row g-3">
             <div class="col-md-8"><label class="form-label" for="gallery-title"><?= esc(lang('MCMS.common.title')) ?></label><input class="form-control" id="gallery-title" name="title" maxlength="255" value="<?= esc($values['title'] ?? '', 'attr') ?>" required></div>
@@ -41,6 +49,12 @@
 </form>
 <script>
 (() => {
+    const embedView = document.getElementById('gallery-embed-view');
+    const shortcode = document.getElementById('gallery-shortcode');
+    if (embedView && shortcode) embedView.addEventListener('change', () => {
+        const mode = ['slider', 'carousel', 'cards'].includes(embedView.value) ? ' view="' + embedView.value + '"' : '';
+        shortcode.value = '[gallery id="' + shortcode.dataset.albumId + '"' + mode + ']';
+    });
     const labels = <?= json_encode(array_combine(['caption','position','cover','remove','missing','loading','empty','loadError','add'], array_map(static fn ($key) => lang('Galleries.Admin.' . $key), ['caption','position','cover','remove','missing','loading','empty','loadError','add'])), JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) ?>;
     const selected = document.getElementById('selected-images');
     const selectedIds = new Set();

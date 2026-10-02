@@ -2,6 +2,11 @@
 
 return [
     'Admin' => [
+        'display' => 'Display',
+        'displayGrid' => 'Thumbnail grid',
+        'displaySlider' => 'Banner slider',
+        'displayCarousel' => 'Carousel',
+        'displayCards' => 'Cards with captions',
         'insertGallery' => 'Insert gallery',
         'galleryButton' => 'Gallery',
         'pickerHint' => 'Choose a published album to insert its shortcode into the text.',
@@ -11,7 +16,7 @@ return [
         'previousPage' => 'Previous page',
         'nextPage' => 'Next page',
         'shortcode' => 'Embed in Pages or News',
-        'shortcodeHint' => 'Copy this shortcode into the text of a page or article. Only published albums are shown.',
+        'shortcodeHint' => 'Choose a view and copy the shortcode, or use the Gallery button in the editor. Each insertion can have its own view. Only published albums appear on the site.',
         'title' => 'Galleries',
         'description' => 'Reusable image albums with publishing, captions and ordering.',
         'create' => 'Create album',
@@ -41,6 +46,13 @@ return [
         'add' => 'Add to album',
     ],
     'Public' => [
+        'slider' => 'Image slider',
+        'slide' => 'Slide',
+        'slideNumber' => 'Slide %d of %d',
+        'previousSlide' => 'Previous image',
+        'nextSlide' => 'Next image',
+        'noImages' => 'No available images in this album.',
+        'carousel' => 'Image carousel',
         'title' => 'Galleries',
         'empty' => 'No published albums yet.',
         'back' => 'All albums',

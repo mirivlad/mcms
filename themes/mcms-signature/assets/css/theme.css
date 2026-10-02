@@ -100,7 +100,7 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 .sig-article-header h1 { font-family: Georgia, serif; font-weight: 400; font-size: clamp(2.7rem, 5vw, 4.5rem); letter-spacing: -.04em; line-height: 1.1; margin: 0 0 24px; }
 .sig-article-cover { width: 100%; max-height: 560px; object-fit: cover; border-radius: 12px; margin-bottom: 44px; }
 .sig-prose { font-size: 1.08rem; line-height: 1.85; }
-.sig-prose > :not(.sig-gallery-embed):not(table):not(figure) { max-width: 72ch; }
+.sig-prose > :not(.sig-gallery-embed, .mcms-gallery-slider, .mcms-gallery-collection, table, figure, :has(.mcms-gallery-slider, .mcms-gallery-collection)) { max-width: 72ch; }
 .sig-prose h2, .sig-prose h3 { font-family: Georgia, serif; margin-block: 1.7em .7em; font-weight: 400; line-height: 1.2; }
 .sig-prose p { margin-bottom: 1.4em; }
 .sig-prose a { color: var(--sig-accent); }

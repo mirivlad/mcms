@@ -41,6 +41,7 @@ final class Module implements ModuleProviderInterface
             $routes->get('picker', '\\MCMS\\Modules\\Galleries\\Controllers\\Admin::picker');
         });
         $routes->get('galleries', '\\MCMS\\Modules\\Galleries\\Controllers\\Galleries::index');
+        $routes->match(['get', 'head'], 'galleries/assets/(:segment)', '\\MCMS\\Modules\\Galleries\\Controllers\\Galleries::asset/$1');
         $routes->get('galleries/(:segment)', '\\MCMS\\Modules\\Galleries\\Controllers\\Galleries::show/$1');
     }
 }

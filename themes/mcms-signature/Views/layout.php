@@ -22,6 +22,9 @@ $version = rawurlencode($theme->version);
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= esc($themeAssets . 'css/theme.css?v=' . $version, 'attr') ?>">
     <script src="<?= esc($themeAssets . 'js/theme.js?v=' . $version, 'attr') ?>" defer></script>
+<?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+<?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
+<?php endif ?>
 </head>
 <body>
 <a class="sig-skip" href="#main-content"><?= esc(lang('Signature.skip')) ?></a>

@@ -58,13 +58,15 @@ This document records the current known-good mCMS implementation checkpoint.
 - Menu items support custom URLs or generic provider-backed internal resources without depending on Pages/News classes.
 - Provider-backed targets survive provider/module disablement and resolve again after re-enable.
 
-### Galleries 0.2.0
+### Galleries 0.3.0
 
 - Draft/published albums with captions, ordering and optional cover.
 - Paginated image picker using Media API; album removal preserves files.
 - Public archive/album, theme fallbacks and generic navigation providers.
 - Stable-ID gallery shortcodes in Pages/News/Home, following live publication state.
 - Gallery buttons in Pages/News editors: published-album search, pagination and insertion at the saved cursor or selection.
+- Grid, banner-slider, carousel and captioned-card views selected per insertion; the album editor generates each shortcode.
+- Shared display assets in both first-party themes and Pages/News fallbacks; independent slider state, keyboard controls and responsive layouts.
 - Disabled albums preserve data and remain visible to Media usage inspection.
 
 ### Feedback 0.1.0
@@ -95,7 +97,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
 - If no explicit theme has been selected, the built-in default theme is used when present.
 
-### mCMS Signature 0.1.0
+### mCMS Signature 0.1.1
 
 - Second first-party theme with local assets, warm paper/violet branding and system fonts.
 - All public templates plus the `galleries.embed` override.
@@ -113,12 +115,15 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 52 tests / 357 assertions,
+Fresh local verification for this checkpoint includes 53 tests / 410 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
 gallery keyboard navigation/Escape/focus restoration. Administrative forms were exercised via HTTP; interactive
 Media-picker JavaScript was not exercised in an authenticated browser. The Gallery picker was additionally exercised in unauthenticated copies of server-rendered Pages/News forms: cursor/selection insertion, hidden-body synchronization, keyboard selection and Escape/focus restoration. Its real HTTP endpoint was checked for search, pagination, draft exclusion and editor permissions.
+The display-mode checkpoint also covers slider independence, indicators and keyboard wrapping;
+carousel scrolling and focus at its boundaries; Signature card lightbox integration;
+390px responsive layouts without page overflow; and editor insertion/album shortcode generation for all views.
 
 The checkpoint is covered by:
 

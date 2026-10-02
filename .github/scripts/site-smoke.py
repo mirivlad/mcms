@@ -126,6 +126,8 @@ assert gallery_picker['items'] == [{'id': album_id, 'title': 'Site smoke album',
 for path in ('/admin/pages/' + str(page_id) + '/edit', '/admin/news/' + str(news_id) + '/edit'):
     editor_form = request(path)[0]
     assert 'data-gallery-picker' in editor_form and 'id="content-gallery-dialog"' in editor_form
+    for mode in ('grid', 'slider', 'carousel', 'cards'):
+        assert 'value="' + mode + '"' in editor_form
     assert 'Galleries.Admin.' not in editor_form and 'MCMS.common.' not in editor_form
     for script in re.findall(r'<script\b[^>]*>(.*?)</script>', editor_form, re.S):
         if script.strip():
@@ -160,6 +162,7 @@ assert 'Site smoke album' in str(resources)
 module('galleries', 'disable')
 expect_404('/galleries/site-smoke-album')
 expect_404('/admin/galleries/picker')
+expect_404('/galleries/assets/display.css')
 assert 'data-gallery-picker' not in request('/admin/pages/' + str(page_id) + '/edit')[0]
 assert 'data-gallery-picker' not in request('/admin/news/' + str(news_id) + '/edit')[0]
 assert shortcode not in request('/site-smoke-page-renamed')[0]
@@ -175,6 +178,27 @@ for path in ('/', '/site-smoke-page-renamed', '/news', '/news/site-smoke-article
     assert 'Signature.' not in rendered, path
     assert len(re.findall(r'<h1\b', rendered)) == 1, path
 assert 'sig-gallery-embed' in request('/site-smoke-page-renamed')[0]
+for theme in ('mcms-default', 'mcms-signature'):
+    post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
+    for mode in ('slider', 'carousel', 'cards'):
+        display_shortcode = '[gallery id="' + str(album_id) + '" view="' + mode + '"]'
+        post('/admin/pages/' + str(page_id) + '/edit', {**page_fields, 'body': '<p>Display page ' + display_shortcode + '</p>'})
+        post('/admin/news/' + str(news_id) + '/edit', {**news_fields, 'body': '<p>Display news ' + display_shortcode + '</p>'})
+        for path in ('/', '/site-smoke-page-renamed', '/news/site-smoke-article'):
+            rendered = request(path)[0]
+            assert 'mcms-gallery-' + mode in rendered and display_shortcode not in rendered
+            assert 'First caption' in rendered and 'Second caption' in rendered
+            assert '/galleries/assets/display.js?v=' in html.unescape(rendered) and '/galleries/assets/display.css?v=' in html.unescape(rendered)
+    post('/admin/pages/' + str(page_id) + '/edit', page_fields)
+    post('/admin/news/' + str(news_id) + '/edit', {**news_fields, 'body': '<p>Embedded news ' + shortcode + '</p>'})
+assert len(request('/galleries/assets/display.css')[0]) > 100
+display_script = request('/galleries/assets/display.js')[0]
+subprocess.run(['node', '--check'], input=display_script, text=True, check=True, capture_output=True)
+for asset, mime in (('display.css', 'text/css'), ('display.js', 'text/javascript')):
+    response = opener.open(urllib.request.Request(base + '/galleries/assets/' + asset, method='HEAD'))
+    assert response.headers.get_content_type() == mime
+    assert response.headers['Cache-Control'] == 'private, max-age=86400'
+expect_404('/galleries/assets/Module.php')
 for asset in ('css/theme.css', 'js/theme.js', 'mark.svg', 'screenshot.svg'):
     assert len(request('/assets/themes/mcms-signature/' + asset)[0]) > 100
 post('/admin/themes/mcms-default/activate', {}, '/admin/themes')
@@ -224,4 +248,4 @@ module('galleries')
 assert 'Image unavailable' in request('/galleries/site-smoke-album')[0]
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 assert 'Site smoke album' in request('/admin/galleries')[0]
-print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery shortcode pickers and Signature theme switching.')
+print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery display modes/pickers and Signature theme switching.')

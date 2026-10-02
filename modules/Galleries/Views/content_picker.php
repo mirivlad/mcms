@@ -16,6 +16,15 @@
     </div>
     <div class="card-body">
         <p class="text-secondary"><?= esc(lang('Galleries.Admin.pickerHint')) ?></p>
+        <div class="mb-3">
+            <label class="form-label" for="content-gallery-display"><?= esc(lang('Galleries.Admin.display')) ?></label>
+            <select class="form-select" id="content-gallery-display">
+                <option value="grid"><?= esc(lang('Galleries.Admin.displayGrid')) ?></option>
+                <option value="slider"><?= esc(lang('Galleries.Admin.displaySlider')) ?></option>
+                <option value="carousel"><?= esc(lang('Galleries.Admin.displayCarousel')) ?></option>
+                <option value="cards"><?= esc(lang('Galleries.Admin.displayCards')) ?></option>
+            </select>
+        </div>
         <div class="d-flex gap-2 mb-3">
             <input type="search" class="form-control" id="content-gallery-query" placeholder="<?= esc(lang('Galleries.Admin.search'), 'attr') ?>" aria-label="<?= esc(lang('Galleries.Admin.search'), 'attr') ?>">
             <button type="button" class="btn btn-primary" id="content-gallery-search"><?= esc(lang('MCMS.common.search')) ?></button>
@@ -35,6 +44,7 @@
     const editor = document.getElementById(trigger.dataset.editor);
     const dialog = document.getElementById('content-gallery-dialog');
     const query = document.getElementById('content-gallery-query');
+    const display = document.getElementById('content-gallery-display');
     const status = document.getElementById('content-gallery-status');
     const results = document.getElementById('content-gallery-results');
     const previous = document.getElementById('content-gallery-previous');
@@ -66,7 +76,8 @@
             range.collapse(false);
         }
         range.deleteContents();
-        const text = document.createTextNode('[gallery id="' + id + '"]');
+        const mode = ['slider', 'carousel', 'cards'].includes(display.value) ? ' view="' + display.value + '"' : '';
+        const text = document.createTextNode('[gallery id="' + id + '"' + mode + ']');
         range.insertNode(text);
         range.setStartAfter(text);
         range.collapse(true);

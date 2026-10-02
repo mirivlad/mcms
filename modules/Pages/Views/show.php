@@ -8,6 +8,9 @@
         <meta name="description" content="<?= esc($page['seo_description'], 'attr') ?>">
     <?php endif ?>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
+<?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
+<?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
+<?php endif ?>
 </head>
 <body>
 <main class="container py-5">
