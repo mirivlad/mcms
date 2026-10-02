@@ -81,7 +81,7 @@ final class PagesModuleTest extends CIUnitTestCase
         $page = $repository->create([
             'title' => 'Привет, мир!',
             'slug' => '',
-            'body' => '<p>Hello <strong>world</strong>.</p><script>alert(1)</script><img src="/ok.png" onerror="alert(2)">',
+            'body' => '<section><p>Hello <strong>world</strong>.</p><script>alert(1)</script><img src="/ok.png" onerror="alert(2)"></section>',
             'status' => 'published',
             'seo_title' => 'SEO title',
             'seo_description' => 'SEO description',

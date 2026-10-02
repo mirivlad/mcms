@@ -71,7 +71,7 @@ final class NewsModuleTest extends CIUnitTestCase
             'title' => 'Первая новость',
             'slug' => '',
             'excerpt' => '',
-            'body' => '<p>Hello <strong>news</strong>.</p><script>alert(1)</script>',
+            'body' => '<section><p>Hello <strong>news</strong>.</p><script>alert(1)</script></section>',
             'status' => 'published',
             'published_at' => date('Y-m-d H:i:s', time() - 60),
             'featured_media_id' => '',
