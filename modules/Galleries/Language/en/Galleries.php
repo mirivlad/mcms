@@ -2,6 +2,8 @@
 
 return [
     'Admin' => [
+        'shortcode' => 'Embed in Pages or News',
+        'shortcodeHint' => 'Copy this shortcode into the text of a page or article. Only published albums are shown.',
         'title' => 'Galleries',
         'description' => 'Reusable image albums with publishing, captions and ordering.',
         'create' => 'Create album',

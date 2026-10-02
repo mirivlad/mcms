@@ -12,9 +12,18 @@ use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Storage\LocalStorage;
 use MCMS\Core\Storage\StorageInterface;
 use MCMS\Core\Themes\ThemeManager;
+use MCMS\Core\Content\ShortcodeRenderer;
 
 class Services extends BaseService
 {
+    public static function mcmsShortcodes(bool $getShared = true): ShortcodeRenderer
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsShortcodes');
+        }
+        return new ShortcodeRenderer(static::mcmsModuleServices());
+    }
+
     public static function mcmsAdmin(bool $getShared = true): AdminRegistry
     {
         if ($getShared) {

@@ -112,6 +112,34 @@ final class SiteModulesTest extends CIUnitTestCase
         self::assertNull($redirects->target('/new'));
     }
 
+    public function testGalleryShortcodePreservesSourceAndFollowsPublicationLifecycle(): void
+    {
+        [$manager, $services] = $this->boot(['pages', 'news', 'galleries']);
+        $galleries = $services->get('galleries.repository');
+        $album = $galleries->create(['title' => '<Album>', 'status' => 'published']);
+        $source = '<p>Before [gallery id="' . $album['id'] . '"] after</p>';
+        $page = $services->get('pages.repository')->create(['title' => 'Embedded', 'body' => $source, 'status' => 'published']);
+        $news = $services->get('news.repository')->create(['title' => 'Embedded news', 'body' => $source, 'status' => 'published']);
+        $renderer = service('mcmsShortcodes');
+        self::assertStringContainsString('data-gallery-id="' . $album['id'] . '"', $renderer->render($page['body']));
+        self::assertStringContainsString('&lt;Album&gt;', $renderer->render($news['body']));
+        self::assertSame($source, $services->get('pages.repository')->find($page['id'])['body']);
+        service('settings')->set('pages.home_page_id', $page['id']);
+        self::assertStringContainsString('data-gallery-id=', $services->get('pages.home')->renderHome());
+        $galleries->update($album['id'], ['title' => 'Draft', 'status' => 'draft']);
+        self::assertStringNotContainsString('data-gallery-id=', $renderer->render($source));
+        $galleries->update($album['id'], ['title' => 'Updated', 'status' => 'published']);
+        self::assertStringContainsString('Updated', $renderer->render($source));
+        $manager->disable('galleries');
+        $fresh = new ModuleServiceRegistry();
+        (new ModuleManager($this->db, new AdminRegistry(), $fresh, ROOTPATH . 'modules'))->bootEnabled();
+        self::assertStringNotContainsString('[gallery', (new MCMS\Core\Content\ShortcodeRenderer($fresh))->render($source));
+        $manager->enable('galleries');
+        self::assertStringContainsString('Updated', $renderer->render($source));
+        $galleries->delete($album['id']);
+        self::assertStringNotContainsString('data-gallery-id=', $renderer->render($source));
+    }
+
     private function boot(array $modules): array
     {
         $services = new ModuleServiceRegistry();

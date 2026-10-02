@@ -211,6 +211,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                     </div>
                     <div id="news-editor" class="mcms-editor" contenteditable="true" role="textbox" aria-multiline="true"><?= $bodyValue ?></div>
                 </div>
+                <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?><p class="form-hint mt-2"><?= esc(lang('News.Admin.galleryHint')) ?></p><?php endif ?>
                 <textarea class="d-none" id="news-body" name="body"><?= esc($bodyValue) ?></textarea>
             </div>
 

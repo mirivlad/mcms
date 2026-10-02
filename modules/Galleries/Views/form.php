@@ -4,6 +4,7 @@
 <?php if ($error !== null): ?><div class="alert alert-danger" role="alert"><?= esc($error) ?></div><?php endif ?>
 <form method="post">
     <?= csrf_field() ?>
+    <?php if ($album !== null): ?><div class="alert alert-info"><label class="form-label" for="gallery-shortcode"><?= esc(lang('Galleries.Admin.shortcode')) ?></label><input class="form-control font-monospace" id="gallery-shortcode" readonly value="<?= esc('[gallery id="' . (int) $album['id'] . '"]', 'attr') ?>"><div class="mt-2"><?= esc(lang('Galleries.Admin.shortcodeHint')) ?></div></div><?php endif ?>
     <div class="card mb-3"><div class="card-body">
         <div class="row g-3">
             <div class="col-md-8"><label class="form-label" for="gallery-title"><?= esc(lang('MCMS.common.title')) ?></label><input class="form-control" id="gallery-title" name="title" maxlength="255" value="<?= esc($values['title'] ?? '', 'attr') ?>" required></div>

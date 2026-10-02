@@ -10,6 +10,7 @@ use MCMS\Core\Modules\ModuleProviderInterface;
 use MCMS\Modules\Galleries\Navigation\GalleryArchiveNavigationProvider;
 use MCMS\Modules\Galleries\Navigation\GalleryNavigationProvider;
 use MCMS\Modules\Galleries\Services\GalleryRepository;
+use MCMS\Modules\Galleries\Services\GalleryShortcode;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
 use RuntimeException;
 
@@ -23,6 +24,7 @@ final class Module implements ModuleProviderInterface
         }
         $repository = new GalleryRepository(db_connect(), $media);
         $context->services->register('galleries.repository', $repository);
+        $context->services->register('galleries.shortcode', new GalleryShortcode($repository));
         $context->navigation->register(new GalleryArchiveNavigationProvider());
         $context->navigation->register(new GalleryNavigationProvider($repository));
         $context->admin->addMenu('galleries', '@Galleries.Admin.title', '/admin/galleries', 'ti ti-photo', 'galleries.view', 58);

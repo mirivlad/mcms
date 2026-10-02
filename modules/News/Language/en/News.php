@@ -2,6 +2,7 @@
 
 return [
     'Admin' => [
+        'galleryHint' => 'To embed a published album, copy its [gallery id="12"] shortcode from Galleries into this text.',
         'menuLabel' => 'News',
         'description' => 'Published news articles with scheduling, featured media and SEO metadata.',
         'title' => 'News',

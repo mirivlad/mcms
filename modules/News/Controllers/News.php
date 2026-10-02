@@ -45,6 +45,7 @@ final class News extends BaseController
 
         $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
         $title = (string) (($article['seo_title'] ?? null) ?: $article['title']);
+        $article['body'] = service('mcmsShortcodes')->render($article['body']);
 
         return service('mcmsThemes')->render(
             'news.article',

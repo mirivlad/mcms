@@ -21,6 +21,7 @@ final class PageHomeProvider implements HomePageProviderInterface
             return null;
         }
         $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
+        $page['body'] = service('mcmsShortcodes')->render($page['body']);
         return service('mcmsThemes')->render('page', [
             'page' => $page, 'siteName' => $siteName,
             'metaTitle' => (($page['seo_title'] ?? null) ?: $page['title']) . ' · ' . $siteName,

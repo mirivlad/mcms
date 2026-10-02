@@ -21,6 +21,7 @@ final class Page extends BaseController
 
         $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
         $pageTitle = (string) (($page['seo_title'] ?? null) ?: $page['title']);
+        $page['body'] = service('mcmsShortcodes')->render($page['body']);
 
         return service('mcmsThemes')->render(
             'page',

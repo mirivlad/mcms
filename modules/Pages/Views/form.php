@@ -232,6 +232,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                     ><?= $editorBody ?></div>
                 </div>
 
+                <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?><p class="form-hint mt-2"><?= esc(lang('Pages.Admin.galleryHint')) ?></p><?php endif ?>
                 <textarea id="page_body" name="body" class="d-none"><?= esc($editorBody) ?></textarea>
             </div>
 

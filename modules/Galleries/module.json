@@ -1,10 +1,10 @@
 {
   "id": "galleries",
   "name": "@Galleries.Admin.title",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "namespace": "MCMS\\Modules\\Galleries",
   "provider": "MCMS\\Modules\\Galleries\\Module",
-  "mcms": "^0.1.1",
+  "mcms": "^0.1.2",
   "description": "@Galleries.Admin.description",
   "requires": [
     {

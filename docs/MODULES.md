@@ -111,6 +111,15 @@ growing Core's language catalogue.
 
 ## Public module services
 
+An enabled module can register a `ShortcodeProviderInterface` implementation in
+its public service registry. Core's `mcmsShortcodes` renderer expands structured
+`[tag key="value"]` tokens in sanitized text nodes, excluding attributes, links
+and code examples. Providers return trusted, escaped phrasing HTML so fragments
+remain valid inside editor paragraphs. Rendering is non-recursive, caches repeated
+tokens within one call and processes at most 50 tokens per body. Unsupported or
+disabled structured tokens render nothing; ordinary bracketed text is preserved.
+Pages and News expand bodies only for public output, leaving saved source intact.
+
 A module that exposes functionality to other modules should register a public API object through
 `$context->services` during `boot()`.
 

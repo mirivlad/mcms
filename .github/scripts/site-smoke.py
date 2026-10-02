@@ -104,7 +104,8 @@ module('pages')
 assert 'Site smoke home content' in request('/')[0]
 
 news_fields = {'title': 'Site smoke article', 'slug': 'site-smoke-article', 'body': '<p>Article</p>', 'excerpt': '', 'status': 'published', 'published_at': '', 'featured_media_id': first['id'], 'seo_title': '', 'seo_description': ''}
-post('/admin/news/create', news_fields)
+_, news_url = post('/admin/news/create', news_fields)
+news_id = int(re.search(r'/([0-9]+)/edit$', news_url).group(1))
 post('/admin/news/create', {**news_fields, 'title': 'Site smoke scheduled', 'slug': 'site-smoke-scheduled', 'published_at': '2099-01-01T00:00'})
 expect_404('/news/site-smoke-scheduled')
 
@@ -119,6 +120,14 @@ for script in re.findall(r'<script\b[^>]*>(.*?)</script>', album_form, re.S):
 picker = json.loads(request('/admin/galleries/media?page=1')[0])
 assert {first['id'], second['id']} <= {item['id'] for item in picker['items']}
 assert all(item['is_image'] for item in picker['items'])
+shortcode = '[gallery id="' + str(album_id) + '"]'
+page_fields['body'] = body + '<p>' + shortcode + '</p>'
+post('/admin/pages/' + str(page_id) + '/edit', page_fields)
+post('/admin/news/' + str(news_id) + '/edit', {**news_fields, 'body': '<p>Embedded news ' + shortcode + '</p>'})
+for path in ('/', '/site-smoke-page-renamed', '/news/site-smoke-article'):
+    rendered = request(path)[0]
+    assert 'data-gallery-id="' + str(album_id) + '"' in rendered
+    assert 'First caption' in rendered and shortcode not in rendered
 album_public = request('/galleries/site-smoke-album')[0]
 assert album_public.index('Second caption') < album_public.index('First caption')
 assert 'data-theme="mcms-default"' in album_public
@@ -127,6 +136,8 @@ resources = json.loads(request('/admin/menus/resources?provider=galleries.album&
 assert 'Site smoke album' in str(resources)
 module('galleries', 'disable')
 expect_404('/galleries/site-smoke-album')
+assert shortcode not in request('/site-smoke-page-renamed')[0]
+assert 'data-gallery-id=' not in request('/site-smoke-page-renamed')[0]
 module('galleries')
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 
