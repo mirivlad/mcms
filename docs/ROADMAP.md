@@ -31,6 +31,8 @@
 - [x] Menus ↔ theme-location assignment.
 - [x] News.
 - [x] Galleries.
+- [x] Gallery shortcodes in Pages and News.
+- [x] Second first-party theme: mCMS Signature.
 - [x] Selected published page as Home.
 - [x] Feedback form and administration inbox.
 - [x] Optional sitemap and moved-resource redirects.

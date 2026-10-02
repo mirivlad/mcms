@@ -1,4 +1,4 @@
-<h1 class="mb-4"><?= esc(lang('Feedback.Public.title')) ?></h1>
+<?php if ($showTitle ?? true): ?><h1 class="mb-4"><?= esc(lang('Feedback.Public.title')) ?></h1><?php endif ?>
 <?php if ($sent): ?><div class="alert alert-success" role="status"><?= esc(lang('Feedback.Public.sent')) ?></div><?php endif ?>
 <?php if ($error !== null): ?><div class="alert alert-danger" role="alert"><?= esc($error) ?></div><?php endif ?>
 <form method="post" action="<?= site_url('contact') ?>" class="mx-auto" style="max-width:720px">

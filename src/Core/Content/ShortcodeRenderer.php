@@ -19,6 +19,12 @@ final class ShortcodeRenderer
     {
     }
 
+    /** Remove structured tokens from plain text used for automatically generated summaries. */
+    public static function stripTokens(string $text): string
+    {
+        return preg_replace(self::PATTERN, ' ', $text) ?? $text;
+    }
+
     /** Expand text-node shortcodes in already sanitized content; never attributes or code examples. */
     public function render(string $html): string
     {

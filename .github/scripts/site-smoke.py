@@ -124,6 +124,7 @@ shortcode = '[gallery id="' + str(album_id) + '"]'
 page_fields['body'] = body + '<p>' + shortcode + '</p>'
 post('/admin/pages/' + str(page_id) + '/edit', page_fields)
 post('/admin/news/' + str(news_id) + '/edit', {**news_fields, 'body': '<p>Embedded news ' + shortcode + '</p>'})
+assert shortcode not in request('/news')[0]
 for path in ('/', '/site-smoke-page-renamed', '/news/site-smoke-article'):
     rendered = request(path)[0]
     assert 'data-gallery-id="' + str(album_id) + '"' in rendered
@@ -140,6 +141,20 @@ assert shortcode not in request('/site-smoke-page-renamed')[0]
 assert 'data-gallery-id=' not in request('/site-smoke-page-renamed')[0]
 module('galleries')
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
+
+# Activate the second theme through its real administration action and preserve the shortcode contract.
+post('/admin/themes/mcms-signature/activate', {}, '/admin/themes')
+for path in ('/', '/site-smoke-page-renamed', '/news', '/news/site-smoke-article', '/galleries', '/galleries/site-smoke-album', '/contact'):
+    rendered = request(path)[0]
+    assert 'data-theme="mcms-signature"' in rendered, path
+    assert 'Signature.' not in rendered, path
+    assert len(re.findall(r'<h1\b', rendered)) == 1, path
+assert 'sig-gallery-embed' in request('/site-smoke-page-renamed')[0]
+for asset in ('css/theme.css', 'js/theme.js', 'mark.svg', 'screenshot.svg'):
+    assert len(request('/assets/themes/mcms-signature/' + asset)[0]) > 100
+post('/admin/themes/mcms-default/activate', {}, '/admin/themes')
+assert 'data-theme="mcms-default"' in request('/site-smoke-page-renamed')[0]
+post('/admin/themes/mcms-signature/activate', {}, '/admin/themes')
 
 # Submit feedback in a separate anonymous session.
 anonymous = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
@@ -184,4 +199,4 @@ module('galleries')
 assert 'Image unavailable' in request('/galleries/site-smoke-album')[0]
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 assert 'Site smoke album' in request('/admin/galleries')[0]
-print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap and redirects.')
+print('Site HTTP smoke passed: Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery shortcodes and Signature theme switching.')

@@ -120,6 +120,7 @@ final class SiteModulesTest extends CIUnitTestCase
         $source = '<p>Before [gallery id="' . $album['id'] . '"] after</p>';
         $page = $services->get('pages.repository')->create(['title' => 'Embedded', 'body' => $source, 'status' => 'published']);
         $news = $services->get('news.repository')->create(['title' => 'Embedded news', 'body' => $source, 'status' => 'published']);
+        self::assertSame('Before after', $news['excerpt']);
         $renderer = service('mcmsShortcodes');
         self::assertStringContainsString('data-gallery-id="' . $album['id'] . '"', $renderer->render($page['body']));
         self::assertStringContainsString('&lt;Album&gt;', $renderer->render($news['body']));
@@ -138,6 +139,50 @@ final class SiteModulesTest extends CIUnitTestCase
         self::assertStringContainsString('Updated', $renderer->render($source));
         $galleries->delete($album['id']);
         self::assertStringNotContainsString('data-gallery-id=', $renderer->render($source));
+    }
+
+    public function testSignatureThemeRendersPublicTemplatesAndSwitchesWithoutChangingContent(): void
+    {
+        [$manager, $services] = $this->boot(['pages', 'news', 'galleries', 'feedback']);
+        $themes = service('mcmsThemes');
+        $themes->activate('mcms-signature');
+        $album = $services->get('galleries.repository')->create(['title' => 'Signature album', 'status' => 'published']);
+        $source = '<p>Signature content [gallery id="' . $album['id'] . '"]</p>';
+        $page = $services->get('pages.repository')->create(['title' => '<Title>', 'body' => $source, 'status' => 'published']);
+        $article = $services->get('news.repository')->create(['title' => 'Signature article', 'body' => $source, 'status' => 'published']);
+        $page['body'] = service('mcmsShortcodes')->render($page['body']);
+        $article['body'] = service('mcmsShortcodes')->render($article['body']);
+        foreach ([
+            'home' => [], 'page' => ['page' => $page], 'news.article' => ['article' => $article],
+            'news.index' => ['articles' => [$article], 'page' => 1, 'lastPage' => 1],
+            'galleries.index' => ['albums' => [$album], 'page' => 1, 'lastPage' => 1],
+            'galleries.album' => ['album' => $album],
+            'feedback.form' => ['values' => [], 'sent' => false, 'error' => null],
+        ] as $template => $data) {
+            $html = $themes->render($template, $data);
+            self::assertStringContainsString('data-theme="mcms-signature"', $html, $template);
+            self::assertSame(1, preg_match_all('/<h1\b/', $html), $template);
+            self::assertStringNotContainsString('Signature.', $html, $template);
+            self::assertStringContainsString('href="#main-content"', $html, $template);
+        }
+        self::assertStringContainsString('&lt;Title&gt;', $themes->render('page', ['page' => $page]));
+        self::assertStringContainsString('sig-gallery-embed', $page['body']);
+        $themes->activate('mcms-default');
+        self::assertStringContainsString('mcms-gallery-embed', service('mcmsShortcodes')->render($source));
+        self::assertSame(1, preg_match_all('/<h1\b/', $themes->render('feedback.form', ['values' => [], 'sent' => false, 'error' => null])));
+        self::assertSame($source, $services->get('pages.repository')->find($page['id'])['body']);
+        $manager->disable('news');
+        $manager->disable('galleries');
+        $manager->disable('feedback');
+        $fresh = new ModuleServiceRegistry();
+        $navigation = new NavigableResourceRegistry();
+        (new ModuleManager($this->db, new AdminRegistry(), $fresh, ROOTPATH . 'modules', $navigation))->bootEnabled();
+        Services::injectMock('mcmsModuleServices', $fresh);
+        Services::injectMock('mcmsNavigation', $navigation);
+        $themes->activate('mcms-signature');
+        $html = $themes->render('home');
+        self::assertStringNotContainsString('href="' . site_url('news') . '"', $html);
+        self::assertStringNotContainsString('href="' . site_url('galleries') . '"', $html);
     }
 
     private function boot(array $modules): array

@@ -1,0 +1,36 @@
+{
+  "id": "mcms-signature",
+  "name": "@Signature.name",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Themes\\Signature",
+  "description": "@Signature.description",
+  "author": "mCMS",
+  "screenshot": "screenshot.svg",
+  "templates": {
+    "home": "home",
+    "page": "page",
+    "news.index": "news/index",
+    "news.article": "news/article",
+    "galleries.index": "galleries/index",
+    "galleries.album": "galleries/album",
+    "feedback.form": "feedback/form",
+    "galleries.embed": "galleries/embed"
+  },
+  "menu_locations": {
+    "header.primary": {
+      "label": "@MCMS.themes.locationHeaderPrimary",
+      "description": "@MCMS.themes.locationHeaderPrimaryDescription",
+      "max_depth": 2
+    },
+    "footer.primary": {
+      "label": "@MCMS.themes.locationFooterPrimary",
+      "description": "@MCMS.themes.locationFooterPrimaryDescription",
+      "max_depth": 1
+    },
+    "footer.legal": {
+      "label": "@MCMS.themes.locationFooterLegal",
+      "description": "@MCMS.themes.locationFooterLegalDescription",
+      "max_depth": 1
+    }
+  }
+}

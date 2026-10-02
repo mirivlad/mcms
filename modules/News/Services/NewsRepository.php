@@ -7,6 +7,7 @@ namespace MCMS\Modules\News\Services;
 use CodeIgniter\Database\BaseConnection;
 use InvalidArgumentException;
 use MCMS\Core\Content\HtmlSanitizer;
+use MCMS\Core\Content\ShortcodeRenderer;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
 use MCMS\Modules\News\Api\NewsRepositoryInterface;
 use RuntimeException;
@@ -191,7 +192,8 @@ final class NewsRepository implements NewsRepositoryInterface
         $body = $this->sanitizer->sanitize((string) ($data['body'] ?? ''));
         $excerpt = trim((string) ($data['excerpt'] ?? ''));
         if ($excerpt === '') {
-            $plain = trim(preg_replace('/\s+/u', ' ', html_entity_decode(strip_tags($body))) ?? '');
+            $plain = ShortcodeRenderer::stripTokens(html_entity_decode(strip_tags($body)));
+            $plain = trim(preg_replace('/\s+/u', ' ', $plain) ?? '');
             $excerpt = $plain === '' ? '' : mb_substr($plain, 0, 320);
         }
 

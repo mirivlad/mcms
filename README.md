@@ -47,8 +47,8 @@ The 2026-10-02 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
 Media, Pages, Menus, News, Galleries, Feedback and SEO are implemented as reusable modules and covered by
 module/integration checks.
 
-Theme API, the default theme and Menus ↔ theme-location assignment are implemented.
-The built-in theme renders Home, Pages, News, Galleries and Feedback through logical templates and declares responsive header/footer navigation locations.
+Theme API, two first-party themes and Menus ↔ theme-location assignment are implemented.
+Both mCMS Default and [mCMS Signature](themes/mcms-signature/README.md) render Home, Pages, News, Galleries and Feedback through logical templates. Published albums can be embedded in Pages/News with `[gallery id="12"]`.
 
 The next implementation sequence is:
 

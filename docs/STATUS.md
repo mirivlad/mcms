@@ -4,7 +4,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
-- Core version 0.1.1 with optional Home, public-resource and path-conflict provider contracts.
+- Core version 0.1.2 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -28,7 +28,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cached proportional previews, image-only browsing and administration pagination.
 - Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.2.0
+### Pages 0.3.0
 
 - Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
 - Paginated administration and fixed module-prefix reservation with legacy conflict detection.
@@ -38,7 +38,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.2.0
+### News 0.3.0
 
 - Draft and published news articles with optional future publication time.
 - Sanitized rich text, excerpt, SEO metadata and optional featured Media image.
@@ -58,11 +58,12 @@ This document records the current known-good mCMS implementation checkpoint.
 - Menu items support custom URLs or generic provider-backed internal resources without depending on Pages/News classes.
 - Provider-backed targets survive provider/module disablement and resolve again after re-enable.
 
-### Galleries 0.1.0
+### Galleries 0.2.0
 
 - Draft/published albums with captions, ordering and optional cover.
 - Paginated image picker using Media API; album removal preserves files.
 - Public archive/album, theme fallbacks and generic navigation providers.
+- Stable-ID gallery shortcodes in Pages/News/Home, following live publication state.
 - Disabled albums preserve data and remain visible to Media usage inspection.
 
 ### Feedback 0.1.0
@@ -93,20 +94,29 @@ This document records the current known-good mCMS implementation checkpoint.
 - Theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
 - If no explicit theme has been selected, the built-in default theme is used when present.
 
+### mCMS Signature 0.1.0
+
+- Second first-party theme with local assets, warm paper/violet branding and system fonts.
+- All public templates plus the `galleries.embed` override.
+- Public API-backed Home stories/albums, automatic public navigation when no menu is assigned.
+- Native mobile/submenu disclosures, skip link, focus indicators and reduced-motion support.
+- Gallery dialog with arrow keys, Escape, captions, original-image fallback and focus restoration.
+
 ## Menus ↔ themes
 
 - Assignments are managed from the Themes administration screen.
 - Assignments are persisted per theme in Core settings.
 - Only enabled menu items are supplied to public theme rendering.
 - Theme `max_depth` is enforced by Core before rendering.
-- Disabling Menus does not remove assignments or break the public theme; navigation becomes empty until Menus is enabled again.
+- Disabling Menus does not remove assignments or break the public theme; assigned navigation becomes empty until Menus is enabled again. Signature falls back to its automatic public navigation.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 48 tests / 301 assertions,
+Fresh local verification for this checkpoint includes 52 tests / 357 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
-`.github/scripts/site-smoke.py`. Public Galleries and Feedback were inspected in
-the in-app browser. Administrative forms were exercised via HTTP; interactive
+`.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
+the in-app browser, including a 390px mobile viewport, native menu toggling and
+gallery keyboard navigation/Escape/focus restoration. Administrative forms were exercised via HTTP; interactive
 Media-picker JavaScript was not exercised in an authenticated browser.
 
 The checkpoint is covered by:

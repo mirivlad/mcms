@@ -115,6 +115,15 @@ reference remains intact but resolves as unavailable; enabling the provider
 again restores the link automatically. This prevents Menus from depending on
 Pages, News, Shop or any future content module.
 
+## Public shortcode rendering
+
+Pages/News store sanitized source, including stable-ID shortcode text. Public
+controllers and the Pages Home provider expand bodies through `mcmsShortcodes`.
+Enabled modules register public `ShortcodeProviderInterface` services; Core does
+not know gallery tables or semantics. Galleries renders only published albums,
+using the `galleries.embed` theme template or its phrasing-HTML fallback.
+Disabled, deleted and draft embeds disappear without rewriting stored bodies.
+
 ## Themes
 
 Public presentation is managed by the Core Theme API.
