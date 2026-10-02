@@ -48,6 +48,7 @@ final class Module implements ModuleProviderInterface
         $routes->group('admin/news', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\News\\Controllers\\Admin::index');
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\News\\Controllers\\Admin::create');
+            $routes->post('preview', '\\MCMS\\Modules\\News\\Controllers\\Admin::preview');
             $routes->get('media', '\\MCMS\\Modules\\News\\Controllers\\Admin::media');
             $routes->match(['get', 'post'], '(:num)/edit', '\\MCMS\\Modules\\News\\Controllers\\Admin::edit/$1');
             $routes->post('(:num)/delete', '\\MCMS\\Modules\\News\\Controllers\\Admin::delete/$1');

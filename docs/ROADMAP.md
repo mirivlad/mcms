@@ -39,6 +39,14 @@
 - [x] Media previews and explicit used-file deletion confirmation.
 - [x] Content-list pagination and public-path conflict protection.
 
+## Content workflow and customization — approved follow-up
+
+- [x] SEO title/description templates and manual/tag-derived keywords.
+- [x] Private unsaved Pages/News preview in the active theme.
+- [ ] Autosave/recovery and revision history.
+- [ ] Per-theme logo, favicon, color and contact settings.
+- [ ] News categories, tags, filters and public search.
+
 ## Stage 2 — commerce modules
 
 - [ ] Catalogue.

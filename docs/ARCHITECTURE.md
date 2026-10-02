@@ -169,6 +169,11 @@ theme when it is present on disk.
 Theme PHP/view files are never exposed as static files. Runtime images publish
 only a theme's explicit `assets/` tree.
 
+## Page metadata and editor preview
+
+Enabled modules may register `PageMetadataProviderInterface` to supply metadata for logical templates. SEO owns rules and settings; Core owns only the generic presentation contract. Manual content values override rules.
+Pages/News preview endpoints are POST-only, session/permission/CSRF protected, render sanitized current input without persistence, and return no-store JSON with HTML and a rotated CSRF token. The editor shows it in a sandboxed iframe in a native dialog. The preview carries noindex metadata and cannot access the parent editor.
+
 ## Settings
 
 Core uses CodeIgniter Settings as the persistence layer.

@@ -236,6 +236,73 @@ final class SiteModulesTest extends CIUnitTestCase
         self::assertStringNotContainsString('data-slider-controls', $renderer->render('[gallery id="' . $single['id'] . '" view="slider"]'));
     }
 
+    public function testMetadataRulesOverridesAndDisableAreIndependentOfContent(): void
+    {
+        [$manager, $services] = $this->boot(['pages', 'news', 'seo']);
+        $metadata = $services->get('seo.metadata');
+        $rules = $metadata->settings();
+        $rules['page'] = ['title' => '{title} | {site_name}', 'description' => 'About {title}', 'keywords' => '', 'keywords_source' => 'tags'];
+        $rules['news']['title'] = '{site_name}: {title}';
+        $metadata->save($rules);
+        $pages = $services->get('pages.repository');
+        $page = $pages->create(['title' => 'Test title', 'body' => '<p>Text</p>', 'status' => 'published', 'tags' => 'CMS, Новости']);
+        foreach (['mcms-default', 'mcms-signature'] as $theme) {
+            service('mcmsThemes')->activate($theme);
+            $html = service('mcmsThemes')->render('page', ['page' => $page, 'siteName' => 'My site']);
+            self::assertStringContainsString('<title>Test title | My site</title>', $html);
+            self::assertStringContainsString('name="description" content="About&#x20;Test&#x20;title"', $html);
+            $decoded = html_entity_decode($html);
+            self::assertStringContainsString('name="keywords" content="CMS, Новости"', $decoded);
+            $manual = [...$page, 'seo_title' => 'Exact <title>', 'seo_description' => 'Manual desc', 'seo_keywords' => 'custom'];
+            $html = service('mcmsThemes')->render('page', ['page' => $manual, 'siteName' => 'My site']);
+            self::assertStringContainsString('<title>Exact &lt;title&gt;</title>', $html);
+            self::assertStringContainsString('name="keywords" content="custom"', $html);
+        }
+        $before = $metadata->settings();
+        $rules['news']['title'] = '{unsupported}';
+        try {
+            $metadata->save($rules);
+            self::fail('Unknown placeholders must not be saved.');
+        } catch (InvalidArgumentException) {
+            self::assertSame($before, $metadata->settings());
+        }
+        $manager->disable('seo');
+        $fresh = new ModuleServiceRegistry();
+        Services::injectMock('mcmsModuleServices', $fresh);
+        (new ModuleManager($this->db, new AdminRegistry(), $fresh, ROOTPATH . 'modules'))->bootEnabled();
+        $html = service('mcmsThemes')->render('page', ['page' => $page, 'siteName' => 'My site', 'metaTitle' => 'Fallback']);
+        self::assertStringContainsString('<title>Fallback</title>', $html);
+        self::assertSame($page, $pages->find($page['id']));
+    }
+
+    public function testPreviewSanitizesCurrentInputWithoutSavingOrPublishing(): void
+    {
+        [, $services] = $this->boot(['pages', 'news']);
+        foreach (['pages.repository', 'news.repository'] as $service) {
+            $repository = $services->get($service);
+            $data = ['title' => 'Saved draft', 'status' => 'draft', 'body' => '<p>Saved</p>', 'tags' => 'one, two'];
+            $stored = $repository->create($data);
+            $count = $repository->count();
+            $preview = $repository->preview([...$data, 'title' => 'Unsaved <title>', 'status' => 'published',
+                'body' => '<p>Unsaved</p><script>alert(1)</script>', 'seo_keywords' => 'custom'], $stored['id']);
+            self::assertSame('Unsaved <title>', $preview['title']);
+            self::assertSame('<p>Unsaved</p>', $preview['body']);
+            self::assertSame('custom', $preview['seo_keywords']);
+            self::assertSame($stored, $repository->find($stored['id']));
+            self::assertSame($count, $repository->count());
+            self::assertNull($repository->findPublishedBySlug($stored['slug']));
+            $new = $repository->preview($data);
+            self::assertSame(0, $new['id']);
+            self::assertSame($count, $repository->count());
+            try {
+                $repository->preview($data, 999999);
+                self::fail('Missing content cannot be previewed as existing.');
+            } catch (RuntimeException) {
+                self::assertSame($count, $repository->count());
+            }
+        }
+    }
+
     private function boot(array $modules): array
     {
         $services = new ModuleServiceRegistry();

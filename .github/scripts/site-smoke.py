@@ -280,4 +280,67 @@ module('galleries')
 assert 'Image unavailable' in request('/galleries/site-smoke-album')[0]
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 assert 'Site smoke album' in request('/admin/galleries')[0]
-print('Site HTTP smoke passed: group management/confirmation, Media previews/confirmation, Galleries, selected Home, Feedback, sitemap, redirects, gallery display modes/pickers and Signature theme switching.')
+news_fields['featured_media_id'] = second['id']
+seo_rules = {}
+for kind in ('page', 'news', 'home'):
+    for key, value in {'title': '{title} | {site_name}', 'description': 'About {title}',
+                       'keywords': '', 'keywords_source': 'tags'}.items():
+        seo_rules['rules[' + kind + '][' + key + ']'] = value
+saved, _ = post('/admin/seo/settings', seo_rules, '/admin/seo')
+assert 'SEO settings saved.' in saved
+invalid, _ = post('/admin/seo/settings', {**seo_rules, 'rules[news][title]': '{bad_token}'}, '/admin/seo')
+assert 'Unknown template variable.' in invalid
+for theme in ('mcms-default', 'mcms-signature'):
+    post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
+    for kind, fields, content_id, public_path in [('pages', page_fields, page_id, '/site-smoke-page-renamed'),
+                                                ('news', news_fields, news_id, '/news/site-smoke-article')]:
+        form_path = '/admin/' + kind + '/' + str(content_id) + '/edit'
+        form = request(form_path)[0]
+        assert 'data-content-preview' in form
+        preview_fields = {**fields, 'content_id': content_id, 'title': 'Unsaved preview',
+                          'body': '<p>Private preview</p>' + '[gallery id="' + str(album_id) + '" view="carousel"]' + '<script>alert(1)</script>',
+                          'tags': 'CMS, news', 'seo_title': '', 'seo_keywords': ''}
+        result, _ = post('/admin/' + kind + '/preview', preview_fields, form_html=form)
+        preview = json.loads(result)
+        assert 'data-theme="' + theme + '"' in preview['html']
+        assert '<title>Unsaved preview | ' in preview['html']
+        assert 'noindex, nofollow, noarchive' in preview['html'] and 'mcms-gallery-carousel' in preview['html']
+        assert 'Private preview' in preview['html'] and 'alert(1)' not in preview['html']
+        assert 'name="keywords" content="CMS, news"' in html.unescape(preview['html'])
+        assert 'Private preview' not in request(public_path)[0]
+        # Preview returns the rotated CSRF token, allowing a subsequent save from the same editor.
+        refreshed = re.sub(r'(name="csrf_test_name"[^>]*value=")[^"]+', r'\g<1>' + preview['csrfHash'], form)
+        saved, _ = post(form_path, {**fields, 'tags': 'CMS, news', 'seo_keywords': 'manual keywords', 'seo_title': 'Exact title'}, form_html=refreshed)
+        assert 'Exact title' in saved
+        public = html.unescape(request(public_path)[0])
+        assert '<title>Exact title</title>' in public and 'name="keywords" content="manual keywords"' in public
+        for script in re.findall(r'<script\b[^>]*>(.*?)</script>', form, re.S):
+            if script.strip(): subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
+        post(form_path, fields)
+
+# A create-only editor cannot preview an existing record by posting its ID.
+created_user, _ = post('/admin/users/create', {'email': 'previewer@example.test', 'username': 'previewer',
+                                             'password': 'Preview-Smoke-2026!'}, '/admin/users/create')
+assert 'User created.' in created_user
+row = next(row for row in re.findall(r'<tr\b.*?</tr>', created_user, re.S) if 'previewer' in row)
+previewer_id = re.search(r'/admin/users/([0-9]+)/access', row).group(1)
+post('/admin/users/' + previewer_id + '/access', [('groups[]', 'user'), ('permissions[]', 'core.admin'),
+     ('permissions[]', 'pages.create'), ('permissions[]', 'news.create')])
+admin_opener = opener
+opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+try:
+    post('/login', {'email': 'previewer@example.test', 'password': 'Preview-Smoke-2026!'}, '/login')
+    for kind, content_id in [('pages', page_id), ('news', news_id)]:
+        fields = {'title': 'Create-only draft preview', 'body': '<p>Private draft</p>', 'status': 'draft'}
+        try:
+            post('/admin/' + kind + '/preview', {**fields, 'content_id': content_id}, '/admin/' + kind + '/create')
+            raise AssertionError('Create-only editor previewed an existing record')
+        except urllib.error.HTTPError as error:
+            assert error.code == 403 and 'no-store' in error.headers.get('Cache-Control', '')
+        result, _ = post('/admin/' + kind + '/preview', fields, '/admin/' + kind + '/create')
+        assert 'Private draft' in json.loads(result)['html']
+        assert '1970' not in json.loads(result)['html']
+finally:
+    opener = admin_opener
+
+print('Site HTTP smoke passed: SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')

@@ -53,6 +53,7 @@ final class News extends BaseController
                 'article' => $article,
                 'siteName' => $siteName,
                 'metaTitle' => $title . ' · ' . $siteName,
+                'metaKeywords' => $article['seo_keywords'] ?? null,
                 'metaDescription' => $article['seo_description'] ?? $article['excerpt'],
             ],
             'MCMS\\Modules\\News\\Views\\public_article',

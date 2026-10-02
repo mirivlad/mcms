@@ -29,6 +29,7 @@ final class Page extends BaseController
                 'page' => $page,
                 'siteName' => $siteName,
                 'metaTitle' => $pageTitle . ' · ' . $siteName,
+                'metaKeywords' => $page['seo_keywords'] ?? null,
                 'metaDescription' => $page['seo_description'] ?? null,
             ],
             'MCMS\\Modules\\Pages\\Views\\show',

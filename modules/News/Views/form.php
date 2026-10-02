@@ -154,7 +154,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 </div>
 
 <form method="post" id="news-form">
+    <input type="hidden" name="content_id" value="<?= (int) ($article['id'] ?? 0) ?>">
     <?= csrf_field() ?>
+    <?= view('admin/content/preview', ['previewUrl' => site_url('admin/news/preview'), 'editorId' => 'news-editor']) ?>
     <div class="row row-cards">
         <div class="col-xl-9">
             <div class="card mb-3">
@@ -220,6 +222,11 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                 <textarea class="d-none" id="news-body" name="body"><?= esc($bodyValue) ?></textarea>
             </div>
 
+            <div class="card mb-3"><div class="card-body">
+                <label class="form-label" for="content-tags"><?= esc(lang('MCMS.content.tags')) ?></label>
+                <input class="form-control" id="content-tags" name="tags" maxlength="1000" value="<?= esc(old('tags', $article['tags'] ?? '')) ?>">
+                <p class="form-hint mb-0"><?= esc(lang('MCMS.content.tagsHint')) ?></p>
+            </div></div>
             <details class="card" <?= $seoOpen ? 'open' : '' ?>>
                 <summary class="card-header mcms-seo-summary">
                     <div>
@@ -236,6 +243,11 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                     <div>
                         <label class="form-label" for="seo-description"><?= esc(lang('News.Admin.seoDescription')) ?></label>
                         <textarea class="form-control" id="seo-description" name="seo_description" maxlength="320" rows="3"><?= esc($seoDescription) ?></textarea>
+                    </div>
+                    <div class="mt-3">
+                        <label class="form-label" for="content-keywords"><?= esc(lang('MCMS.content.keywords')) ?></label>
+                        <input class="form-control" id="content-keywords" name="seo_keywords" maxlength="1000" value="<?= esc(old('seo_keywords', $article['seo_keywords'] ?? '')) ?>">
+                        <p class="form-hint mb-0"><?= esc(lang('MCMS.content.seoOverride')) ?></p>
                     </div>
                 </div>
             </details>

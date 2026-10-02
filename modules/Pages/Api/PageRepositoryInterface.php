@@ -14,6 +14,8 @@ interface PageRepositoryInterface
 
     public function findPublishedBySlug(string $slug): ?array;
 
+    public function preview(array $data, ?int $id = null): array;
+
     public function create(array $data, ?int $userId = null): array;
 
     public function update(int $id, array $data, ?int $userId = null): array;

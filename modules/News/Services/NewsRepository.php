@@ -105,6 +105,20 @@ final class NewsRepository implements NewsRepositoryInterface
         return $row === null ? null : $this->decorate($row);
     }
 
+    public function preview(array $data, ?int $id = null): array
+    {
+        $current = $id === null ? null : $this->find($id);
+        if ($id !== null && $current === null) {
+            throw new RuntimeException(lang('News.Errors.notFound'));
+        }
+        return $this->decorate([
+            ...$this->normalize($data, $current), 'id' => $id ?? 0,
+            'created_by' => null, 'updated_by' => null,
+            'created_at' => $current['created_at'] ?? date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
     public function create(array $data, ?int $userId = null): array
     {
         $normalized = $this->normalize($data, null);
@@ -206,6 +220,8 @@ final class NewsRepository implements NewsRepositoryInterface
             'featured_media_id' => $this->normalizeFeaturedMedia($data['featured_media_id'] ?? null),
             'seo_title' => $this->nullableText($data['seo_title'] ?? null, 255),
             'seo_description' => $this->nullableText($data['seo_description'] ?? null, 320),
+            'seo_keywords' => $this->nullableText($data['seo_keywords'] ?? null, 1000),
+            'tags' => $this->nullableText($data['tags'] ?? null, 1000),
             'published_at' => $this->normalizePublishedAt($status, $data['published_at'] ?? null, $current),
         ];
     }

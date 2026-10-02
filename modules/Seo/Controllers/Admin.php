@@ -19,7 +19,19 @@ final class Admin extends BaseAdminController
         $lastPage = max(1, (int) ceil($repository->count() / 50));
         $page = max(1, min($lastPage, (int) $this->request->getGet('page')));
         return view('MCMS\\Modules\\Seo\\Views\\index', ['adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
-            'redirects' => $repository->list(50, ($page - 1) * 50), 'page' => $page, 'lastPage' => $lastPage]);
+            'redirects' => $repository->list(50, ($page - 1) * 50), 'page' => $page, 'lastPage' => $lastPage,
+            'rules' => service('mcmsModuleServices')->get('seo.metadata')->settings()]);
+    }
+
+    public function settings(): RedirectResponse
+    {
+        if (($redirect = $this->guard('seo.manage')) !== null) return $redirect;
+        try {
+            service('mcmsModuleServices')->get('seo.metadata')->save((array) $this->request->getPost('rules'));
+            return redirect()->to('/admin/seo')->with('message', lang('Seo.Messages.settingsSaved'));
+        } catch (\Throwable $e) {
+            return redirect()->to('/admin/seo')->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function delete(): RedirectResponse

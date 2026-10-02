@@ -18,6 +18,7 @@ final class Module implements ModuleProviderInterface
     {
         $redirects = new RedirectRepository(db_connect(), $context->navigation);
         $context->services->register('seo.redirects', $redirects);
+        $context->services->register('seo.metadata', new \MCMS\Modules\Seo\Services\Metadata());
         Events::on(CoreEvents::RESOURCE_MOVED, static function (string $provider, string $resourceId, string $oldUrl, string $newUrl) use ($redirects): void {
             $redirects->record($provider, $resourceId, $oldUrl);
         });
@@ -32,6 +33,7 @@ final class Module implements ModuleProviderInterface
         $routes->get('sitemap.xml', '\\MCMS\\Modules\\Seo\\Controllers\\Sitemap::index');
         $routes->group('admin/seo', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::index');
+            $routes->post('settings', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::settings');
             $routes->post('delete', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::delete');
         });
     }

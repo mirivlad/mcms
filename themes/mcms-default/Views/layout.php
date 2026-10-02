@@ -30,6 +30,8 @@ $menuUrl = static function (?string $url): ?string {
 <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
 <?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
 <?php endif ?>
+    <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
+    <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
 </head>
 <body>
 <header class="site-header">

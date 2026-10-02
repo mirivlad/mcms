@@ -156,6 +156,32 @@ final class Admin extends BaseAdminController
         ]);
     }
 
+    public function preview(): ResponseInterface
+    {
+        $id = max(0, (int) $this->request->getPost('content_id'));
+        $permission = 'pages.' . ($id > 0 ? 'edit' : 'create');
+        $this->response->setHeader('Cache-Control', 'private, no-store')
+            ->setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        if (! $this->can($permission)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => lang('MCMS.errors.permissionDenied'), 'csrfHash' => csrf_hash(),
+            ]);
+        }
+        try {
+            $page = $this->pages()->preview($this->formData(), $id > 0 ? $id : null);
+            $page['body'] = service('mcmsShortcodes')->render($page['body']);
+            $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
+            $html = service('mcmsThemes')->render('page', [
+                'page' => $page, 'siteName' => $siteName, 'isPreview' => true,
+                'metaTitle' => (($page['seo_title'] ?? null) ?: $page['title']) . ' · ' . $siteName,
+                'metaDescription' => $page['seo_description'] ?? $page['excerpt'] ?? null,
+            ], 'MCMS\\Modules\\Pages\\Views\\show');
+            return $this->response->setJSON(['html' => $html, 'csrfHash' => csrf_hash()]);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => $e->getMessage(), 'csrfHash' => csrf_hash()]);
+        }
+    }
+
     public function media(): ResponseInterface
     {
         if (! $this->can('pages.create') && ! $this->can('pages.edit')) {
@@ -206,6 +232,8 @@ final class Admin extends BaseAdminController
             'status' => (string) $this->request->getPost('status'),
             'seo_title' => (string) $this->request->getPost('seo_title'),
             'seo_description' => (string) $this->request->getPost('seo_description'),
+            'seo_keywords' => (string) $this->request->getPost('seo_keywords'),
+            'tags' => (string) $this->request->getPost('tags'),
         ];
     }
 

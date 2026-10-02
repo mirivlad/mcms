@@ -1,6 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <h2 class="page-title mb-3"><?= esc(lang('Seo.Admin.title')) ?></h2>
+<?= view('MCMS\\Modules\\Seo\\Views\\settings', ['rules' => $rules]) ?>
 <p><a href="<?= site_url('sitemap.xml') ?>" target="_blank" rel="noopener"><?= esc(lang('Seo.Admin.sitemap')) ?></a></p>
 <p class="text-secondary"><?= esc(lang('Seo.Admin.redirectHint')) ?></p>
 <div class="card"><div class="table-responsive"><table class="table card-table table-vcenter">

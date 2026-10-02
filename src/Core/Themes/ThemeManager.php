@@ -91,6 +91,11 @@ final class ThemeManager
 
     public function render(string $logicalTemplate, array $data = [], ?string $fallbackView = null): string
     {
+        foreach (service('mcmsModuleServices')->all() as $provider) {
+            if ($provider instanceof PageMetadataProviderInterface) {
+                $data = array_replace($data, $provider->metadata($logicalTemplate, $data));
+            }
+        }
         $theme = $this->active();
 
         if ($theme !== null) {

@@ -3,14 +3,16 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= esc((string) (($page['seo_title'] ?? null) ?: $page['title'])) ?> · <?= esc($siteName) ?></title>
-    <?php if (($page['seo_description'] ?? null) !== null): ?>
-        <meta name="description" content="<?= esc($page['seo_description'], 'attr') ?>">
+    <title><?= esc($metaTitle ?? $siteName) ?></title>
+    <?php if (! empty($metaDescription)): ?>
+        <meta name="description" content="<?= esc((string) $metaDescription, 'attr') ?>">
     <?php endif ?>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
 <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?>
 <?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
 <?php endif ?>
+    <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
+    <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
 </head>
 <body>
 <main class="container py-5">

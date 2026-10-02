@@ -107,6 +107,33 @@ final class Admin extends BaseAdminController
         return redirect()->to('/admin/news')->with('message', lang('News.Messages.deleted'));
     }
 
+    public function preview(): ResponseInterface
+    {
+        $id = max(0, (int) $this->request->getPost('content_id'));
+        $permission = 'news.' . ($id > 0 ? 'edit' : 'create');
+        $this->response->setHeader('Cache-Control', 'private, no-store')
+            ->setHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        if (! $this->can($permission)) {
+            return $this->response->setStatusCode(403)->setJSON([
+                'error' => lang('MCMS.errors.permissionDenied'), 'csrfHash' => csrf_hash(),
+            ]);
+        }
+        try {
+            $article = $this->news()->preview($this->formData(), $id > 0 ? $id : null);
+            $article['published_at'] ??= date('Y-m-d H:i:s');
+            $article['body'] = service('mcmsShortcodes')->render($article['body']);
+            $siteName = (string) (setting('Core.siteName') ?? 'mCMS');
+            $html = service('mcmsThemes')->render('news.article', [
+                'article' => $article, 'siteName' => $siteName, 'isPreview' => true,
+                'metaTitle' => (($article['seo_title'] ?? null) ?: $article['title']) . ' · ' . $siteName,
+                'metaDescription' => $article['seo_description'] ?? $article['excerpt'] ?? null,
+            ], 'MCMS\\Modules\\News\\Views\\public_article');
+            return $this->response->setJSON(['html' => $html, 'csrfHash' => csrf_hash()]);
+        } catch (\Throwable $e) {
+            return $this->response->setStatusCode(422)->setJSON(['error' => $e->getMessage(), 'csrfHash' => csrf_hash()]);
+        }
+    }
+
     public function media(): ResponseInterface
     {
         if (! $this->can('news.create') && ! $this->can('news.edit')) {
@@ -155,6 +182,8 @@ final class Admin extends BaseAdminController
             'featured_media_id' => (string) $this->request->getPost('featured_media_id'),
             'seo_title' => (string) $this->request->getPost('seo_title'),
             'seo_description' => (string) $this->request->getPost('seo_description'),
+            'seo_keywords' => (string) $this->request->getPost('seo_keywords'),
+            'tags' => (string) $this->request->getPost('tags'),
         ];
     }
 

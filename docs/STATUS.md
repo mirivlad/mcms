@@ -1,10 +1,10 @@
-# Current baseline — 2026-10-02
+# Current baseline — 2026-10-03
 
 This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
-- Core version 0.1.2 with optional Home, public-resource and path-conflict provider contracts.
+- Core version 0.1.3 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -30,9 +30,10 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cached proportional previews, image-only browsing and administration pagination.
 - Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.3.0
+### Pages 0.4.0
 
 - Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
+- Tags and manual keywords; private unsaved preview through the active theme without database writes.
 - Paginated administration and fixed module-prefix reservation with legacy conflict detection.
 - Optional published page selection for Home with safe built-in fallback.
 - Slug generation, SEO fields and Media picker integration.
@@ -40,9 +41,10 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.3.0
+### News 0.4.0
 
 - Draft and published news articles with optional future publication time.
+- Tags and manual keywords; private unsaved preview with featured image and shortcode rendering.
 - Sanitized rich text, excerpt, SEO metadata and optional featured Media image.
 - Public archive at `/news` and articles at `/news/{slug}`.
 - Public service: `news.repository`.
@@ -77,7 +79,11 @@ This document records the current known-good mCMS implementation checkpoint.
 - Private paginated inbox with read/delete permissions; disable preserves messages.
 - Theme template, fallback and generic contact navigation resource.
 
-### SEO 0.1.0
+### SEO 0.2.0
+
+- Home/Pages/News title and description templates with `{title}`, `{site_name}` and `{tags}`.
+- Default keywords or tags as keyword source, overridden by manual per-content metadata.
+- Metadata provided through the generic Core theme metadata interface; disabling SEO preserves settings and content.
 
 - Public sitemap enumerates enabled providers beyond search-result limits.
 - Stable-resource 301 redirects for slug changes; reused live URLs take precedence.
@@ -117,7 +123,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 60 tests / 439 assertions,
+Fresh local verification for this checkpoint includes 62 tests / 470 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -143,7 +149,13 @@ The checkpoint is covered by:
 - generic Pages/News → Menus internal-resource discovery and resolution checks;
 - News scheduling, sanitization, featured Media and public archive/article checks.
 
+SEO/preview checks additionally cover both themes, per-content overrides, tag-derived keywords, invalid-rule rejection, unchanged published content after preview, rotated CSRF tokens, create-only editor restrictions and draft-news dates. Preview UI was exercised on unauthenticated copies of real editor forms with fixture responses.
+
 ## Next sequence
+
+The approved content workflow continues with autosave/recovery and revision history,
+per-theme branding settings, then categories/tags/filtering and public search.
+Commerce remains a separate contract-definition stage.
 
 1. Agree Catalogue product, variant, price and stock contracts.
 2. Implement commerce modules after that agreement.

@@ -15,6 +15,16 @@ return [
         'system' => 'System',
         'media' => 'Media',
     ],
+    'content' => [
+        'tags' => 'Tags',
+        'tagsHint' => 'Separate tags with commas. SEO can use them as automatic keywords.',
+        'keywords' => 'Keywords',
+        'seoOverride' => 'A manual value overrides the general SEO rule for this content.',
+        'preview' => 'Preview',
+        'previewLoading' => 'Preparing preview…',
+        'previewFailed' => 'Unable to load preview.',
+        'popupBlocked' => 'Allow opening a new tab for preview.',
+    ],
     'common' => [
         'previousPage' => 'Previous',
         'nextPage' => 'Next',
