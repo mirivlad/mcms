@@ -59,7 +59,7 @@ conflicting page slugs. Core refuses enablement that would shadow stored content
 existing conflicting slugs must be renamed explicitly, without automatic data edits.
 
 An installed module may declare a read-only `data_providers` map, for example
-`"data_providers": {"media.usage": "MCMS\\\\Modules\\\\Example\\\\Api\\\\MediaUsageProvider"}`.
+`"data_providers": {"media.usage": "MCMS\\Modules\\Example\\Api\\MediaUsageProvider"}`.
 Core exposes those declarations through `installedDataProviders()` even when the
 module is disabled. A consumer validates the provider against its public contract;
 providers are constructed without arguments and may only inspect their own stored
