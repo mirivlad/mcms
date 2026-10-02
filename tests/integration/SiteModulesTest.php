@@ -112,6 +112,206 @@ final class SiteModulesTest extends CIUnitTestCase
         self::assertNull($redirects->target('/new'));
     }
 
+    public function testManualRedirectCreateEditDeleteAndResourceLifecycle(): void
+    {
+        [$manager, $services] = $this->boot(['pages', 'seo']);
+        $pages = $services->get('pages.repository');
+        $page = $pages->create(['title' => 'Contact page', 'body' => '', 'status' => 'published']);
+        $redirects = $services->get('seo.redirects');
+        $redirects->save('/old-contact.html', '/contact-page');
+        self::assertSame('pages.page', $redirects->find('/old-contact.html')['provider']);
+        $pages->update($page['id'], ['title' => 'Contacts', 'slug' => 'contacts', 'body' => '', 'status' => 'published']);
+        self::assertSame('/contacts', $redirects->target('/old-contact.html'));
+        $pages->update($page['id'], ['title' => 'Contacts', 'slug' => 'contacts', 'body' => '', 'status' => 'draft']);
+        self::assertNull($redirects->target('/old-contact.html'));
+        $pages->update($page['id'], ['title' => 'Contacts', 'slug' => 'contacts', 'body' => '', 'status' => 'published']);
+        $redirects->save('/older-contact', '/old-contact.html');
+        self::assertSame('/contacts', $redirects->target('/older-contact'));
+        $redirects->save('/renamed-source', '/', '/older-contact');
+        self::assertNull($redirects->find('/older-contact'));
+        self::assertSame('/', $redirects->target('/renamed-source'));
+        $redirects->save('/renamed-source', '/contacts', '/renamed-source');
+        self::assertSame('/contacts', $redirects->target('/renamed-source'));
+        $redirects->delete('/renamed-source');
+        self::assertNull($redirects->target('/renamed-source'));
+        $manager->disable('pages');
+        $fresh = new ModuleServiceRegistry();
+        $navigation = new NavigableResourceRegistry();
+        (new ModuleManager($this->db, new AdminRegistry(), $fresh, ROOTPATH . 'modules', $navigation))->bootEnabled();
+        self::assertNull($fresh->get('seo.redirects')->target('/old-contact.html'));
+        $manager->enable('pages');
+        self::assertSame('/contacts', $redirects->target('/old-contact.html'));
+        $pages->create(['title' => 'Reused', 'slug' => 'old-contact', 'body' => '', 'status' => 'published']);
+        $redirects->save('/former-contact', '/contacts');
+        $pages->create(['title' => 'Reused alias', 'slug' => 'former-contact', 'body' => '', 'status' => 'published']);
+        self::assertNull($redirects->target('/former-contact'));
+        $pages->delete($page['id']);
+        self::assertNull($redirects->target('/old-contact.html'));
+    }
+
+    public function testManualRedirectValidationPreservesExistingRecords(): void
+    {
+        [, $services] = $this->boot(['pages', 'seo']);
+        $services->get('pages.repository')->create(['title' => 'Live', 'body' => '', 'status' => 'published']);
+        $redirects = $services->get('seo.redirects');
+        $redirects->save('/first', '/second');
+        $redirects->save('/second', '/live');
+        $before = $redirects->list();
+        foreach ([
+            ['/first', '/', null], ['/live', '/', null], ['/admin/seo', '/', null], ['/', '/live', null],
+            ['//evil.test', '/', null], ['/invalid', '//evil.test', null], ['/invalid', 'https://evil.test', null],
+            ['/invalid', '/live?x=1', null], ['/invalid', '/live#anchor', null], ['/invalid', '/a/../live', null],
+            ['/invalid', "/live\r\nLocation: bad", null], ['/invalid', '/%2f%2fevil.test', null],
+            ['/same', '/same', null], ['/second', '/first', '/second'], ['/missing', '/', '/gone'],
+            ['/first', '/second', '/second'], ['/invalid', '/' . str_repeat('a', 500), null],
+        ] as [$source, $target, $original]) {
+            try {
+                $redirects->save($source, $target, $original);
+                self::fail('Invalid redirect must be rejected: ' . $source . ' -> ' . $target);
+            } catch (InvalidArgumentException) {
+                self::assertSame($before, $redirects->list());
+            }
+        }
+        self::assertSame('/live', $redirects->target('/first'));
+        // Corrupt/imported cycles must also be harmless at request time.
+        $this->db->table('seo_redirects')->where('source_path', '/second')->update(['provider' => '', 'resource_id' => '', 'target_path' => '/first']);
+        self::assertNull($redirects->target('/first'));
+    }
+
+    public function testRedirectFilterUses301ForGetAndHeadIncludingSubdirectory(): void
+    {
+        [, $services] = $this->boot(['seo']);
+        $services->get('seo.redirects')->save('/old.html', '/new');
+        $filter = new \MCMS\Modules\Seo\Filters\Redirects();
+        $app = config('App');
+        $base = $app->baseURL;
+        try {
+            foreach (['http://example.com/', 'http://example.com/cms/'] as $url) {
+                $app->baseURL = $url;
+                foreach (['GET', 'HEAD'] as $method) {
+                    $request = service('request');
+                    $request->setMethod($method);
+                    $request->getUri()->setPath(parse_url($url . 'old.html', PHP_URL_PATH));
+                    $response = $filter->before($request);
+                    self::assertSame(301, $response->getStatusCode());
+                    self::assertSame($url . 'new', $response->getHeaderLine('Location'));
+                }
+                $request->setMethod('POST');
+                self::assertNull($filter->before($request));
+            }
+        } finally {
+            $app->baseURL = $base;
+        }
+    }
+
+    public function testSitemapLastmodUsesContentDatesAndSelectedHome(): void
+    {
+        [$manager, $services] = $this->boot(['pages', 'news', 'galleries', 'feedback', 'seo']);
+        $page = $services->get('pages.repository')->create(['title' => 'Welcome', 'body' => '', 'status' => 'published']);
+        $article = $services->get('news.repository')->create(['title' => 'Article', 'body' => '', 'status' => 'published']);
+        $album = $services->get('galleries.repository')->create(['title' => 'Album', 'status' => 'published']);
+        foreach (['pages' => $page, 'news_articles' => $article, 'galleries' => $album] as $table => $content) {
+            $this->db->table($table)->where('id', $content['id'])->update(['updated_at' => '2025-06-07 12:30:00']);
+        }
+        service('settings')->set('pages.home_page_id', $page['id']);
+        $app = config('App');
+        $timezone = $app->appTimezone;
+        $app->appTimezone = 'Asia/Irkutsk';
+        try {
+            $controller = new Sitemap();
+            $controller->initController(service('request'), service('response'), service('logger'));
+            $document = new DOMDocument();
+            self::assertTrue($document->loadXML($controller->index()->getBody()));
+            $xpath = new DOMXPath($document);
+            $xpath->registerNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+            foreach (['/', '/welcome', '/news/article', '/galleries/album'] as $path) {
+                $url = site_url(ltrim($path, '/'));
+                self::assertSame('2025-06-07T12:30:00+08:00', $xpath->evaluate('string(//s:url[s:loc="' . $url . '"]/s:lastmod)'));
+                self::assertSame(1, $xpath->query('//s:url[s:loc="' . $url . '"]')->length);
+            }
+            foreach (['/news', '/galleries', '/contact'] as $path) {
+                self::assertSame(0, $xpath->query('//s:url[s:loc="' . site_url(ltrim($path, '/')) . '"]/s:lastmod')->length);
+            }
+            $services->get('pages.repository')->update($page['id'], ['title' => 'Welcome', 'body' => '', 'status' => 'draft']);
+            self::assertTrue($document->loadXML($controller->index()->getBody()));
+            $xpath = new DOMXPath($document);
+            $xpath->registerNamespace('s', 'http://www.sitemaps.org/schemas/sitemap/0.9');
+            self::assertSame(0, $xpath->query('//s:url[s:loc="' . site_url('/') . '"]/s:lastmod')->length);
+            $manager->disable('news');
+            $fresh = new ModuleServiceRegistry();
+            $navigation = new NavigableResourceRegistry();
+            Services::injectMock('mcmsNavigation', $navigation);
+            (new ModuleManager($this->db, new AdminRegistry(), $fresh, ROOTPATH . 'modules', $navigation))->bootEnabled();
+            self::assertStringNotContainsString('/news/article', $controller->index()->getBody());
+        } finally {
+            $app->appTimezone = $timezone;
+        }
+    }
+
+    public function testSeoAdminSaveEditAndPermissionGuard(): void
+    {
+        [, $services] = $this->boot(['seo']);
+        $auth = $this->createMock(\CodeIgniter\Shield\Auth::class);
+        $user = $this->createMock(\CodeIgniter\Shield\Entities\User::class);
+        $user->method('can')->willReturn(true);
+        $auth->method('user')->willReturn($user);
+        $auth->method('setAuthenticator')->willReturnSelf();
+        Services::injectMock('auth', $auth);
+        $request = service('request');
+        $request->setGlobal('post', ['source' => '/old', 'target' => '/', 'original' => '']);
+        $controller = new \MCMS\Modules\Seo\Controllers\Admin();
+        $controller->initController($request, service('response'), service('logger'));
+        self::assertStringContainsString('/admin/seo#redirects', $controller->save()->getHeaderLine('Location'));
+        self::assertSame('/', $services->get('seo.redirects')->target('/old'));
+        $request->setGlobal('get', ['edit' => '/old']);
+        foreach (['ru' => 'Редактировать перенаправление', 'en' => 'Edit redirect'] as $locale => $label) {
+            service('language')->setLocale($locale);
+            $request->setLocale($locale);
+            $html = html_entity_decode($controller->index(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            self::assertStringContainsString($label, $html);
+            self::assertStringContainsString('name="original" value="/old"', $html);
+            self::assertStringContainsString('name="target" value="/"', $html);
+        }
+        $request->setGlobal('post', ['source' => '/older', 'target' => '/new', 'original' => '/old']);
+        $controller->save();
+        self::assertNull($services->get('seo.redirects')->find('/old'));
+        self::assertSame('/new', $services->get('seo.redirects')->target('/older'));
+        $request->setGlobal('post', ['source' => '/bad', 'target' => '//evil.test', 'original' => '/older']);
+        self::assertStringContainsString('?edit=%2Folder#redirect-form', $controller->save()->getHeaderLine('Location'));
+        self::assertSame('/new', $services->get('seo.redirects')->target('/older'));
+        $denied = $this->createMock(\CodeIgniter\Shield\Auth::class);
+        $denied->method('user')->willReturn(null);
+        $denied->method('setAuthenticator')->willReturnSelf();
+        Services::injectMock('auth', $denied);
+        $request->setGlobal('post', ['source' => '/unauthorized', 'target' => '/']);
+        $controller->save();
+        $controller->delete();
+        self::assertNull($services->get('seo.redirects')->find('/unauthorized'));
+        self::assertSame(1, $services->get('seo.redirects')->count());
+    }
+
+    public function testManualRedirectMigrationPreservesOldResourceRecords(): void
+    {
+        [, $services] = $this->boot(['pages', 'seo']);
+        $page = $services->get('pages.repository')->create(['title' => 'Target', 'body' => '', 'status' => 'published']);
+        $redirects = $services->get('seo.redirects');
+        $redirects->record('pages.page', (string) $page['id'], '/legacy');
+        $redirects->save('/manual', '/');
+        $migration = new \MCMS\Modules\Seo\Database\Migrations\AddManualRedirectTargets();
+        $migration->down();
+        self::assertFalse($this->db->fieldExists('target_path', 'seo_redirects'));
+        self::assertSame('/target', $redirects->target('/legacy'));
+        self::assertNull($redirects->find('/manual'));
+        $old = $redirects->find('/legacy');
+        $migration->up();
+        $this->db->resetDataCache();
+        self::assertTrue($this->db->fieldExists('target_path', 'seo_redirects'));
+        self::assertSame([...$old, 'target_path' => null], $redirects->find('/legacy'));
+        self::assertSame('/target', $redirects->target('/legacy'));
+        $redirects->save('/new-manual', '/');
+        self::assertSame('/', $redirects->target('/new-manual'));
+    }
+
     public function testGalleryShortcodePreservesSourceAndFollowsPublicationLifecycle(): void
     {
         [$manager, $services] = $this->boot(['pages', 'news', 'galleries']);

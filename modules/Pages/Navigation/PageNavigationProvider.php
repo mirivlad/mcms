@@ -47,11 +47,16 @@ final class PageNavigationProvider implements PublicResourceProviderInterface
 
     public function resources(): iterable
     {
+        $homeId = (int) (setting('pages.home_page_id') ?? 0);
         $offset = 0;
         do {
             $rows = $this->pages->list('', 'published', 100, $offset);
             foreach ($rows as $row) {
-                yield $this->resource($row);
+                $resource = [...$this->resource($row), 'updated_at' => (string) $row['updated_at']];
+                yield $resource;
+                if ((int) $row['id'] === $homeId) {
+                    yield [...$resource, 'url' => '/'];
+                }
             }
             $offset += 100;
         } while (count($rows) === 100);

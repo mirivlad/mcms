@@ -51,7 +51,7 @@ final class NewsArticleNavigationProvider implements PublicResourceProviderInter
         do {
             $rows = $this->news->listPublished('', 100, $offset);
             foreach ($rows as $row) {
-                yield $this->resource($row);
+                yield [...$this->resource($row), 'updated_at' => (string) $row['updated_at']];
             }
             $offset += 100;
         } while (count($rows) === 100);

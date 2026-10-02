@@ -16,11 +16,27 @@ final class Admin extends BaseAdminController
             return $redirect;
         }
         $repository = $this->repository();
+        $editing = $repository->find((string) $this->request->getGet('edit'));
         $lastPage = max(1, (int) ceil($repository->count() / 50));
         $page = max(1, min($lastPage, (int) $this->request->getGet('page')));
         return view('MCMS\\Modules\\Seo\\Views\\index', ['adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
             'redirects' => $repository->list(50, ($page - 1) * 50), 'page' => $page, 'lastPage' => $lastPage,
-            'rules' => service('mcmsModuleServices')->get('seo.metadata')->settings()]);
+            'rules' => service('mcmsModuleServices')->get('seo.metadata')->settings(), 'editing' => $editing,
+            'editTarget' => $editing === null ? '' : ($repository->destination($editing) ?? ''), 'repository' => $repository]);
+    }
+
+    public function save(): RedirectResponse
+    {
+        if (($redirect = $this->guard('seo.manage')) !== null) return $redirect;
+        $original = (string) $this->request->getPost('original');
+        try {
+            $this->repository()->save((string) $this->request->getPost('source'),
+                (string) $this->request->getPost('target'), $original === '' ? null : $original);
+            return redirect()->to('/admin/seo#redirects')->with('message', lang('Seo.Messages.redirectSaved'));
+        } catch (\Throwable $e) {
+            return redirect()->to('/admin/seo' . ($original === '' ? '' : '?edit=' . rawurlencode($original)) . '#redirect-form')
+                ->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function settings(): RedirectResponse

@@ -51,7 +51,7 @@ final class GalleryNavigationProvider implements PublicResourceProviderInterface
         do {
             $rows = $this->galleries->listPublished('', 100, $offset);
             foreach ($rows as $row) {
-                yield $this->resource($row);
+                yield [...$this->resource($row), 'updated_at' => (string) $row['updated_at']];
             }
             $offset += 100;
         } while (count($rows) === 100);

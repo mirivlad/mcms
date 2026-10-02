@@ -1,7 +1,7 @@
 {
   "id": "seo",
   "name": "@Seo.Admin.title",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "namespace": "MCMS\\Modules\\Seo",
   "provider": "MCMS\\Modules\\Seo\\Module",
   "mcms": "^0.1.3",

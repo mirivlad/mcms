@@ -33,6 +33,7 @@ final class Module implements ModuleProviderInterface
         $routes->get('sitemap.xml', '\\MCMS\\Modules\\Seo\\Controllers\\Sitemap::index');
         $routes->group('admin/seo', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::index');
+            $routes->post('save', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::save');
             $routes->post('settings', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::settings');
             $routes->post('delete', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::delete');
         });

@@ -79,16 +79,18 @@ This document records the current known-good mCMS implementation checkpoint.
 - Private paginated inbox with read/delete permissions; disable preserves messages.
 - Theme template, fallback and generic contact navigation resource.
 
-### SEO 0.2.0
+### SEO 0.3.0
 
 - Home/Pages/News title and description templates with `{title}`, `{site_name}` and `{tags}`.
 - Default keywords or tags as keyword source, overridden by manual per-content metadata.
 - Metadata provided through the generic Core theme metadata interface; disabling SEO preserves settings and content.
 
 - Public sitemap enumerates enabled providers beyond search-result limits.
+- Sitemap `lastmod` uses actual Pages/News/Galleries modification dates and the selected published Home page; unknown dates are omitted.
 - Stable-resource 301 redirects for slug changes; reused live URLs take precedence.
 - Draft, deleted and disabled targets do not redirect.
-- Redirect administration and disable/re-enable persistence.
+- Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
+- Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
 ## Themes
 
