@@ -10,6 +10,8 @@ use MCMS\Core\Content\HtmlSanitizer;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
 use MCMS\Modules\News\Api\NewsRepositoryInterface;
 use RuntimeException;
+use CodeIgniter\Events\Events;
+use MCMS\Core\Events\CoreEvents;
 
 final class NewsRepository implements NewsRepositoryInterface
 {
@@ -133,7 +135,11 @@ final class NewsRepository implements NewsRepositoryInterface
                 'updated_at' => date('Y-m-d H:i:s'),
             ]);
 
-        return $this->required($id);
+        $article = $this->required($id);
+        if ($current['slug'] !== $article['slug']) {
+            Events::trigger(CoreEvents::RESOURCE_MOVED, 'news.article', (string) $id, $this->url($current), $this->url($article));
+        }
+        return $article;
     }
 
     public function delete(int $id): void

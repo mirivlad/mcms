@@ -509,6 +509,9 @@ jobs:
           grep -q '>About<' /tmp/public-page-menus-reenabled.html
           grep -q '>Child<' /tmp/public-page-menus-reenabled.html
 
+      - name: Verify reusable site modules through HTTP forms
+        run: python3 .github/scripts/site-smoke.py --cookies /tmp/mcms.cookies
+
       - name: Verify installer is closed after setup
         run: |
           code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/install)"

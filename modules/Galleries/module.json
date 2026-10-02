@@ -1,0 +1,36 @@
+{
+  "id": "galleries",
+  "name": "@Galleries.Admin.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Galleries",
+  "provider": "MCMS\\Modules\\Galleries\\Module",
+  "mcms": "^0.1.1",
+  "description": "@Galleries.Admin.description",
+  "requires": [
+    {
+      "id": "media",
+      "version": "^0.2"
+    }
+  ],
+  "public_paths": [
+    "galleries"
+  ],
+  "settings": {},
+  "permissions": {
+    "galleries.view": "@Galleries.Permissions.view",
+    "galleries.create": "@Galleries.Permissions.create",
+    "galleries.edit": "@Galleries.Permissions.edit",
+    "galleries.delete": "@Galleries.Permissions.delete"
+  },
+  "grants": {
+    "admin": [
+      "galleries.view",
+      "galleries.create",
+      "galleries.edit",
+      "galleries.delete"
+    ]
+  },
+  "data_providers": {
+    "media.usage": "MCMS\\Modules\\Galleries\\Api\\MediaUsageProvider"
+  }
+}

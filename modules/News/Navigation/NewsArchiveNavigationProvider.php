@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace MCMS\Modules\News\Navigation;
 
-use MCMS\Core\Navigation\NavigableResourceProviderInterface;
+use MCMS\Core\Navigation\PublicResourceProviderInterface;
 
-final class NewsArchiveNavigationProvider implements NavigableResourceProviderInterface
+final class NewsArchiveNavigationProvider implements PublicResourceProviderInterface
 {
     public function id(): string
     {
@@ -41,5 +41,14 @@ final class NewsArchiveNavigationProvider implements NavigableResourceProviderIn
             'label' => lang('News.Public.title'),
             'url' => '/news',
         ];
+    }
+    public function resources(): iterable
+    {
+        return $this->search();
+    }
+
+    public function resolveUrl(string $url): ?array
+    {
+        return $url === '/news' ? $this->resolve('index') : null;
     }
 }

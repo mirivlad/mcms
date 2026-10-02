@@ -220,6 +220,7 @@ return [
         'themeMenusSaved' => 'Theme menu assignments saved.',
     ],
     'errors' => [
+        'publicPathConflict' => 'Cannot enable %s: public paths %s conflict with stored content in %s. Rename the conflicting content explicitly.',
         'permissionDenied' => 'You do not have permission to access that area.',
         'invalidSiteName' => 'Site name must be between 1 and 120 characters.',
         'invalidLocale' => 'Choose a supported site language.',

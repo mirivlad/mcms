@@ -34,7 +34,7 @@ maintenance. Content and business features are installed as modules.
 ## Modules
 
 News, Galleries, Shop, Orders, Delivery and other domain features are not part
-of Core. Media, Pages, Menus and News are provided as reusable first-party modules.
+of Core. Media, Pages, Menus, News, Galleries, Feedback and SEO are provided as reusable first-party modules.
 
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
@@ -43,17 +43,17 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-The 2026-10-01 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
-Media, Pages, Menus and News are implemented as reusable modules and covered by
+The 2026-10-02 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
+Media, Pages, Menus, News, Galleries, Feedback and SEO are implemented as reusable modules and covered by
 module/integration checks.
 
 Theme API, the default theme and Menus ↔ theme-location assignment are implemented.
-The built-in theme renders Home, Pages and News through logical templates and declares responsive header/footer navigation locations.
+The built-in theme renders Home, Pages, News, Galleries and Feedback through logical templates and declares responsive header/footer navigation locations.
 
 The next implementation sequence is:
 
-1. Galleries;
-2. commerce modules after the reusable content/presentation layer is stable.
+1. Define Catalogue product/variant/price/stock contracts.
+2. Implement commerce modules against those accepted contracts.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,

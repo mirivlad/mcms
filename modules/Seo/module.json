@@ -1,0 +1,22 @@
+{
+  "id": "seo",
+  "name": "@Seo.Admin.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Seo",
+  "provider": "MCMS\\Modules\\Seo\\Module",
+  "mcms": "^0.1.1",
+  "description": "@Seo.Admin.description",
+  "requires": [],
+  "public_paths": [
+    "sitemap.xml"
+  ],
+  "settings": {},
+  "permissions": {
+    "seo.manage": "@Seo.Permissions.manage"
+  },
+  "grants": {
+    "admin": [
+      "seo.manage"
+    ]
+  }
+}

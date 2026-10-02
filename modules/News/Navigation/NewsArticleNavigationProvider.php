@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace MCMS\Modules\News\Navigation;
 
-use MCMS\Core\Navigation\NavigableResourceProviderInterface;
+use MCMS\Core\Navigation\PublicResourceProviderInterface;
 use MCMS\Modules\News\Api\NewsRepositoryInterface;
 
-final class NewsArticleNavigationProvider implements NavigableResourceProviderInterface
+final class NewsArticleNavigationProvider implements PublicResourceProviderInterface
 {
     public function __construct(private readonly NewsRepositoryInterface $news)
     {
@@ -43,6 +43,27 @@ final class NewsArticleNavigationProvider implements NavigableResourceProviderIn
         }
 
         return $this->resource($article);
+    }
+
+    public function resources(): iterable
+    {
+        $offset = 0;
+        do {
+            $rows = $this->news->listPublished('', 100, $offset);
+            foreach ($rows as $row) {
+                yield $this->resource($row);
+            }
+            $offset += 100;
+        } while (count($rows) === 100);
+    }
+
+    public function resolveUrl(string $url): ?array
+    {
+        if (preg_match('~^/news/([a-z0-9]+(?:-[a-z0-9]+)*)$~', $url, $matches) !== 1) {
+            return null;
+        }
+        $row = $this->news->findPublishedBySlug($matches[1]);
+        return $row === null ? null : $this->resource($row);
     }
 
     private function resource(array $article): array

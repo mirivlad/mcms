@@ -123,17 +123,36 @@ final class Admin extends BaseAdminController
                 return redirect()->back()->withInput()->with('error', lang('Pages.Errors.invalidStatus'));
             }
 
+            $homeId = max(0, (int) $this->request->getPost('home_page_id'));
+            $home = $homeId > 0 ? $this->pages()->find($homeId) : null;
+            if ($homeId > 0 && ($home === null || $home['status'] !== 'published')) {
+                return redirect()->back()->withInput()->with('error', lang('Pages.Errors.invalidHomePage'));
+            }
+
             $settings->set('pages.default_status', $defaultStatus);
+            $settings->set('pages.home_page_id', $homeId);
 
             return redirect()->to('/admin/pages/settings')
                 ->with('message', lang('Pages.Messages.settingsSaved'));
         }
+
+        $homePages = [];
+        $offset = 0;
+        do {
+            $batch = $this->pages()->list('', 'published', 250, $offset);
+            foreach ($batch as $candidate) {
+                $homePages[] = ['id' => $candidate['id'], 'title' => $candidate['title']];
+            }
+            $offset += 250;
+        } while (count($batch) === 250);
 
         return view('MCMS\\Modules\\Pages\\Views\\settings', [
             'title' => lang('Pages.Admin.settings'),
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
             'defaultStatus' => (string) ($settings->get('pages.default_status') ?? 'draft'),
+            'homePageId' => (int) ($settings->get('pages.home_page_id') ?? 0),
+            'homePages' => $homePages,
         ]);
     }
 

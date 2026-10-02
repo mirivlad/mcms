@@ -30,7 +30,12 @@
 - [x] Default theme with declared menu locations.
 - [x] Menus ↔ theme-location assignment.
 - [x] News.
-- [ ] Galleries.
+- [x] Galleries.
+- [x] Selected published page as Home.
+- [x] Feedback form and administration inbox.
+- [x] Optional sitemap and moved-resource redirects.
+- [x] Media previews and explicit used-file deletion confirmation.
+- [x] Content-list pagination and public-path conflict protection.
 
 ## Stage 2 — commerce modules
 
@@ -44,7 +49,7 @@
 ## Stage 3 — ecosystem
 
 - [ ] Module packaging/install from archive or repository.
-- [ ] Module compatibility/version constraints.
+- [x] Module compatibility/version constraints at discovery/enablement.
 - [ ] Safe module update workflow.
 - [ ] Third-party theme packaging/install.
 - [ ] Optional API module.

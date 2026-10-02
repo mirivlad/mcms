@@ -9,6 +9,8 @@ use InvalidArgumentException;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
 use MCMS\Core\Content\HtmlSanitizer;
 use RuntimeException;
+use CodeIgniter\Events\Events;
+use MCMS\Core\Events\CoreEvents;
 
 final class PageRepository implements PageRepositoryInterface
 {
@@ -146,6 +148,10 @@ final class PageRepository implements PageRepositoryInterface
         $page = $this->find($id);
         if ($page === null) {
             throw new RuntimeException(lang('Pages.Errors.notFound'));
+        }
+
+        if ($current['slug'] !== $page['slug']) {
+            Events::trigger(CoreEvents::RESOURCE_MOVED, 'pages.page', (string) $id, $this->url($current), $this->url($page));
         }
 
         return $page;

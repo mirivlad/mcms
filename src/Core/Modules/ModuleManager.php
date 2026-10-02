@@ -11,6 +11,7 @@ use CodeIgniter\Router\RouteCollection;
 use Config\Services;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
+use MCMS\Core\Navigation\PublicPathUsageProviderInterface;
 use MCMS\Core\Version;
 use MCMS\Core\Events\CoreEvents;
 use RuntimeException;
@@ -202,6 +203,22 @@ final class ModuleManager
 
         if (in_array($id, $stack, true)) {
             throw new RuntimeException('Circular module dependency: ' . implode(' -> ', [...$stack, $id]));
+        }
+
+        $states = $this->states();
+        foreach ($this->installedDataProviders('core.public_paths') as $owner => $class) {
+            if ($owner !== $id && (int) ($states[$owner]['enabled'] ?? 0) !== 1) {
+                continue;
+            }
+            $provider = new $class();
+            if (! $provider instanceof PublicPathUsageProviderInterface) {
+                throw new RuntimeException("Invalid public-path usage provider: {$owner}");
+            }
+            $paths = $owner === $id ? $this->reservedPublicPaths() : $manifest->publicPaths;
+            $conflicts = $provider->conflicts($paths);
+            if ($conflicts !== []) {
+                throw new RuntimeException(sprintf(lang('MCMS.errors.publicPathConflict'), $id, implode(', ', $conflicts), $owner));
+            }
         }
 
         foreach ($manifest->requires as $dependency) {

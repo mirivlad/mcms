@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "namespace": "MCMS\\Modules\\Pages",
   "provider": "MCMS\\Modules\\Pages\\Module",
-  "mcms": "^0.1",
+  "mcms": "^0.1.1",
   "description": "@Pages.Admin.description",
   "requires": [
     {
@@ -13,7 +13,8 @@
     }
   ],
   "settings": {
-    "default_status": "draft"
+    "default_status": "draft",
+    "home_page_id": 0
   },
   "permissions": {
     "pages.view": "@Pages.Permissions.view",
@@ -32,6 +33,7 @@
     ]
   },
   "data_providers": {
-    "media.usage": "MCMS\\Modules\\Pages\\Api\\MediaUsageProvider"
+    "media.usage": "MCMS\\Modules\\Pages\\Api\\MediaUsageProvider",
+    "core.public_paths": "MCMS\\Modules\\Pages\\Api\\PublicPathUsageProvider"
   }
 }

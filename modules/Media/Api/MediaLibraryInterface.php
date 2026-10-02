@@ -8,9 +8,9 @@ use CodeIgniter\HTTP\Files\UploadedFile;
 
 interface MediaLibraryInterface
 {
-    public function list(string $query = '', int $limit = 100, int $offset = 0): array;
+    public function list(string $query = '', int $limit = 100, int $offset = 0, bool $imagesOnly = false): array;
 
-    public function count(string $query = ''): int;
+    public function count(string $query = '', bool $imagesOnly = false): int;
 
     public function find(int $id): ?array;
 

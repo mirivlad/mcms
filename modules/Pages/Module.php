@@ -10,6 +10,7 @@ use MCMS\Core\Modules\ModuleProviderInterface;
 use MCMS\Modules\Pages\Navigation\PageNavigationProvider;
 use MCMS\Core\Content\HtmlSanitizer;
 use MCMS\Modules\Pages\Services\PageRepository;
+use MCMS\Modules\Pages\Services\PageHomeProvider;
 
 final class Module implements ModuleProviderInterface
 {
@@ -22,6 +23,7 @@ final class Module implements ModuleProviderInterface
         );
 
         $context->services->register('pages.repository', $repository);
+        $context->services->register('pages.home', new PageHomeProvider($repository));
         $context->navigation->register(new PageNavigationProvider($repository));
 
         $context->admin->addMenu(

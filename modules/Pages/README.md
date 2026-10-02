@@ -17,7 +17,7 @@ First-party reusable static-pages module for mCMS.
 
 ## Dependency
 
-Pages requires Media `^0.1`. Enabling Pages through Core Module Manager
+Pages requires Media `^0.2`. Enabling Pages through Core Module Manager
 automatically enables Media first.
 
 ## Data ownership
@@ -38,3 +38,9 @@ Published pages are available directly by slug:
 Core and Shield routes are registered before Pages, and reserved top-level
 slugs such as `admin`, `login`, `register`, `install`, and `auth`
 cannot be assigned to a page.
+
+Fixed prefixes declared by installed code, including disabled News/Galleries/
+Feedback modules, are reserved too. Enablement detects legacy conflicts and asks
+for explicit renaming. Page settings can choose any published page as Home.
+The selection survives module disablement; draft/deleted pages use the default Home.
+Pages exports Media usage references and emits `mcms.resource.moved` on slug changes.

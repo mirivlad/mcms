@@ -1,0 +1,26 @@
+{
+  "id": "feedback",
+  "name": "@Feedback.Admin.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Feedback",
+  "provider": "MCMS\\Modules\\Feedback\\Module",
+  "mcms": "^0.1.1",
+  "description": "@Feedback.Admin.description",
+  "requires": [],
+  "public_paths": [
+    "contact"
+  ],
+  "settings": {},
+  "permissions": {
+    "feedback.view": "@Feedback.Permissions.view",
+    "feedback.manage": "@Feedback.Permissions.manage",
+    "feedback.delete": "@Feedback.Permissions.delete"
+  },
+  "grants": {
+    "admin": [
+      "feedback.view",
+      "feedback.manage",
+      "feedback.delete"
+    ]
+  }
+}

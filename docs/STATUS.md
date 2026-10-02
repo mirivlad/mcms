@@ -4,6 +4,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
+- Core version 0.1.1 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -19,21 +20,25 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## First-party modules
 
-### Media 0.1.0
+### Media 0.2.0
 
 - Persistent media library with upload and metadata editing.
 - Configurable upload/image limits and MIME allow-list.
-- Public service: `media.library`.
+- Public services: `media.library` and `media.usage`.
+- Cached proportional previews, image-only browsing and administration pagination.
+- Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.1.0
+### Pages 0.2.0
 
-- Draft/published static pages with sanitized rich text.
+- Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
+- Paginated administration and fixed module-prefix reservation with legacy conflict detection.
+- Optional published page selection for Home with safe built-in fallback.
 - Slug generation, SEO fields and Media picker integration.
 - Public service: `pages.repository`.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.1.1
+### News 0.2.0
 
 - Draft and published news articles with optional future publication time.
 - Sanitized rich text, excerpt, SEO metadata and optional featured Media image.
@@ -53,12 +58,32 @@ This document records the current known-good mCMS implementation checkpoint.
 - Menu items support custom URLs or generic provider-backed internal resources without depending on Pages/News classes.
 - Provider-backed targets survive provider/module disablement and resolve again after re-enable.
 
+### Galleries 0.1.0
+
+- Draft/published albums with captions, ordering and optional cover.
+- Paginated image picker using Media API; album removal preserves files.
+- Public archive/album, theme fallbacks and generic navigation providers.
+- Disabled albums preserve data and remain visible to Media usage inspection.
+
+### Feedback 0.1.0
+
+- Public contact form with CSRF, honeypot, throttling and server validation.
+- Private paginated inbox with read/delete permissions; disable preserves messages.
+- Theme template, fallback and generic contact navigation resource.
+
+### SEO 0.1.0
+
+- Public sitemap enumerates enabled providers beyond search-result limits.
+- Stable-resource 301 redirects for slug changes; reused live URLs take precedence.
+- Draft, deleted and disabled targets do not redirect.
+- Redirect administration and disable/re-enable persistence.
+
 ## Themes
 
-### mCMS Default 0.2.0
+### mCMS Default 0.3.0
 
 - Built-in responsive public theme.
-- Logical `home`, `page`, `news.index` and `news.article` templates.
+- Logical Home, Pages, News, Galleries and Feedback templates.
 - Header navigation with mobile collapse and two-level dropdown support.
 - Footer navigation and legal-link locations.
 - Theme-declared locations:
@@ -78,6 +103,12 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
+Fresh local verification for this checkpoint includes 48 tests / 301 assertions,
+PHP lint, Docker builds and the standalone HTTP form smoke in
+`.github/scripts/site-smoke.py`. Public Galleries and Feedback were inspected in
+the in-app browser. Administrative forms were exercised via HTTP; interactive
+Media-picker JavaScript was not exercised in an authenticated browser.
+
 The checkpoint is covered by:
 
 - PHP lint and Composer validation;
@@ -91,5 +122,5 @@ The checkpoint is covered by:
 
 ## Next sequence
 
-1. Galleries.
-2. Commerce modules after the reusable content/presentation layer is stable.
+1. Agree Catalogue product, variant, price and stock contracts.
+2. Implement commerce modules after that agreement.

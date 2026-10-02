@@ -12,7 +12,7 @@ News provides dated public articles independently from Pages.
 - excerpt, sanitized rich-text body and SEO metadata;
 - optional featured image from the Media module.
 
-The module requires Media but does not depend on Pages. Both Pages and News use
+The module requires Media ^0.2 but does not depend on Pages. Both Pages and News use
 Core's shared `HtmlSanitizer`.
 
 ## Administration
@@ -42,7 +42,13 @@ News registers two generic Core navigation providers:
 Menus consumes these through `NavigableResourceRegistry`; there is no direct
 Menus → News dependency.
 
+Both providers support complete public-resource enumeration for the optional
+SEO sitemap. Slug changes emit `mcms.resource.moved` with a stable article ID.
+
 ## Services
 
 The module exposes `news.repository` implementing
 `MCMS\Modules\News\Api\NewsRepositoryInterface`.
+
+A read-only `media.usage` data provider reports inline and featured-image
+references from all articles, including drafts and disabled-module data.

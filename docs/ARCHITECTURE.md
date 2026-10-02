@@ -167,8 +167,19 @@ Stable public event names use the `mcms.*` prefix, for example:
 - `mcms.module.enabled`
 - `mcms.module.disabled`
 - `mcms.settings.changed`
+- `mcms.resource.moved` — provider ID, resource ID, previous URL and current URL.
 
 Modules define their own namespaced events for domain-specific behavior.
+
+Core Home accepts an optional `HomePageProviderInterface` from the enabled module
+service registry. Pages supplies `pages.home`, rendering a selected published page
+through the Theme API. Missing/draft/deleted content or disabled Pages leaves the
+built-in home page available; Core has no Pages schema or implementation dependency.
+
+`PublicResourceProviderInterface` optionally extends navigable resources with
+complete public-resource enumeration and URL resolution. SEO uses this contract
+for sitemap generation and to protect reused URLs from stale redirects. Sitemap
+and redirect persistence remain module responsibilities.
 
 ## Storage
 

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace MCMS\Modules\Pages\Navigation;
 
-use MCMS\Core\Navigation\NavigableResourceProviderInterface;
+use MCMS\Core\Navigation\PublicResourceProviderInterface;
 use MCMS\Modules\Pages\Api\PageRepositoryInterface;
 
-final class PageNavigationProvider implements NavigableResourceProviderInterface
+final class PageNavigationProvider implements PublicResourceProviderInterface
 {
     public function __construct(private readonly PageRepositoryInterface $pages)
     {
@@ -43,6 +43,27 @@ final class PageNavigationProvider implements NavigableResourceProviderInterface
         }
 
         return $this->resource($page);
+    }
+
+    public function resources(): iterable
+    {
+        $offset = 0;
+        do {
+            $rows = $this->pages->list('', 'published', 100, $offset);
+            foreach ($rows as $row) {
+                yield $this->resource($row);
+            }
+            $offset += 100;
+        } while (count($rows) === 100);
+    }
+
+    public function resolveUrl(string $url): ?array
+    {
+        if (preg_match('~^/([a-z0-9]+(?:-[a-z0-9]+)*)$~', $url, $matches) !== 1) {
+            return null;
+        }
+        $row = $this->pages->findPublishedBySlug($matches[1]);
+        return $row === null ? null : $this->resource($row);
     }
 
     private function resource(array $page): array

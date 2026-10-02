@@ -32,9 +32,12 @@ final class MediaLibrary implements MediaLibraryInterface
         }
     }
 
-    public function list(string $query = '', int $limit = 100, int $offset = 0): array
+    public function list(string $query = '', int $limit = 100, int $offset = 0, bool $imagesOnly = false): array
     {
         $builder = $this->db->table('media_files');
+        if ($imagesOnly) {
+            $builder->like('mime_type', 'image/', 'after');
+        }
 
         $query = trim($query);
         if ($query !== '') {
@@ -56,9 +59,12 @@ final class MediaLibrary implements MediaLibraryInterface
         return array_map(fn (array $row): array => $this->decorate($row), $rows);
     }
 
-    public function count(string $query = ''): int
+    public function count(string $query = '', bool $imagesOnly = false): int
     {
         $builder = $this->db->table('media_files');
+        if ($imagesOnly) {
+            $builder->like('mime_type', 'image/', 'after');
+        }
 
         $query = trim($query);
         if ($query !== '') {

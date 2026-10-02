@@ -30,6 +30,16 @@
                 </select>
             </div>
 
+            <div class="mb-3">
+                <label class="form-label" for="home_page_id"><?= esc(lang('Pages.Admin.homePage')) ?></label>
+                <select class="form-select" id="home_page_id" name="home_page_id">
+                    <option value="0"><?= esc(lang('Pages.Admin.defaultHome')) ?></option>
+                    <?php foreach ($homePages as $candidate): ?>
+                        <option value="<?= (int) $candidate['id'] ?>" <?= (int) old('home_page_id', $homePageId) === $candidate['id'] ? 'selected' : '' ?>><?= esc($candidate['title']) ?></option>
+                    <?php endforeach ?>
+                </select>
+                <div class="form-hint"><?= esc(lang('Pages.Admin.homeHint')) ?></div>
+            </div>
             <button class="btn btn-primary" type="submit"><?= esc(lang('Pages.Admin.saveSettings')) ?></button>
         </form>
     </div>

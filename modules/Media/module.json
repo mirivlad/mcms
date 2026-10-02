@@ -4,7 +4,7 @@
   "version": "0.2.0",
   "namespace": "MCMS\\Modules\\Media",
   "provider": "MCMS\\Modules\\Media\\Module",
-  "mcms": "^0.1",
+  "mcms": "^0.1.1",
   "description": "@MCMS.modules.mediaDescription",
   "requires": [],
   "settings": {

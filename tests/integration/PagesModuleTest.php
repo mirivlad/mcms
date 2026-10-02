@@ -172,4 +172,31 @@ final class PagesModuleTest extends CIUnitTestCase
         ));
         self::assertCount(105, array_unique($ids));
     }
+
+    public function testLegacyPageConflictBlocksLaterModuleEnablementWithoutRenamingData(): void
+    {
+        $services = new ModuleServiceRegistry();
+        $manager = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules');
+        Config\Services::injectMock('mcmsModules', $manager);
+        $manager->enable('pages');
+        $manager->bootEnabled();
+        $page = $services->get('pages.repository')->create(['title' => 'Legacy', 'slug' => 'legacy', 'body' => '', 'status' => 'published']);
+        $this->db->table('pages')->where('id', $page['id'])->update(['slug' => 'news']);
+        try {
+            $manager->enable('news');
+            self::fail('An existing page must not be silently shadowed.');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('/news', $e->getMessage());
+            self::assertArrayNotHasKey('news', $manager->states());
+            self::assertSame('news', $services->get('pages.repository')->find($page['id'])['slug']);
+        }
+        $manager->disable('pages');
+        $manager->enable('news');
+        try {
+            $manager->enable('pages');
+            self::fail('Re-enabling legacy Pages must also detect the conflict.');
+        } catch (RuntimeException) {
+            self::assertSame(0, (int) $manager->states()['pages']['enabled']);
+        }
+    }
 }

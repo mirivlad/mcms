@@ -2,6 +2,10 @@
 
 return [
     'Admin' => [
+        'homePage' => 'Home page',
+        'defaultHome' => 'Built-in home page',
+        'homeHint' => 'Only published pages are shown. If the selected page becomes a draft, is deleted, or Pages is disabled, the built-in home page is used.',
+
         'menuLabel' => 'Pages',
         'description' => 'Reusable static pages with drafts, publishing and SEO metadata.',
         'title' => 'Pages',
@@ -65,6 +69,7 @@ return [
         'settingsSaved' => 'Page settings saved.',
     ],
     'Errors' => [
+        'invalidHomePage' => 'Choose a published page as the home page.',
         'notFound' => 'Page not found.',
         'titleRequired' => 'Page title is required.',
         'invalidSlug' => 'Slug must contain lowercase Latin letters, numbers and hyphens.',
