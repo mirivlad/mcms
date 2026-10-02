@@ -476,7 +476,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             preview.style.height = '180px';
 
             const image = document.createElement('img');
-            image.src = item.url;
+            image.src = item.thumbnail_url || item.url;
             image.alt = item.alt_text || '';
             image.className = 'w-100 h-100';
             image.style.objectFit = 'contain';

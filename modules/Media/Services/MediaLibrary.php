@@ -223,19 +223,26 @@ final class MediaLibrary implements MediaLibraryInterface
         return $updated;
     }
 
-    public function delete(int $id): void
+    public function delete(int $id, bool $force = false): void
     {
         $media = $this->find($id);
         if ($media === null) {
             return;
         }
 
+        if (! $force && (new MediaUsage($this->db))->find($id) !== []) {
+            throw new RuntimeException(lang('MCMS.media.usedFile'));
+        }
+
         $absolutePath = $this->absolutePath((string) $media['storage_path']);
 
+        $thumbnail = $this->absolutePath((string) $media['storage_path']) . '.thumb.png';
+        if (is_file($thumbnail) && ! unlink($thumbnail)) {
+            throw new RuntimeException(lang('MCMS.errors.mediaDeleteStorage'));
+        }
         if (is_file($absolutePath) && ! unlink($absolutePath)) {
             throw new RuntimeException(lang('MCMS.errors.mediaDeleteStorage'));
         }
-
         $this->db->table('media_files')->where('id', $id)->delete();
     }
 
@@ -264,6 +271,70 @@ final class MediaLibrary implements MediaLibraryInterface
         return self::MIME_EXTENSIONS;
     }
 
+    public function thumbnailUrl(int|array $media): string
+    {
+        if (is_int($media)) {
+            $media = $this->find($media);
+            if ($media === null) {
+                throw new RuntimeException(lang('MCMS.errors.mediaNotFound'));
+            }
+        }
+        $url = $this->url($media);
+        if (! str_starts_with((string) $media['mime_type'], 'image/')) {
+            return $url;
+        }
+        $original = $this->absolutePath((string) $media['storage_path']);
+        $thumbnail = $original . '.thumb.png';
+        if (! is_file($thumbnail)) {
+            if (! is_file($original)) {
+                return $url;
+            }
+            $width = (int) $media['width'];
+            $height = (int) $media['height'];
+            if ($width <= 0 || $height <= 0) {
+                return $url;
+            }
+            $limit = ini_parse_quantity((string) ini_get('memory_limit'));
+            if ($limit > 0 && memory_get_usage(true) + $width * $height * 8 + 16 * 1024 * 1024 > $limit) {
+                return $url;
+            }
+            $decoder = match ($media['mime_type']) {
+                'image/jpeg' => 'imagecreatefromjpeg',
+                'image/png' => 'imagecreatefrompng',
+                'image/webp' => 'imagecreatefromwebp',
+                'image/gif' => 'imagecreatefromgif',
+                default => '',
+            };
+            if ($decoder === '' || ! function_exists($decoder)) {
+                return $url;
+            }
+            $image = @$decoder($original);
+            if ($image === false) {
+                return $url;
+            }
+            $scale = min(1, 480 / max($width, $height));
+            $targetWidth = max(1, (int) round($width * $scale));
+            $targetHeight = max(1, (int) round($height * $scale));
+            $preview = imagecreatetruecolor($targetWidth, $targetHeight);
+            imagealphablending($preview, false);
+            imagesavealpha($preview, true);
+            imagefill($preview, 0, 0, imagecolorallocatealpha($preview, 0, 0, 0, 127));
+            imagecopyresampled($preview, $image, 0, 0, 0, 0, $targetWidth, $targetHeight, $width, $height);
+            $temporary = $thumbnail . '.' . bin2hex(random_bytes(6));
+            try {
+                if (! imagepng($preview, $temporary) || ! rename($temporary, $thumbnail)) {
+                    throw new RuntimeException(lang('MCMS.errors.mediaStorageCreate'));
+                }
+            } finally {
+                @unlink($temporary);
+                imagedestroy($preview);
+                imagedestroy($image);
+            }
+        }
+
+        return $url . '.thumb.png';
+    }
+
     private function decorate(array $row): array
     {
         $row['id'] = (int) $row['id'];
@@ -273,6 +344,7 @@ final class MediaLibrary implements MediaLibraryInterface
         $row['uploaded_by'] = $row['uploaded_by'] === null ? null : (int) $row['uploaded_by'];
         $row['is_image'] = str_starts_with((string) $row['mime_type'], 'image/');
         $row['url'] = $this->url($row);
+        $row['thumbnail_url'] = $this->thumbnailUrl($row);
 
         return $row;
     }

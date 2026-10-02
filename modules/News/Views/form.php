@@ -388,7 +388,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
     const setFeatured = (item) => {
         featuredId.value = String(item.id);
-        featuredImage.src = item.url;
+        featuredImage.src = item.thumbnail_url || item.url;
         featuredPreview.classList.remove('d-none');
         removeFeatured.classList.remove('d-none');
     };
@@ -438,7 +438,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             img.className = 'card-img-top';
             img.style.aspectRatio = '4 / 3';
             img.style.objectFit = 'cover';
-            img.src = item.url;
+            img.src = item.thumbnail_url || item.url;
             img.alt = item.alt_text || '';
             const cardBody = document.createElement('div');
             cardBody.className = 'card-body p-2';

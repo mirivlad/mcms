@@ -24,6 +24,7 @@ final class ModuleManifest
         public readonly array $grants = [],
         public readonly string $path = '',
         public readonly array $publicPaths = [],
+        public readonly array $dataProviders = [],
     ) {
     }
 
@@ -87,6 +88,17 @@ final class ModuleManifest
             }
         }
 
+        $dataProviders = $data['data_providers'] ?? [];
+        if (! is_array($dataProviders)) {
+            throw new InvalidArgumentException('Module data_providers must be a map.');
+        }
+        foreach ($dataProviders as $contract => $provider) {
+            if (! is_string($contract) || preg_match('/^[a-z][a-z0-9._-]*$/', $contract) !== 1
+                || ! is_string($provider) || ! str_starts_with($provider, trim($data['namespace'], '\\') . '\\')) {
+                throw new InvalidArgumentException('Data providers must name a contract and a class in the owning module namespace.');
+            }
+        }
+
         return new self(
             id: $data['id'],
             name: $data['name'],
@@ -101,6 +113,7 @@ final class ModuleManifest
             grants: $grants,
             path: dirname($path),
             publicPaths: array_values(array_unique($publicPaths)),
+            dataProviders: $dataProviders,
         );
     }
 }

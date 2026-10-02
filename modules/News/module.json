@@ -1,7 +1,7 @@
 {
   "id": "news",
   "name": "@News.Admin.menuLabel",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "namespace": "MCMS\\Modules\\News",
   "provider": "MCMS\\Modules\\News\\Module",
   "mcms": "^0.1",
@@ -9,10 +9,12 @@
   "requires": [
     {
       "id": "media",
-      "version": "^0.1"
+      "version": "^0.2"
     }
   ],
-  "public_paths": ["news"],
+  "public_paths": [
+    "news"
+  ],
   "settings": {
     "default_status": "draft",
     "per_page": 10
@@ -30,5 +32,8 @@
       "news.edit",
       "news.delete"
     ]
+  },
+  "data_providers": {
+    "media.usage": "MCMS\\Modules\\News\\Api\\MediaUsageProvider"
   }
 }

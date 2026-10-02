@@ -56,6 +56,15 @@ modules, including disabled ones, so later enablement cannot shadow a new page.
 Fixed module routes take precedence over Pages' catch-all route independently of
 module boot order. Existing conflicting page slugs must be renamed explicitly.
 
+An installed module may declare a read-only `data_providers` map, for example
+`"data_providers": {"media.usage": "MCMS\\\\Modules\\\\Example\\\\Api\\\\MediaUsageProvider"}`.
+Core exposes those declarations through `installedDataProviders()` even when the
+module is disabled. A consumer validates the provider against its public contract;
+providers are constructed without arguments and may only inspect their own stored
+data. This does not boot a disabled module or register its routes, hooks or admin UI.
+Media uses this contract to discover references before deleting a shared file,
+including references in drafts and disabled modules.
+
 ## Provider
 
 ```php

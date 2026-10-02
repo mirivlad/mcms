@@ -87,6 +87,19 @@ final class ModuleManager
         return array_values(array_unique($paths));
     }
 
+    public function installedDataProviders(string $contract): array
+    {
+        $states = $this->states();
+        $providers = [];
+        foreach ($this->catalog() as $manifest) {
+            if (isset($states[$manifest->id], $manifest->dataProviders[$contract])) {
+                $providers[$manifest->id] = $manifest->dataProviders[$contract];
+            }
+        }
+
+        return $providers;
+    }
+
     public function enable(string $id): void
     {
         $this->enableRecursive($id, []);

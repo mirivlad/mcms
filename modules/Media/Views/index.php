@@ -138,7 +138,7 @@ $pageUrl = static function (int $targetPage) use ($query): string {
                     >
                         <?php if ($item['is_image']): ?>
                             <img
-                                src="<?= esc($item['url']) ?>"
+                                src="<?= esc($item['thumbnail_url']) ?>"
                                 alt="<?= esc((string) ($item['alt_text'] ?? '')) ?>"
                                 class="w-100 h-100"
                                 style="object-fit:contain"

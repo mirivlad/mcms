@@ -149,6 +149,11 @@ return [
         'enabled' => 'Enabled',
     ],
     'media' => [
+        'usedFile' => 'This file is used by content. A separate confirmation is required.',
+        'confirmUsedDelete' => 'Delete a file used by content?',
+        'usedDeleteWarning' => 'Deleting this file will remove its original and thumbnail. Existing content links will stop working. References from disabled modules are included.',
+        'acceptBrokenLinks' => 'I understand that this will break the listed content links.',
+
         'title' => 'Media',
         'settings' => 'Settings',
         'back' => 'Back to Media',

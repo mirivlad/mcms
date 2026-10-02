@@ -3,8 +3,8 @@ FROM php:8.4-fpm-bookworm
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libcurl4-openssl-dev libfreetype6-dev libicu-dev libjpeg62-turbo-dev \
-        libonig-dev libpng-dev libxml2-dev libzip-dev unzip \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+        libonig-dev libpng-dev libwebp-dev libxml2-dev libzip-dev unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j"$(nproc)" curl dom exif gd intl mbstring mysqli opcache pdo_mysql simplexml xml xmlreader xmlwriter zip \
     && rm -rf /var/lib/apt/lists/*
 

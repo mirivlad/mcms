@@ -8,11 +8,13 @@ use CodeIgniter\Router\RouteCollection;
 use MCMS\Core\Modules\ModuleContext;
 use MCMS\Core\Modules\ModuleProviderInterface;
 use MCMS\Modules\Media\Services\MediaLibrary;
+use MCMS\Modules\Media\Services\MediaUsage;
 
 final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
+        $context->services->register('media.usage', new MediaUsage(db_connect()));
         $context->services->register(
             'media.library',
             new MediaLibrary(

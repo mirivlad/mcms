@@ -1,5 +1,6 @@
 .env
 vendor/
+build/.phpunit.cache/
 writable/cache/*
 !writable/cache/index.html
 writable/logs/*

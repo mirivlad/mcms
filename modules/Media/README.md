@@ -86,12 +86,23 @@ Supported operations include:
 - resolve a public URL;
 - inspect supported MIME types.
 
+Media 0.2 also exposes `thumbnailUrl()`: a cached, proportional PNG preview with
+a maximum edge of 480 pixels, without upscaling. The original is preserved. GIF
+previews use the first frame. Existing images acquire previews on first access;
+missing, unsupported or memory-intensive originals use their original URL.
+
+The `media.usage` service discovers references through installed modules' public
+`MediaUsageProviderInterface` declarations. Drafts and disabled modules are included.
+Used files require a separate confirmation screen listing their references. The
+low-level `delete()` API refuses used files unless explicitly called with `force: true`.
+Confirmed deletion removes the original and preview; referencing content is preserved.
+
 A dependent module must declare Media in its manifest before consuming this API:
 
 ```json
 {
   "requires": [
-    {"id": "media", "version": "^0.1"}
+    {"id": "media", "version": "^0.2"}
   ]
 }
 ```

@@ -8,6 +8,7 @@ use App\Controllers\Admin\BaseAdminController;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
 use MCMS\Modules\Media\Api\MediaLibraryInterface;
+use MCMS\Modules\Media\Api\MediaUsageInterface;
 use RuntimeException;
 
 final class Admin extends BaseAdminController
@@ -86,14 +87,28 @@ final class Admin extends BaseAdminController
         }
     }
 
-    public function delete(int $id): RedirectResponse
+    public function delete(int $id): string|RedirectResponse
     {
         if (($redirect = $this->guard('media.delete')) !== null) {
             return $redirect;
         }
 
         try {
-            $this->library()->delete($id);
+            $usage = service('mcmsModuleServices')->get('media.usage');
+            if (! $usage instanceof MediaUsageInterface) {
+                throw new RuntimeException(lang('MCMS.errors.mediaUnavailable'));
+            }
+            $usages = $usage->find($id);
+            $token = hash('sha256', json_encode([$id, $usages], JSON_THROW_ON_ERROR));
+            $force = $this->request->getPost('confirm') === '1'
+                && hash_equals($token, (string) $this->request->getPost('usage_token'));
+            if ($usages !== [] && ! $force) {
+                return view('MCMS\\Modules\\Media\\Views\\delete', [
+                    'adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
+                    'item' => $this->library()->find($id), 'usages' => $usages, 'usageToken' => $token,
+                ]);
+            }
+            $this->library()->delete($id, $force);
 
             return redirect()->to('/admin/media')->with('message', lang('MCMS.messages.mediaDeleted'));
         } catch (\Throwable $e) {

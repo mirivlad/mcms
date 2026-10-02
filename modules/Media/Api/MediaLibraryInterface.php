@@ -23,9 +23,11 @@ interface MediaLibraryInterface
 
     public function updateMetadata(int $id, ?string $title, ?string $altText): array;
 
-    public function delete(int $id): void;
+    public function delete(int $id, bool $force = false): void;
 
     public function url(int|array $media): string;
+
+    public function thumbnailUrl(int|array $media): string;
 
     public function supportedMimeTypes(): array;
 }
