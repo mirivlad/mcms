@@ -234,3 +234,12 @@ by authenticated user and content ID (zero for a new item); incomplete forms are
 allowed and bodies are sanitized. Recovery and version restoration only populate
 the editor and require a subsequent manual save to affect the website. Editor
 POSTs are serialized, updating CSRF before the next request or manual submission.
+
+### Theme appearance
+
+Core stores appearance per theme in Settings and exposes ThemeImageSourceInterface.
+Media implements the image source and reports theme assignments via its installed
+media.usage data provider. ThemeManager injects themeAppearance into public and
+preview views. Both bundled themes render custom branding and footer contacts;
+accent values accept only six-digit hex colors, and contact output is escaped.
+Missing/disabled image sources preserve assignments and render theme defaults.

@@ -18,7 +18,7 @@ $version = rawurlencode($theme->version);
     <meta name="theme-color" content="#f8f6f1">
     <title><?= esc($metaTitle ?? $siteName) ?></title>
     <?php if (! empty($metaDescription)): ?><meta name="description" content="<?= esc((string) $metaDescription, 'attr') ?>"><?php endif ?>
-    <link rel="icon" href="<?= esc($themeAssets . 'mark.svg', 'attr') ?>" type="image/svg+xml">
+    <?php if (empty($themeAppearance['favicon'])): ?><link rel="icon" href="<?= esc($themeAssets . 'mark.svg', 'attr') ?>" type="image/svg+xml"><?php endif ?>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
     <link rel="stylesheet" href="<?= esc($themeAssets . 'css/theme.css?v=' . $version, 'attr') ?>">
     <script src="<?= esc($themeAssets . 'js/theme.js?v=' . $version, 'attr') ?>" defer></script>
@@ -27,19 +27,21 @@ $version = rawurlencode($theme->version);
 <?php endif ?>
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
+    <?= view('themes/appearance_head') ?>
 </head>
 <body>
 <a class="sig-skip" href="#main-content"><?= esc(lang('Signature.skip')) ?></a>
 <header class="sig-header"><div class="sig-container sig-header-inner">
-    <a class="sig-brand" href="<?= site_url('/') ?>"><span class="sig-mark" aria-hidden="true">m<span>·</span></span><span><?= esc($siteName) ?></span></a>
+    <a class="sig-brand" href="<?= site_url('/') ?>"><?php if (! empty($themeAppearance['logo'])): ?><img class="mcms-brand-logo" src="<?= esc(site_url(ltrim($themeAppearance['logo']['url'], '/')), 'attr') ?>" alt=""><?php else: ?><span class="sig-mark" aria-hidden="true">m<span>·</span></span><?php endif ?><span><?= esc($siteName) ?></span></a>
     <nav class="sig-desktop-nav" aria-label="<?= esc(lang('Signature.navigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Signature\\Views\\_navigation', ['items' => $headerMenu]) ?></ul></nav>
     <details class="sig-mobile-nav"><summary><?= esc(lang('Signature.menu')) ?><span aria-hidden="true">☰</span></summary><nav aria-label="<?= esc(lang('Signature.navigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Signature\\Views\\_navigation', ['items' => $headerMenu]) ?></ul></nav></details>
 </div></header>
 <main id="main-content" tabindex="-1"><?= $this->renderSection('content') ?></main>
 <footer class="sig-footer"><div class="sig-container">
-    <div class="sig-footer-top"><div><a class="sig-brand" href="<?= site_url('/') ?>"><span class="sig-mark" aria-hidden="true">m<span>·</span></span><span><?= esc($siteName) ?></span></a><p><?= esc(lang('Signature.footer')) ?></p></div>
+    <div class="sig-footer-top"><div><a class="sig-brand" href="<?= site_url('/') ?>"><?php if (! empty($themeAppearance['logo'])): ?><img class="mcms-brand-logo" src="<?= esc(site_url(ltrim($themeAppearance['logo']['url'], '/')), 'attr') ?>" alt=""><?php else: ?><span class="sig-mark" aria-hidden="true">m<span>·</span></span><?php endif ?><span><?= esc($siteName) ?></span></a><p><?= esc(lang('Signature.footer')) ?></p></div>
     <?php if ($footerPrimary !== []): ?><nav aria-label="<?= esc(lang('MCMS.themes.footerNavigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Signature\\Views\\_navigation', ['items' => $footerPrimary]) ?></ul></nav><?php endif ?>
     </div>
+    <?= view('themes/contacts') ?>
     <div class="sig-footer-bottom"><span>© <?= date('Y') ?> <?= esc($siteName) ?></span><span class="sig-credit">mCMS <span aria-hidden="true">/</span> Signature</span>
         <?php if ($footerLegal !== []): ?><ul><?= view('MCMS\\Themes\\Signature\\Views\\_navigation', ['items' => $footerLegal]) ?></ul><?php endif ?>
     </div>

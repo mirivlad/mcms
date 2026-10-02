@@ -32,12 +32,13 @@ $menuUrl = static function (?string $url): ?string {
 <?php endif ?>
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
+    <?= view('themes/appearance_head') ?>
 </head>
 <body>
 <header class="site-header">
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="<?= site_url('/') ?>"><?= esc($siteName) ?></a>
+            <a class="navbar-brand" href="<?= site_url('/') ?>"><?php if (! empty($themeAppearance['logo'])): ?><img class="mcms-brand-logo me-2" src="<?= esc(site_url(ltrim($themeAppearance['logo']['url'], '/')), 'attr') ?>" alt=""><?php endif ?><?= esc($siteName) ?></a>
 
             <?php if ($headerMenu !== []): ?>
                 <button
@@ -122,7 +123,7 @@ $menuUrl = static function (?string $url): ?string {
 <footer class="site-footer">
     <div class="container">
         <div class="footer-main">
-            <a class="footer-brand" href="<?= site_url('/') ?>"><?= esc($siteName) ?></a>
+            <a class="footer-brand" href="<?= site_url('/') ?>"><?php if (! empty($themeAppearance['logo'])): ?><img class="mcms-brand-logo me-2" src="<?= esc(site_url(ltrim($themeAppearance['logo']['url'], '/')), 'attr') ?>" alt=""><?php endif ?><?= esc($siteName) ?></a>
 
             <?php if ($footerPrimary !== []): ?>
                 <nav aria-label="<?= esc(lang('MCMS.themes.footerNavigation'), 'attr') ?>">
@@ -145,6 +146,7 @@ $menuUrl = static function (?string $url): ?string {
             <?php endif ?>
         </div>
 
+        <?= view('themes/contacts') ?>
         <div class="footer-meta">
             <span>&copy; <?= date('Y') ?> <?= esc($siteName) ?></span>
             <?php if ($footerLegal !== []): ?>

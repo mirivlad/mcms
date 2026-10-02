@@ -357,6 +357,56 @@ final class SiteModulesTest extends CIUnitTestCase
         }
     }
 
+    public function testThemeAppearanceIsolationMediaUsageAndSafeRendering(): void
+    {
+        [$modules, $services] = $this->boot(['media']);
+        $this->db->table('media_files')->insert([
+            'original_name' => 'brand.png', 'storage_path' => 'brand.png', 'mime_type' => 'image/png',
+            'extension' => 'png', 'size_bytes' => 100, 'width' => 200, 'height' => 80,
+            'sha256' => str_repeat('b', 64), 'created_at' => date('Y-m-d H:i:s'),
+        ]);
+        $imageId = (int) $this->db->insertID();
+        $manager = service('mcmsThemes');
+        $input = ['logo_media_id' => $imageId, 'favicon_media_id' => $imageId, 'accent' => '#ffff00',
+            'phone' => '+7 (123) 456', 'email' => 'brand@example.test', 'address' => '<script>Office</script>'];
+        $manager->saveAppearance('mcms-signature', $input);
+        $manager->saveAppearance('mcms-default', [...$input, 'accent' => '#123456', 'email' => 'other@example.test']);
+        self::assertSame(1, $manager->images('brand')['count']);
+        self::assertSame(0, $manager->images('missing')['count']);
+        self::assertCount(4, $services->get('media.usage')->find($imageId));
+        foreach (['mcms-signature' => '#ffff00', 'mcms-default' => '#123456'] as $id => $accent) {
+            $manager->activate($id);
+            $html = $manager->render('home');
+            self::assertSame($accent, $manager->appearance()['accent']);
+            self::assertStringContainsString('class="mcms-brand-logo', $html);
+            self::assertStringContainsString('brand.png', $html);
+            self::assertStringContainsString('rel="icon"', $html);
+            self::assertStringContainsString('--bs-btn-bg:' . $accent, $html);
+            self::assertStringContainsString('&lt;script&gt;Office&lt;/script&gt;', $html);
+            self::assertStringNotContainsString('<script>Office', $html);
+            self::assertStringContainsString('tel:', html_entity_decode($html));
+            if ($accent === '#ffff00') {
+                self::assertStringContainsString('--bs-btn-color:#000000', $html);
+            }
+        }
+        $before = $manager->appearance();
+        foreach ([['accent' => 'red;}</style><script>bad()</script>'], ['email' => 'invalid'], ['logo_media_id' => 999999]] as $bad) {
+            try {
+                $manager->saveAppearance('mcms-default', [...$input, ...$bad]);
+                self::fail('Invalid appearance must not be persisted.');
+            } catch (InvalidArgumentException) {
+                self::assertSame($before, $manager->appearance());
+            }
+        }
+        $modules->disable('media');
+        Services::injectMock('mcmsModuleServices', new ModuleServiceRegistry());
+        self::assertNull($manager->appearance()['logo']);
+        self::assertSame($imageId, $manager->appearance()['logo_media_id']);
+        $manager->saveAppearance('mcms-default', [...$input, 'email' => 'offline@example.test']);
+        self::assertSame('offline@example.test', $manager->appearance()['email']);
+        self::assertStringNotContainsString('class="mcms-brand-logo', $manager->render('home'));
+    }
+
     private function boot(array $modules): array
     {
         $services = new ModuleServiceRegistry();

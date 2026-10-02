@@ -23,6 +23,8 @@ final class Module implements ModuleProviderInterface
             ),
         );
 
+        $context->services->register('media.theme_images', new \MCMS\Modules\Media\Services\ThemeImages($context->services->get('media.library')));
+
         $context->admin->addMenu(
             'media',
             '@MCMS.nav.media',

@@ -15,4 +15,6 @@ final class Core extends BaseConfig
 
     /** @var array<string, array<string, int|null>> */
     public array $themeMenuAssignments = [];
+
+    public array $themeAppearance = [];
 }

@@ -1,7 +1,7 @@
 {
   "id": "mcms-default",
   "name": "@MCMS.themes.defaultName",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "namespace": "MCMS\\Themes\\DefaultTheme",
   "description": "@MCMS.themes.defaultDescription",
   "author": "mCMS",

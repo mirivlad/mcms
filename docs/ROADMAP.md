@@ -44,7 +44,7 @@
 - [x] SEO title/description templates and manual/tag-derived keywords.
 - [x] Private unsaved Pages/News preview in the active theme.
 - [x] Autosave/recovery and revision history.
-- [ ] Per-theme logo, favicon, color and contact settings.
+- [x] Per-theme logo, favicon, color and contact settings.
 - [ ] News categories, tags, filters and public search.
 
 ## Stage 2 — commerce modules

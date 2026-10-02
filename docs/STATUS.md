@@ -4,7 +4,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
-- Core version 0.1.3 with optional Home, public-resource and path-conflict provider contracts.
+- Core version 0.1.4 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -22,7 +22,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## First-party modules
 
-### Media 0.2.0
+### Media 0.2.1
 
 - Persistent media library with upload and metadata editing.
 - Configurable upload/image limits and MIME allow-list.
@@ -123,7 +123,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 63 tests / 510 assertions,
+Fresh local verification for this checkpoint includes 64 tests / 537 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -166,3 +166,11 @@ revision are committed together; autosave and preview never publish. HTTP smoke 
 editor permissions, incomplete drafts, user isolation, clearing on save and history
 reads without publication. Unauthenticated copies of real forms cover autosave/reload/
 recovery, sequential preview CSRF requests and version restoration at desktop/390px sizes.
+
+Theme appearance now stores a per-theme logo/favicon assignment, accent and footer
+contacts. Media supplies images through a Core-owned contract, so Core remains
+independent of Media internals. Used-image deletion includes theme references;
+missing or disabled Media falls back to theme branding while preserving assignments.
+Verification covers independent values across both themes, safe contact/color
+rendering, contrast-aware button/link colors, invalid-form recovery, image-picker
+permissions, selection/reset/focus and 390px forms without horizontal overflow.

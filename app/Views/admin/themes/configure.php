@@ -46,6 +46,7 @@
     </div>
 
     <div class="col-lg-8">
+        <?= view('admin/themes/appearance') ?>
         <form method="post" class="card">
             <?= csrf_field() ?>
             <div class="card-header">

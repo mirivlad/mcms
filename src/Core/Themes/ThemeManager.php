@@ -154,6 +154,75 @@ final class ThemeManager
         return $this->resolveText((string) ($location['description'] ?? ''));
     }
 
+    public function appearance(?ThemeManifest $theme = null): array
+    {
+        $theme ??= $this->active();
+        $all = $this->settings->get('Core.themeAppearance');
+        $stored = $theme !== null && is_array($all) ? ($all[$theme->id] ?? []) : [];
+        $values = array_replace([
+            'logo_media_id' => null, 'favicon_media_id' => null, 'accent' => '',
+            'phone' => '', 'email' => '', 'address' => '',
+        ], is_array($stored) ? $stored : []);
+        $source = $this->imageSource();
+        $values['logo'] = $source?->findImage((int) $values['logo_media_id']);
+        $values['favicon'] = $source?->findImage((int) $values['favicon_media_id']);
+        return $values;
+    }
+
+    public function saveAppearance(string $themeId, array $input): void
+    {
+        $theme = $this->find($themeId);
+        if ($theme === null) {
+            throw new RuntimeException(lang('MCMS.errors.themeNotFound'));
+        }
+        $current = $this->appearance($theme);
+        $values = [];
+        foreach (['logo_media_id', 'favicon_media_id'] as $key) {
+            $value = $input[$key] ?? null;
+            $id = $value === null || $value === '' || $value === '0' || $value === 0 ? null : filter_var($value, FILTER_VALIDATE_INT);
+            if ($id !== null && ($id === false || $id <= 0
+                || ($this->imageSource() === null ? $id !== $current[$key] : $this->imageSource()->findImage($id) === null))) {
+                throw new InvalidArgumentException(lang('MCMS.themes.invalidImage'));
+            }
+            $values[$key] = $id;
+        }
+        $accent = strtolower(trim((string) ($input['accent'] ?? '')));
+        if ($accent !== '' && preg_match('/^#[0-9a-f]{6}$/', $accent) !== 1) {
+            throw new InvalidArgumentException(lang('MCMS.themes.invalidColor'));
+        }
+        $values['accent'] = $accent;
+        $values['phone'] = mb_substr(trim((string) ($input['phone'] ?? '')), 0, 80);
+        $values['email'] = trim((string) ($input['email'] ?? ''));
+        $values['address'] = mb_substr(trim((string) ($input['address'] ?? '')), 0, 500);
+        if ($values['email'] !== '' && filter_var($values['email'], FILTER_VALIDATE_EMAIL) === false) {
+            throw new InvalidArgumentException(lang('MCMS.themes.invalidEmail'));
+        }
+        $all = $this->settings->get('Core.themeAppearance');
+        $all = is_array($all) ? $all : [];
+        $all[$themeId] = $values;
+        $this->settings->set('Core.themeAppearance', $all);
+    }
+
+    public function images(string $query = '', int $offset = 0): array
+    {
+        return $this->imageSource()?->images($query, max(0, $offset)) ?? ['items' => [], 'count' => 0];
+    }
+
+    public function imagesAvailable(): bool
+    {
+        return $this->imageSource() !== null;
+    }
+
+    private function imageSource(): ?ThemeImageSourceInterface
+    {
+        foreach (service('mcmsModuleServices')->all() as $provider) {
+            if ($provider instanceof ThemeImageSourceInterface) {
+                return $provider;
+            }
+        }
+        return null;
+    }
+
     public function menusAvailable(): bool
     {
         return $this->menuSource() !== null;
@@ -273,6 +342,7 @@ final class ThemeManager
         }
 
         $data['theme'] = $theme;
+        $data['themeAppearance'] = $this->appearance($theme);
 
         if ($theme !== null) {
             $data['themeAssets'] = site_url($theme->assetBaseUrl());

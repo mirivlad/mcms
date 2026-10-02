@@ -1,10 +1,10 @@
 {
   "id": "media",
   "name": "@MCMS.media.title",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "namespace": "MCMS\\Modules\\Media",
   "provider": "MCMS\\Modules\\Media\\Module",
-  "mcms": "^0.1.1",
+  "mcms": "^0.1.4",
   "description": "@MCMS.modules.mediaDescription",
   "requires": [],
   "settings": {
@@ -33,5 +33,8 @@
       "media.delete",
       "media.settings"
     ]
+  },
+  "data_providers": {
+    "media.usage": "MCMS\\Modules\\Media\\Api\\ThemeUsageProvider"
   }
 }

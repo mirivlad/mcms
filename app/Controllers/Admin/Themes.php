@@ -6,6 +6,7 @@ namespace App\Controllers\Admin;
 
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
+use CodeIgniter\HTTP\ResponseInterface;
 
 final class Themes extends BaseAdminController
 {
@@ -76,7 +77,34 @@ final class Themes extends BaseAdminController
             'menusAvailable' => $manager->menusAvailable(),
             'menus' => $manager->availableMenus(),
             'assignments' => $manager->menuAssignments($theme),
+            'appearance' => $manager->appearance($theme),
+            'imagesAvailable' => $manager->imagesAvailable(),
         ]);
+    }
+
+    public function appearance(string $id): RedirectResponse
+    {
+        if (($redirect = $this->guard('core.themes')) !== null) {
+            return $redirect;
+        }
+        try {
+            service('mcmsThemes')->saveAppearance($id, (array) $this->request->getPost('appearance'));
+            return redirect()->to('/admin/themes/' . $id)->with('message', lang('MCMS.themes.appearanceSaved'));
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    public function images(): ResponseInterface
+    {
+        $this->response->setHeader('Cache-Control', 'private, no-store');
+        if (! $this->can('core.themes')) {
+            return $this->response->setStatusCode(403)->setJSON(['error' => lang('MCMS.errors.permissionDenied')]);
+        }
+        return $this->response->setJSON(service('mcmsThemes')->images(
+            mb_substr(trim((string) $this->request->getGet('q')), 0, 100),
+            max(0, (int) $this->request->getGet('offset')),
+        ));
     }
 
     public function activate(string $id): RedirectResponse

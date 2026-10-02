@@ -267,16 +267,38 @@ assert base + '/contact' in locations
 assert base + '/site-smoke-page' not in locations
 assert base + '/news/site-smoke-scheduled' not in locations
 
+# Theme appearance is independent per theme and uses a permission-guarded image picker.
+assert json.loads(request('/admin/themes/images?q=Site%20smoke')[0])['count'] == 2
+appearance_fields = {'appearance[logo_media_id]': first['id'], 'appearance[favicon_media_id]': first['id'],
+                     'appearance[phone]': '+7 (123) 456', 'appearance[address]': '<script>Office</script>'}
+for theme, color, email in [('mcms-default', '#123456', 'default@example.test'),
+                            ('mcms-signature', '#ffff00', 'signature@example.test')]:
+    path = '/admin/themes/' + theme
+    fields = {**appearance_fields, 'appearance[accent]': color, 'appearance[email]': email}
+    saved, _ = post(path + '/appearance', fields, path)
+    assert 'Theme appearance saved.' in saved
+    for script in re.findall(r'<script\b[^>]*>(.*?)</script>', saved, re.S):
+        if script.strip(): subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
+    post(path + '/activate', {}, '/admin/themes')
+    public = html.unescape(request('/site-smoke-page-renamed')[0])
+    assert 'class="mcms-brand-logo' in public and first['url'] in public
+    assert '--bs-btn-bg:' + color in public and email in public
+    assert '<script>Office</script>' not in request('/site-smoke-page-renamed')[0]
+    invalid, _ = post(path + '/appearance', {**fields, 'appearance[accent]': 'invalid'}, path)
+    assert 'Use a color in #RRGGBB format.' in invalid and 'value="invalid"' in invalid
+
 # Used-file deletion must first show all references, including disabled Galleries.
 module('galleries', 'disable')
 confirmation, _ = post('/admin/media/' + str(first['id']) + '/delete', {}, '/admin/media')
 assert 'Delete a file used by content?' in confirmation
 assert 'Site smoke album' in confirmation and 'Site smoke article' in confirmation and 'Site smoke page' in confirmation
+assert 'Logo' in confirmation and 'Favicon' in confirmation
 assert any(item['id'] == first['id'] for item in json.loads(request('/admin/media/api/files')[0])['items'])
 post('/admin/media/' + str(first['id']) + '/delete', {'confirm': '1', 'usage_token': token(confirmation, 'usage_token')}, form_html=confirmation)
 expect_404(first['url'])
 expect_404(first['thumbnail_url'])
 module('galleries')
+assert 'class="mcms-brand-logo' not in request('/site-smoke-page-renamed')[0]
 assert 'Image unavailable' in request('/galleries/site-smoke-album')[0]
 assert 'First caption' in request('/galleries/site-smoke-album')[0]
 assert 'Site smoke album' in request('/admin/galleries')[0]
@@ -350,6 +372,11 @@ admin_opener = opener
 opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
 try:
     post('/login', {'email': 'previewer@example.test', 'password': 'Preview-Smoke-2026!'}, '/login')
+    try:
+        request('/admin/themes/images')
+        raise AssertionError('Create-only editor accessed theme image picker')
+    except urllib.error.HTTPError as error:
+        assert error.code == 403
     for kind, content_id in [('pages', page_id), ('news', news_id)]:
         fields = {'title': 'Create-only draft preview', 'body': '<p>Private draft</p>', 'status': 'draft'}
         try:
@@ -378,4 +405,4 @@ for kind in ('pages', 'news'):
     assert json.loads(request('/admin/' + kind + '/draft?content_id=0')[0])['draft']['data']['body'] == 'Admin private draft'
     post('/admin/' + kind + '/draft/discard', {}, '/admin/' + kind + '/create')
 
-print('Site HTTP smoke passed: personal autosave, revisions,  SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')
+print('Site HTTP smoke passed: theme appearance, personal autosave, revisions, SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')
