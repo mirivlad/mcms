@@ -50,6 +50,12 @@ The namespace must match the path below `MCMS\Modules\`.
 
 Both the `mcms` compatibility constraint and dependency `version` constraints use Composer semantic-version syntax and are enforced before a module is enabled.
 
+Modules with fixed public URL prefixes declare them in `public_paths`, for example
+`"public_paths": ["news"]`. Pages reserves these prefixes for all discovered
+modules, including disabled ones, so later enablement cannot shadow a new page.
+Fixed module routes take precedence over Pages' catch-all route independently of
+module boot order. Existing conflicting page slugs must be renamed explicitly.
+
 ## Provider
 
 ```php

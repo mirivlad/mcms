@@ -27,6 +27,7 @@ final class PageRepository implements PageRepositoryInterface
     public function __construct(
         private readonly BaseConnection $db,
         private readonly HtmlSanitizer $sanitizer,
+        private readonly array $reservedPublicPaths = [],
     ) {
     }
 
@@ -50,6 +51,7 @@ final class PageRepository implements PageRepositoryInterface
         $rows = $builder
             ->orderBy('updated_at', 'DESC')
             ->orderBy('created_at', 'DESC')
+            ->orderBy('id', 'DESC')
             ->limit(max(1, min(250, $limit)), max(0, $offset))
             ->get()
             ->getResultArray();
@@ -191,7 +193,7 @@ final class PageRepository implements PageRepositoryInterface
             throw new InvalidArgumentException(lang('Pages.Errors.invalidSlug'));
         }
 
-        if (in_array($slug, self::RESERVED_SLUGS, true)) {
+        if (in_array($slug, [...self::RESERVED_SLUGS, ...$this->reservedPublicPaths], true)) {
             throw new InvalidArgumentException(lang('Pages.Errors.reservedSlug'));
         }
 

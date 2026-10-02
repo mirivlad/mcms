@@ -20,14 +20,20 @@ final class Admin extends BaseAdminController
 
         $query = trim((string) $this->request->getGet('q'));
         $library = $this->library();
+        $perPage = 30;
+        $count = $library->count($query);
+        $lastPage = max(1, (int) ceil($count / $perPage));
+        $page = max(1, min((int) $this->request->getGet('page'), $lastPage));
 
         return view('MCMS\Modules\Media\Views\index', [
             'title'     => lang('MCMS.media.title'),
             'adminMenu' => $this->adminMenu(),
             'user'      => auth()->user(),
             'query'     => $query,
-            'items'     => $library->list($query),
-            'count'     => $library->count($query),
+            'items'     => $library->list($query, $perPage, ($page - 1) * $perPage),
+            'count'     => $count,
+            'page'      => $page,
+            'lastPage'  => $lastPage,
             'canUpload' => $this->can('media.upload'),
             'canEdit'   => $this->can('media.edit'),
             'canDelete' => $this->can('media.delete'),

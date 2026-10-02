@@ -38,6 +38,7 @@ final class ModuleManifestTest extends TestCase
             'settings'    => ['items_per_page' => 20],
             'permissions' => ['example.manage' => 'Manage Example'],
             'grants'      => ['admin' => ['example.manage']],
+            'public_paths' => ['example'],
         ], JSON_THROW_ON_ERROR));
 
         $manifest = ModuleManifest::fromFile($this->dir . '/module.json');
@@ -48,6 +49,20 @@ final class ModuleManifestTest extends TestCase
         self::assertSame(['items_per_page' => 20], $manifest->settings);
         self::assertSame(['admin' => ['example.manage']], $manifest->grants);
         self::assertSame($this->dir, $manifest->path);
+        self::assertSame(['example'], $manifest->publicPaths);
+    }
+
+    public function testRejectsDynamicPublicPaths(): void
+    {
+        file_put_contents($this->dir . '/module.json', json_encode([
+            'id' => 'example', 'name' => 'Example', 'version' => '1.0.0',
+            'namespace' => 'MCMS\\Modules\\Example',
+            'provider' => 'MCMS\\Modules\\Example\\Module', 'mcms' => '^0.1',
+            'public_paths' => ['(:segment)'],
+        ], JSON_THROW_ON_ERROR));
+
+        $this->expectException(InvalidArgumentException::class);
+        ModuleManifest::fromFile($this->dir . '/module.json');
     }
 
     public function testRejectsPermissionOutsideModuleNamespace(): void

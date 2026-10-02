@@ -77,6 +77,16 @@ final class ModuleManager
         return $states;
     }
 
+    public function reservedPublicPaths(): array
+    {
+        $paths = [];
+        foreach ($this->catalog() as $manifest) {
+            $paths = [...$paths, ...$manifest->publicPaths];
+        }
+
+        return array_values(array_unique($paths));
+    }
+
     public function enable(string $id): void
     {
         $this->enableRecursive($id, []);

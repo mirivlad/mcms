@@ -23,13 +23,19 @@ final class Admin extends BaseAdminController
         $status = trim((string) $this->request->getGet('status'));
         $status = in_array($status, ['draft', 'published'], true) ? $status : null;
         $pages = $this->pages();
+        $perPage = 50;
+        $count = $pages->count($query, $status);
+        $lastPage = max(1, (int) ceil($count / $perPage));
+        $page = max(1, min((int) $this->request->getGet('page'), $lastPage));
 
         return view('MCMS\\Modules\\Pages\\Views\\index', [
             'title' => lang('Pages.Admin.title'),
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
-            'pages' => $pages->list($query, $status),
-            'count' => $pages->count($query, $status),
+            'pages' => $pages->list($query, $status, $perPage, ($page - 1) * $perPage),
+            'count' => $count,
+            'page' => $page,
+            'lastPage' => $lastPage,
             'query' => $query,
             'status' => $status,
             'canCreate' => $this->can('pages.create'),

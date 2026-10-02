@@ -23,6 +23,7 @@ final class ModuleManifest
         public readonly array $permissions = [],
         public readonly array $grants = [],
         public readonly string $path = '',
+        public readonly array $publicPaths = [],
     ) {
     }
 
@@ -76,6 +77,16 @@ final class ModuleManifest
             }
         }
 
+        $publicPaths = $data['public_paths'] ?? [];
+        if (! is_array($publicPaths) || ! array_is_list($publicPaths)) {
+            throw new InvalidArgumentException('Module public_paths must be a list.');
+        }
+        foreach ($publicPaths as $publicPath) {
+            if (! is_string($publicPath) || preg_match('/^[a-z0-9][a-z0-9._-]*$/', $publicPath) !== 1) {
+                throw new InvalidArgumentException('Module public_paths must contain fixed top-level URL segments.');
+            }
+        }
+
         return new self(
             id: $data['id'],
             name: $data['name'],
@@ -89,6 +100,7 @@ final class ModuleManifest
             permissions: $permissions,
             grants: $grants,
             path: dirname($path),
+            publicPaths: array_values(array_unique($publicPaths)),
         );
     }
 }

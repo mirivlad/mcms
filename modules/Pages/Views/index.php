@@ -1,6 +1,24 @@
 <?= $this->extend('layouts/admin') ?>
 
 <?= $this->section('content') ?>
+<?php
+$pageUrl = static function (int $targetPage) use ($query, $status): string {
+    $params = [];
+    if ($query !== '') {
+        $params['q'] = $query;
+    }
+    if ($status !== null) {
+        $params['status'] = $status;
+    }
+    if ($targetPage > 1) {
+        $params['page'] = $targetPage;
+    }
+
+    $url = site_url('admin/pages');
+
+    return $params === [] ? $url : $url . '?' . http_build_query($params);
+};
+?>
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
         <div class="col-12 col-md">
@@ -122,4 +140,23 @@
         </table>
     </div>
 </div>
+<?php if ($lastPage > 1): ?>
+    <nav class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-3" aria-label="<?= esc(lang('Pages.Admin.title'), 'attr') ?>">
+        <div>
+            <?php if ($page > 1): ?>
+                <a class="btn btn-outline-secondary" href="<?= esc($pageUrl($page - 1), 'attr') ?>">
+                    <i class="ti ti-chevron-left me-1"></i><?= esc(lang('MCMS.common.previousPage')) ?>
+                </a>
+            <?php endif ?>
+        </div>
+        <div class="text-secondary small"><?= (int) $page ?> / <?= (int) $lastPage ?></div>
+        <div>
+            <?php if ($page < $lastPage): ?>
+                <a class="btn btn-outline-secondary" href="<?= esc($pageUrl($page + 1), 'attr') ?>">
+                    <?= esc(lang('MCMS.common.nextPage')) ?><i class="ti ti-chevron-right ms-1"></i>
+                </a>
+            <?php endif ?>
+        </div>
+    </nav>
+<?php endif ?>
 <?= $this->endSection() ?>

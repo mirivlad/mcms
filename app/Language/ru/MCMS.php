@@ -16,6 +16,8 @@ return [
         'media' => 'Медиа',
     ],
     'common' => [
+        'previousPage' => 'Назад',
+        'nextPage' => 'Далее',
         'core' => 'Ядро',
         'system' => 'Система',
         'module' => 'Модуль',

@@ -3,6 +3,7 @@
 use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
+$routes->setPrioritize();
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']);
 $routes->get('_health', 'Health::index');

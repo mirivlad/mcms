@@ -16,6 +16,8 @@ return [
         'media' => 'Media',
     ],
     'common' => [
+        'previousPage' => 'Previous',
+        'nextPage' => 'Next',
         'core' => 'Core',
         'system' => 'System',
         'module' => 'Module',

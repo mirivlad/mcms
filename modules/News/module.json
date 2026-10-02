@@ -12,6 +12,7 @@
       "version": "^0.1"
     }
   ],
+  "public_paths": ["news"],
   "settings": {
     "default_status": "draft",
     "per_page": 10

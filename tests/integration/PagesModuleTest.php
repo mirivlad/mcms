@@ -141,4 +141,35 @@ final class PagesModuleTest extends CIUnitTestCase
         $this->expectException(RuntimeException::class);
         $manager->disable('media');
     }
+
+    public function testReservesNewsPathWhileNewsIsDisabled(): void
+    {
+        $services = new ModuleServiceRegistry();
+        $manager = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules');
+        $manager->enable('pages');
+        $manager->bootEnabled();
+
+        self::assertArrayNotHasKey('news', $manager->states());
+        $this->expectException(InvalidArgumentException::class);
+        $services->get('pages.repository')->create(['title' => 'News', 'slug' => 'news', 'body' => '', 'status' => 'published']);
+    }
+
+    public function testPaginationReachesOlderPagesWithIdenticalTimestamps(): void
+    {
+        $services = new ModuleServiceRegistry();
+        $manager = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules');
+        $manager->enable('pages');
+        $manager->bootEnabled();
+        $repository = $services->get('pages.repository');
+        for ($i = 0; $i < 105; $i++) {
+            $repository->create(['title' => 'Page ' . $i, 'body' => '', 'status' => 'draft']);
+        }
+        self::assertSame(105, $repository->count());
+        self::assertCount(5, $repository->list('', null, 50, 100));
+        $ids = array_merge(...array_map(
+            fn (int $offset): array => array_column($repository->list('', null, 50, $offset), 'id'),
+            [0, 50, 100],
+        ));
+        self::assertCount(105, array_unique($ids));
+    }
 }

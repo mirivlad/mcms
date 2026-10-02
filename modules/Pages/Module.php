@@ -18,6 +18,7 @@ final class Module implements ModuleProviderInterface
         $repository = new PageRepository(
             db_connect(),
             new HtmlSanitizer(),
+            service('mcmsModules')->reservedPublicPaths(),
         );
 
         $context->services->register('pages.repository', $repository);
@@ -46,6 +47,6 @@ final class Module implements ModuleProviderInterface
 
         // Registered after Core and Shield routes, so their fixed paths win.
         // PageRepository also rejects reserved Core route slugs.
-        $routes->get('(:segment)', '\\MCMS\\Modules\\Pages\\Controllers\\Page::show/$1');
+        $routes->get('(:segment)', '\\MCMS\\Modules\\Pages\\Controllers\\Page::show/$1', ['priority' => 1000]);
     }
 }
