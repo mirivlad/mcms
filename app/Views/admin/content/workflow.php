@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return new Promise(resolve => confirmation.addEventListener('close', () => resolve(confirmation.returnValue === 'restore'), {once:true}));
     }
     function restore(data) {
-        for (const name of ['title','slug','status','seo_title','seo_description','seo_keywords','tags','excerpt','published_at','featured_media_id']) {
+        for (const name of ['title','slug','status','seo_title','seo_description','seo_keywords','tags','excerpt','published_at','featured_media_id','category_id']) {
             const field = form.elements.namedItem(name);
             if (!field) continue;
             let value = data[name] ?? '';

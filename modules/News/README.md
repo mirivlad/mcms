@@ -52,3 +52,13 @@ The module exposes `news.repository` implementing
 
 A read-only `media.usage` data provider reports inline and featured-image
 references from all articles, including drafts and disabled-module data.
+
+## Editor workflow and discovery
+
+Editors can preview current input privately, recover their personal autosaved draft
+and restore a saved revision into the form. Manual save is required to publish
+restored fields. Category management is available to news.edit users; categories
+used by articles cannot be deleted. Category and tag filters combine with archive
+text search, and public lists omit drafts/future news from filter choices. The
+news.search service implements Core public search and contributes only live articles.
+News owns news_categories, news_drafts and news_revisions in addition to articles.

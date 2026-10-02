@@ -26,10 +26,11 @@ final class NewsRepository implements NewsRepositoryInterface
     ) {
     }
 
-    public function list(string $query = '', ?string $status = null, int $limit = 100, int $offset = 0): array
+    public function list(string $query = '', ?string $status = null, int $limit = 100, int $offset = 0, ?int $categoryId = null, string $tag = ''): array
     {
         $builder = $this->db->table('news_articles');
         $this->applySearch($builder, $query);
+        $this->applyTaxonomy($builder, $categoryId, $tag);
 
         if ($status !== null && in_array($status, self::STATUSES, true)) {
             $builder->where('status', $status);
@@ -45,10 +46,11 @@ final class NewsRepository implements NewsRepositoryInterface
         return array_map(fn (array $row): array => $this->decorate($row), $rows);
     }
 
-    public function count(string $query = '', ?string $status = null): int
+    public function count(string $query = '', ?string $status = null, ?int $categoryId = null, string $tag = ''): int
     {
         $builder = $this->db->table('news_articles');
         $this->applySearch($builder, $query);
+        $this->applyTaxonomy($builder, $categoryId, $tag);
 
         if ($status !== null && in_array($status, self::STATUSES, true)) {
             $builder->where('status', $status);
@@ -57,10 +59,11 @@ final class NewsRepository implements NewsRepositoryInterface
         return $builder->countAllResults();
     }
 
-    public function listPublished(string $query = '', int $limit = 20, int $offset = 0): array
+    public function listPublished(string $query = '', int $limit = 20, int $offset = 0, ?int $categoryId = null, string $tag = ''): array
     {
         $builder = $this->publishedBuilder();
         $this->applySearch($builder, $query);
+        $this->applyTaxonomy($builder, $categoryId, $tag);
 
         $rows = $builder
             ->orderBy('published_at', 'DESC')
@@ -72,10 +75,11 @@ final class NewsRepository implements NewsRepositoryInterface
         return array_map(fn (array $row): array => $this->decorate($row), $rows);
     }
 
-    public function countPublished(string $query = ''): int
+    public function countPublished(string $query = '', ?int $categoryId = null, string $tag = ''): int
     {
         $builder = $this->publishedBuilder();
         $this->applySearch($builder, $query);
+        $this->applyTaxonomy($builder, $categoryId, $tag);
 
         return $builder->countAllResults();
     }
@@ -242,9 +246,105 @@ final class NewsRepository implements NewsRepositoryInterface
             'seo_title' => $this->nullableText($data['seo_title'] ?? null, 255),
             'seo_description' => $this->nullableText($data['seo_description'] ?? null, 320),
             'seo_keywords' => $this->nullableText($data['seo_keywords'] ?? null, 1000),
-            'tags' => $this->nullableText($data['tags'] ?? null, 1000),
+            'tags' => \MCMS\Core\Content\TagNames::normalize((string) ($data['tags'] ?? '')),
+            'category_id' => $this->normalizeCategory($data['category_id'] ?? null),
             'published_at' => $this->normalizePublishedAt($status, $data['published_at'] ?? null, $current),
         ];
+    }
+
+    public function categories(bool $publishedOnly = false): array
+    {
+        $builder = $this->db->table('news_categories')->orderBy('name');
+        if ($publishedOnly) {
+            $ids = $this->publishedBuilder()->select('category_id')->where('category_id IS NOT NULL', null, false)->get()->getResultArray();
+            $ids = array_unique(array_column($ids, 'category_id'));
+            if ($ids === []) {
+                return [];
+            }
+            $builder->whereIn('id', $ids);
+        }
+        return $builder->get()->getResultArray();
+    }
+
+    public function saveCategory(array $data, ?int $id = null): void
+    {
+        $name = trim((string) ($data['name'] ?? ''));
+        if ($name === '' || mb_strlen($name) > 120) {
+            throw new InvalidArgumentException(lang('News.Errors.categoryName'));
+        }
+        $slug = trim((string) ($data['slug'] ?? ''));
+        $slug = $slug === '' ? $this->slugify($name) : $this->normalizeSlug($slug, true);
+        if ($slug === '') {
+            throw new InvalidArgumentException(lang('News.Errors.invalidSlug'));
+        }
+        $builder = $this->db->table('news_categories')->where('slug', $slug);
+        if ($id !== null) {
+            if ($this->db->table('news_categories')->where('id', $id)->countAllResults() === 0) {
+                throw new RuntimeException(lang('News.Errors.categoryNotFound'));
+            }
+            $builder->where('id !=', $id);
+        }
+        if ($builder->countAllResults() > 0) {
+            throw new InvalidArgumentException(lang('News.Errors.categoryDuplicate'));
+        }
+        $this->workflow()->transaction(function () use ($id, $name, $slug): void {
+            if ($id === null) {
+                $this->db->table('news_categories')->insert(['name' => $name, 'slug' => $slug]);
+            } else {
+                $this->db->table('news_categories')->where('id', $id)->update(['name' => $name, 'slug' => $slug]);
+            }
+        });
+    }
+
+    public function deleteCategory(int $id): void
+    {
+        if ($this->db->table('news_articles')->where('category_id', $id)->countAllResults() > 0) {
+            throw new RuntimeException(lang('News.Errors.categoryUsed'));
+        }
+        $this->workflow()->transaction(function () use ($id): void {
+            $this->db->table('news_categories')->where('id', $id)->delete();
+        });
+    }
+
+    public function tags(bool $publishedOnly = false): array
+    {
+        $builder = $publishedOnly ? $this->publishedBuilder() : $this->db->table('news_articles');
+        $names = [];
+        foreach ($builder->select('tags')->get()->getResultArray() as $row) {
+            foreach (\MCMS\Core\Content\TagNames::parse($row['tags']) as $name) {
+                $names[mb_strtolower($name)] ??= $name;
+            }
+        }
+        natcasesort($names);
+        return array_values($names);
+    }
+
+    private function normalizeCategory(mixed $value): ?int
+    {
+        if ($value === null || $value === '' || (string) $value === '0') {
+            return null;
+        }
+        $id = filter_var($value, FILTER_VALIDATE_INT);
+        if ($id === false || $id <= 0 || $this->db->table('news_categories')->where('id', $id)->countAllResults() === 0) {
+            throw new InvalidArgumentException(lang('News.Errors.categoryNotFound'));
+        }
+        return $id;
+    }
+
+    private function applyTaxonomy(object $builder, ?int $categoryId, string $tag): void
+    {
+        if ($categoryId !== null) {
+            $builder->where('category_id', $categoryId);
+        }
+        $tag = trim($tag);
+        if ($tag !== '') {
+            // Match whole comma-delimited names, including metadata saved before normalization.
+            $builder->groupStart()->where('tags', $tag);
+            $tag = $this->db->escapeLikeString($tag);
+            $builder->orLike('tags', $tag . ',', 'after')
+                ->orLike('tags', ', ' . $tag . ',')->orLike('tags', ',' . $tag . ',')
+                ->orLike('tags', ', ' . $tag, 'before')->orLike('tags', ',' . $tag, 'before')->groupEnd();
+        }
     }
 
     private function normalizeFeaturedMedia(mixed $value): ?int
@@ -303,11 +403,14 @@ final class NewsRepository implements NewsRepositoryInterface
             return;
         }
 
+        $query = $this->db->escapeLikeString($query);
         $builder
             ->groupStart()
             ->like('title', $query)
             ->orLike('slug', $query)
             ->orLike('excerpt', $query)
+            ->orLike('body', $query)
+            ->orLike('tags', $query)
             ->groupEnd();
     }
 
@@ -395,6 +498,9 @@ final class NewsRepository implements NewsRepositoryInterface
         $row['created_by'] = $row['created_by'] === null ? null : (int) $row['created_by'];
         $row['updated_by'] = $row['updated_by'] === null ? null : (int) $row['updated_by'];
         $row['featured_media_id'] = $row['featured_media_id'] === null ? null : (int) $row['featured_media_id'];
+        $row['category_id'] = isset($row['category_id']) ? (int) $row['category_id'] : null;
+        $row['category'] = $row['category_id'] === null ? null : $this->db->table('news_categories')->where('id', $row['category_id'])->get()->getRowArray();
+        $row['tag_names'] = \MCMS\Core\Content\TagNames::parse($row['tags'] ?? null);
         $row['url'] = $this->url($row);
         $row['is_live'] = $row['status'] === 'published'
             && $row['published_at'] !== null

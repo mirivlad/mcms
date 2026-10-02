@@ -2,8 +2,8 @@
 
 <?= $this->section('content') ?>
 <?php
-$pageUrl = static function (int $targetPage) use ($query, $status): string {
-    $params = [];
+$pageUrl = static function (int $targetPage) use ($query, $status, $categoryId, $tag): string {
+    $params = ['category' => $categoryId, 'tag' => $tag];
     if ($query !== '') {
         $params['q'] = $query;
     }
@@ -26,6 +26,7 @@ $pageUrl = static function (int $targetPage) use ($query, $status): string {
             <h2 class="page-title"><?= esc(lang('News.Admin.title')) ?></h2>
             <div class="text-secondary mt-1"><?= esc(sprintf(lang('News.Admin.count'), $count)) ?></div>
         </div>
+        <?php if ($canEdit): ?><div class="col-auto"><a class="btn btn-outline-secondary" href="<?= site_url('admin/news/categories') ?>"><?= esc(lang('News.Admin.categories')) ?></a></div><?php endif ?>
         <?php if ($canCreate): ?>
             <div class="col-12 col-md-auto ms-md-auto">
                 <a class="btn btn-primary" href="<?= site_url('admin/news/create') ?>">
@@ -49,10 +50,12 @@ $pageUrl = static function (int $targetPage) use ($query, $status): string {
                     <option value="published" <?= $status === 'published' ? 'selected' : '' ?>><?= esc(lang('News.Admin.statusPublished')) ?></option>
                 </select>
             </div>
+            <div class="col-md-2"><select class="form-select" name="category" aria-label="<?= esc(lang('News.Admin.category'), 'attr') ?>"><option value=""><?= esc(lang('News.Admin.allCategories')) ?></option><?php foreach ($categories as $category): ?><option value="<?= (int) $category['id'] ?>" <?= $categoryId === (int) $category['id'] ? 'selected' : '' ?>><?= esc($category['name']) ?></option><?php endforeach ?></select></div>
+            <div class="col-md-2"><select class="form-select" name="tag" aria-label="<?= esc(lang('MCMS.content.tags'), 'attr') ?>"><option value=""><?= esc(lang('News.Admin.allTags')) ?></option><?php foreach ($tags as $name): ?><option value="<?= esc($name, 'attr') ?>" <?= $tag === $name ? 'selected' : '' ?>><?= esc($name) ?></option><?php endforeach ?></select></div>
             <div class="col-auto">
                 <button class="btn btn-outline-primary" type="submit"><i class="ti ti-search me-1"></i><?= esc(lang('MCMS.common.search')) ?></button>
             </div>
-            <?php if ($query !== '' || $status !== null): ?>
+            <?php if ($query !== '' || $status !== null || $categoryId !== null || $tag !== ''): ?>
                 <div class="col-auto">
                     <a class="btn btn-link" href="<?= site_url('admin/news') ?>"><?= esc(lang('MCMS.common.clear')) ?></a>
                 </div>
@@ -96,6 +99,7 @@ $pageUrl = static function (int $targetPage) use ($query, $status): string {
                             <?php endif ?>
                             <div>
                                 <div class="fw-bold"><?= esc($article['title']) ?></div>
+                                <div class="small text-secondary"><?= esc($article['category']['name'] ?? '') ?> <?= esc($article['tags'] ?? '') ?></div>
                                 <?php if (($article['excerpt'] ?? null) !== null): ?>
                                     <div class="text-secondary small text-truncate" style="max-width:32rem"><?= esc($article['excerpt']) ?></div>
                                 <?php endif ?>

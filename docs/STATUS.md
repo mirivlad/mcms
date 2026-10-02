@@ -4,7 +4,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
-- Core version 0.1.4 with optional Home, public-resource and path-conflict provider contracts.
+- Core version 0.1.5 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -30,7 +30,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cached proportional previews, image-only browsing and administration pagination.
 - Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.5.0
+### Pages 0.6.0
 
 - Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
 - Tags and manual keywords; private unsaved preview through the active theme without database writes.
@@ -41,7 +41,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.5.0
+### News 0.6.0
 
 - Draft and published news articles with optional future publication time.
 - Tags and manual keywords; private unsaved preview with featured image and shortcode rendering.
@@ -92,7 +92,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Themes
 
-### mCMS Default 0.3.0
+### mCMS Default 0.4.0
 
 - Built-in responsive public theme.
 - Logical Home, Pages, News, Galleries and Feedback templates.
@@ -105,7 +105,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
 - If no explicit theme has been selected, the built-in default theme is used when present.
 
-### mCMS Signature 0.1.1
+### mCMS Signature 0.2.0
 
 - Second first-party theme with local assets, warm paper/violet branding and system fonts.
 - All public templates plus the `galleries.embed` override.
@@ -123,7 +123,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 64 tests / 537 assertions,
+Fresh local verification for this checkpoint includes 66 tests / 572 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -174,3 +174,15 @@ missing or disabled Media falls back to theme branding while preserving assignme
 Verification covers independent values across both themes, safe contact/color
 rendering, contrast-aware button/link colors, invalid-form recovery, image-picker
 permissions, selection/reset/focus and 390px forms without horizontal overflow.
+
+News now supports category management in create/edit modals, confirmed deletion of
+unused categories, category selection in the editor and complete-tag filters in
+admin/public archives. Tags are normalized without duplicate names. Category
+references are protected by a database foreign key; taxonomy survives disablement.
+Public search at `/search/results` aggregates enabled Pages/News providers, searches
+titles/bodies/tags and excludes drafts and future news. Results are paginated in
+module groups, excerpts remove HTML/shortcodes and search pages are noindex. The
+two-segment route preserves existing root-level `/search` pages. Both themes expose
+search and taxonomy links. Verification includes migration up/down, category guards,
+filter-preserving pagination, literal wildcard queries, module disable/re-enable,
+real HTTP forms and unauthenticated category dialogs/public mobile search.

@@ -243,3 +243,19 @@ media.usage data provider. ThemeManager injects themeAppearance into public and
 preview views. Both bundled themes render custom branding and footer contacts;
 accent values accept only six-digit hex colors, and contact output is escaped.
 Missing/disabled image sources preserve assignments and render theme defaults.
+
+### Public search and news taxonomy
+
+Core exposes PublicSearchProviderInterface and the `/search/results` controller.
+Only services registered by enabled modules contribute results. The aggregator
+combines count/list calls into pages of 20 results grouped by module; ownership,
+publication rules and SQL remain in each module. Pages excludes drafts; News also
+excludes future publication timestamps. Query wildcards are escaped as literal
+text. Results use plain escaped excerpts with shortcode tokens removed. Bundled
+themes implement `search.index`; third-party themes have a standalone fallback.
+
+News owns news_categories and the optional category_id foreign key on articles.
+Category management reuses news.edit permission. Used categories cannot be deleted;
+category IDs stay stable when names/slugs change. Category and full-tag filters
+combine with text/status filters and persist across archive pagination. The generic
+Core TagNames helper normalizes comma-delimited metadata shared with Pages and SEO.

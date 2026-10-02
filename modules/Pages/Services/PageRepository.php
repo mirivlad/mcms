@@ -82,6 +82,25 @@ final class PageRepository implements PageRepositoryInterface
         return $builder->countAllResults();
     }
 
+    public function searchPublished(string $query, int $limit = 20, int $offset = 0): array
+    {
+        $rows = $this->searchBuilder($query)->orderBy('updated_at', 'DESC')->orderBy('id', 'DESC')
+            ->limit(max(1, min(100, $limit)), max(0, $offset))->get()->getResultArray();
+        return array_map(fn (array $row): array => $this->decorate($row), $rows);
+    }
+
+    public function countSearchPublished(string $query): int
+    {
+        return $this->searchBuilder($query)->countAllResults();
+    }
+
+    private function searchBuilder(string $query): object
+    {
+        $query = $this->db->escapeLikeString(trim($query));
+        return $this->db->table('pages')->where('status', 'published')->groupStart()
+            ->like('title', $query)->orLike('body', $query)->orLike('tags', $query)->groupEnd();
+    }
+
     public function find(int $id): ?array
     {
         if ($id <= 0) {
@@ -260,7 +279,7 @@ final class PageRepository implements PageRepositoryInterface
             'seo_title' => $this->nullableText($data['seo_title'] ?? null, 255),
             'seo_description' => $this->nullableText($data['seo_description'] ?? null, 320),
             'seo_keywords' => $this->nullableText($data['seo_keywords'] ?? null, 1000),
-            'tags' => $this->nullableText($data['tags'] ?? null, 1000),
+            'tags' => \MCMS\Core\Content\TagNames::normalize((string) ($data['tags'] ?? '')),
             'published_at' => $publishedAt,
         ];
     }

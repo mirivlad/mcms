@@ -45,7 +45,7 @@
 - [x] Private unsaved Pages/News preview in the active theme.
 - [x] Autosave/recovery and revision history.
 - [x] Per-theme logo, favicon, color and contact settings.
-- [ ] News categories, tags, filters and public search.
+- [x] News categories, tags, filters and public search.
 
 ## Stage 2 — commerce modules
 

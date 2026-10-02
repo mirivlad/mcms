@@ -27,8 +27,10 @@ final class Admin extends BaseAdminController
         $status = trim((string) $this->request->getGet('status'));
         $status = in_array($status, ['draft', 'published'], true) ? $status : null;
         $news = $this->news();
+        $categoryId = max(0, (int) $this->request->getGet('category')) ?: null;
+        $tag = mb_substr(trim((string) $this->request->getGet('tag')), 0, 1000);
         $perPage = 50;
-        $count = $news->count($query, $status);
+        $count = $news->count($query, $status, $categoryId, $tag);
         $lastPage = max(1, (int) ceil($count / $perPage));
         $page = max(1, min((int) $this->request->getGet('page'), $lastPage));
 
@@ -36,9 +38,11 @@ final class Admin extends BaseAdminController
             'title' => lang('News.Admin.title'),
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
-            'articles' => $news->list($query, $status, $perPage, ($page - 1) * $perPage),
+            'articles' => $news->list($query, $status, $perPage, ($page - 1) * $perPage, $categoryId, $tag),
             'count' => $count,
             'query' => $query,
+            'categoryId' => $categoryId, 'tag' => $tag,
+            'categories' => $news->categories(), 'tags' => $news->tags(),
             'status' => $status,
             'page' => $page,
             'lastPage' => $lastPage,
@@ -46,6 +50,48 @@ final class Admin extends BaseAdminController
             'canEdit' => $this->can('news.edit'),
             'canDelete' => $this->can('news.delete'),
         ]);
+    }
+
+    public function categories(): string|RedirectResponse
+    {
+        if (($redirect = $this->guard('news.edit')) !== null) {
+            return $redirect;
+        }
+        return view('MCMS\\Modules\\News\\Views\\categories', [
+            'title' => lang('News.Admin.categories'), 'adminMenu' => $this->adminMenu(),
+            'user' => auth()->user(), 'categories' => $this->news()->categories(),
+        ]);
+    }
+
+    public function saveCategory(): RedirectResponse
+    {
+        if (($redirect = $this->guard('news.edit')) !== null) {
+            return $redirect;
+        }
+        try {
+            $this->news()->saveCategory([
+                'name' => $this->request->getPost('name'), 'slug' => $this->request->getPost('slug'),
+            ], max(0, (int) $this->request->getPost('id')) ?: null);
+            return redirect()->to('/admin/news/categories')->with('message', lang('News.Messages.categorySaved'));
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    public function deleteCategory(): RedirectResponse
+    {
+        if (($redirect = $this->guard('news.edit')) !== null) {
+            return $redirect;
+        }
+        try {
+            if ($this->request->getPost('confirm') !== '1') {
+                throw new RuntimeException(lang('News.Errors.categoryConfirmation'));
+            }
+            $this->news()->deleteCategory((int) $this->request->getPost('id'));
+            return redirect()->to('/admin/news/categories')->with('message', lang('News.Messages.categoryDeleted'));
+        } catch (\Throwable $e) {
+            return redirect()->to('/admin/news/categories')->with('error', $e->getMessage());
+        }
     }
 
     public function create(): string|RedirectResponse
@@ -172,6 +218,8 @@ final class Admin extends BaseAdminController
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
             'article' => $article,
+            'categories' => $this->news()->categories(),
+            'canManageCategories' => $this->can('news.edit'),
             'defaultStatus' => in_array($defaultStatus, ['draft', 'published'], true)
                 ? $defaultStatus
                 : 'draft',
@@ -216,6 +264,7 @@ final class Admin extends BaseAdminController
             'seo_description' => (string) $this->request->getPost('seo_description'),
             'seo_keywords' => (string) $this->request->getPost('seo_keywords'),
             'tags' => (string) $this->request->getPost('tags'),
+            'category_id' => (string) $this->request->getPost('category_id'),
         ];
     }
 

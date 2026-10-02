@@ -2,6 +2,17 @@
 
 return [
     'Admin' => [
+        'categories' => 'News categories',
+        'category' => 'Category',
+        'noCategory' => 'No category',
+        'createCategory' => 'Create category',
+        'editCategory' => 'Edit category',
+        'deleteCategory' => 'Delete category?',
+        'noCategories' => 'No categories yet.',
+        'categorySlugHint' => 'Leave the slug empty to generate it from the name.',
+        'categoryDeleteHint' => 'Move articles out of this category before deleting it.',
+        'allCategories' => 'All categories',
+        'allTags' => 'All tags',
         'galleryHint' => 'Use the Gallery button to insert a published album at the cursor.',
         'menuLabel' => 'News',
         'description' => 'Published news articles with scheduling, featured media and SEO metadata.',
@@ -78,11 +89,18 @@ return [
         'delete' => 'Delete news articles.',
     ],
     'Messages' => [
+        'categorySaved' => 'Category saved.',
+        'categoryDeleted' => 'Category deleted.',
         'created' => 'News article created.',
         'updated' => 'News article saved.',
         'deleted' => 'News article deleted.',
     ],
     'Errors' => [
+        'categoryName' => 'Category name must contain 1 to 120 characters.',
+        'categoryNotFound' => 'Category not found.',
+        'categoryDuplicate' => 'A category with this slug already exists.',
+        'categoryUsed' => 'This category is used by articles. Move them to another category first.',
+        'categoryConfirmation' => 'Confirm category deletion.',
         'notFound' => 'News article not found.',
         'titleRequired' => 'Article title is required.',
         'invalidSlug' => 'Slug must contain lowercase Latin letters, numbers and hyphens.',

@@ -7,6 +7,7 @@ $routes->setPrioritize();
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']);
 $routes->get('_health', 'Health::index');
+$routes->get('search/results', 'Search::index');
 
 service('auth')->routes($routes);
 

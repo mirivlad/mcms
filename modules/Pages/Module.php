@@ -23,6 +23,7 @@ final class Module implements ModuleProviderInterface
         );
 
         $context->services->register('pages.repository', $repository);
+        $context->services->register('pages.search', new \MCMS\Modules\Pages\Services\PublicSearch($repository));
         $context->services->register('pages.home', new PageHomeProvider($repository));
         $context->navigation->register(new PageNavigationProvider($repository));
 

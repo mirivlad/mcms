@@ -43,14 +43,20 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-The 2026-10-02 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
+The 2026-10-03 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
 Media, Pages, Menus, News, Galleries, Feedback and SEO are implemented as reusable modules and covered by
 module/integration checks.
 
 Theme API, two first-party themes and Menus ↔ theme-location assignment are implemented.
 Both mCMS Default and [mCMS Signature](themes/mcms-signature/README.md) render Home, Pages, News, Galleries and Feedback through logical templates. The Gallery button in Pages/News editors searches published albums and inserts a shortcode at the cursor. Choose a thumbnail grid, a large banner slider, a horizontal carousel or cards with captions. The same album can use different views on different pages; existing `[gallery id="12"]` shortcodes keep their grid layout. For example: `[gallery id="12" view="slider"]`, `[gallery id="12" view="carousel"]` or `[gallery id="12" view="cards"]`. The album editor also generates a shortcode for the selected view.
 
-The next implementation sequence is:
+Pages and News editors provide private unsaved previews, personal autosave/recovery
+and revision history. SEO supports manual metadata and per-content title/description
+rules, including keywords from tags. Theme configuration includes per-theme branding,
+accent and footer contacts. News supports categories/tag filters; `/search/results`
+searches published Pages/News through Core provider contracts.
+
+The accepted content-workflow sequence is complete. The next implementation sequence is:
 
 1. Define Catalogue product/variant/price/stock contracts.
 2. Implement commerce modules against those accepted contracts.

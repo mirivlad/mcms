@@ -7,6 +7,7 @@
         <h1><?= esc(lang('News.Public.title')) ?></h1>
     </header>
 
+    <?= view('MCMS\\Modules\\News\\Views\\public_filters') ?>
     <?php if ($articles === []): ?>
         <div class="content-card news-empty"><?= esc(lang('News.Public.empty')) ?></div>
     <?php else: ?>
@@ -22,6 +23,7 @@
                         <time class="news-date" datetime="<?= esc((string) $article['published_at'], 'attr') ?>">
                             <?= esc(date('d.m.Y H:i', strtotime((string) $article['published_at']))) ?>
                         </time>
+                        <?= view('MCMS\\Modules\\News\\Views\\taxonomy', ['article' => $article]) ?>
                         <h2><a href="<?= esc(site_url(ltrim($article['url'], '/')), 'attr') ?>"><?= esc($article['title']) ?></a></h2>
                         <?php if (($article['excerpt'] ?? null) !== null): ?>
                             <p><?= esc($article['excerpt']) ?></p>
@@ -37,11 +39,11 @@
         <?php if ($lastPage > 1): ?>
             <nav class="news-pagination" aria-label="<?= esc(lang('News.Public.title'), 'attr') ?>">
                 <?php if ($page > 1): ?>
-                    <a class="btn btn-outline-secondary" href="<?= site_url('news') ?>?page=<?= $page - 1 ?>">← <?= esc(lang('News.Public.newer')) ?></a>
+                    <a class="btn btn-outline-secondary" href="<?= esc(isset($newsPageUrl) ? $newsPageUrl($page - 1) : site_url('news') . '?page=' . ($page - 1), 'attr') ?>">← <?= esc(lang('News.Public.newer')) ?></a>
                 <?php endif ?>
                 <span class="text-secondary"><?= $page ?> / <?= $lastPage ?></span>
                 <?php if ($page < $lastPage): ?>
-                    <a class="btn btn-outline-secondary" href="<?= site_url('news') ?>?page=<?= $page + 1 ?>"><?= esc(lang('News.Public.older')) ?> →</a>
+                    <a class="btn btn-outline-secondary" href="<?= esc(isset($newsPageUrl) ? $newsPageUrl($page + 1) : site_url('news') . '?page=' . ($page + 1), 'attr') ?>"><?= esc(lang('News.Public.older')) ?> →</a>
                 <?php endif ?>
             </nav>
         <?php endif ?>

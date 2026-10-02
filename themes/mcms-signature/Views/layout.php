@@ -9,6 +9,9 @@ if ($headerMenu === []) {
         if ($resource !== null) { $headerMenu[] = $resource; }
     }
 }
+if (! in_array('/search/results', array_column($headerMenu, 'url'), true)) {
+    $headerMenu[] = ['label' => lang('MCMS.search.title'), 'url' => '/search/results'];
+}
 $version = rawurlencode($theme->version);
 ?>
 <!doctype html>
@@ -26,6 +29,7 @@ $version = rawurlencode($theme->version);
 <?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
 <?php endif ?>
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
+    <?php if (! empty($metaRobots)): ?><meta name="robots" content="<?= esc($metaRobots, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
     <?= view('themes/appearance_head') ?>
 </head>

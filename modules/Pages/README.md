@@ -44,3 +44,12 @@ Feedback modules, are reserved too. Enablement detects legacy conflicts and asks
 for explicit renaming. Page settings can choose any published page as Home.
 The selection survives module disablement; draft/deleted pages use the default Home.
 Pages exports Media usage references and emits `mcms.resource.moved` on slug changes.
+
+## Editor workflow and search
+
+The editor supports manual SEO title/description/keywords, tags, private unsaved
+preview, per-user autosaved drafts and revision restoration into the form. Core
+SEO rules can derive keywords from these tags. Pages owns pages_drafts and
+pages_revisions alongside pages. The pages.search service contributes only
+published pages to Core public search at `/search/results`; a page at `/search`
+keeps its existing URL. Disabling Pages preserves content and workflow tables.

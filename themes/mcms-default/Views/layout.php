@@ -31,6 +31,7 @@ $menuUrl = static function (?string $url): ?string {
 <?= view('MCMS\\Modules\\Galleries\\Views\\public_assets') ?>
 <?php endif ?>
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
+    <?php if (! empty($metaRobots)): ?><meta name="robots" content="<?= esc($metaRobots, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
     <?= view('themes/appearance_head') ?>
 </head>
@@ -40,6 +41,7 @@ $menuUrl = static function (?string $url): ?string {
         <div class="container">
             <a class="navbar-brand" href="<?= site_url('/') ?>"><?php if (! empty($themeAppearance['logo'])): ?><img class="mcms-brand-logo me-2" src="<?= esc(site_url(ltrim($themeAppearance['logo']['url'], '/')), 'attr') ?>" alt=""><?php endif ?><?= esc($siteName) ?></a>
 
+            <a class="btn btn-outline-secondary ms-auto me-2" href="<?= site_url('search/results') ?>"><?= esc(lang('MCMS.search.title')) ?></a>
             <?php if ($headerMenu !== []): ?>
                 <button
                     class="navbar-toggler"

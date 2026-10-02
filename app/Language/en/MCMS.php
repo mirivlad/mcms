@@ -15,7 +15,17 @@ return [
         'system' => 'System',
         'media' => 'Media',
     ],
+    'search' => [
+        'title' => 'Search',
+        'query' => 'Search the site',
+        'hint' => 'Enter a word or phrase to search published pages and news.',
+        'empty' => 'No results. Try another query.',
+        'count' => 'Results: %d',
+        'previous' => 'Previous',
+        'next' => 'Next',
+    ],
     'content' => [
+        'tagsTooLong' => 'Combined tag names and separators must not exceed 1000 characters.',
         'autosave' => 'Personal draft',
         'saving' => 'Saving draft…',
         'saved' => 'Draft saved',
@@ -42,6 +52,7 @@ return [
         'popupBlocked' => 'Allow opening a new tab for preview.',
     ],
     'common' => [
+        'edit' => 'Edit',
         'previousPage' => 'Previous',
         'nextPage' => 'Next',
         'core' => 'Core',

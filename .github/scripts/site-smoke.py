@@ -405,4 +405,57 @@ for kind in ('pages', 'news'):
     assert json.loads(request('/admin/' + kind + '/draft?content_id=0')[0])['draft']['data']['body'] == 'Admin private draft'
     post('/admin/' + kind + '/draft/discard', {}, '/admin/' + kind + '/create')
 
-print('Site HTTP smoke passed: theme appearance, personal autosave, revisions, SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')
+# Categories use modal forms and server-confirmed deletion; public filters keep their query.
+category_path = '/admin/news/categories'
+category_page, _ = post(category_path + '/save', {'name': 'Technology', 'slug': 'technology', 'category_form': '1'}, category_path)
+assert 'Category saved.' in category_page and 'id="category-dialog"' in category_page
+category = json.loads(html.unescape(re.search(r'data-category-edit="([^"]+)"', category_page).group(1)))
+category_id = category['id']
+invalid, _ = post(category_path + '/save', {'name': 'Duplicate', 'slug': 'technology', 'category_form': '1'}, category_path)
+assert 'A category with this slug already exists.' in invalid and 'value="Duplicate"' in invalid
+edited, _ = post(category_path + '/save', {'id': category_id, 'name': 'Tech', 'slug': 'technology'}, category_path)
+assert 'Category saved.' in edited and '>Tech<' in edited
+for script in re.findall(r'<script\b[^>]*>(.*?)</script>', edited, re.S):
+    if script.strip(): subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
+for index in range(21):
+    post('/admin/news/create', {'title': 'Taxonomy item ' + str(index), 'slug': 'taxonomy-item-' + str(index),
+                              'body': '<p>Unified needle body</p>', 'status': 'published',
+                              'category_id': category_id, 'tags': ' CMS, cms, Новости '}, '/admin/news/create')
+post('/admin/news/create', {'title': 'Partial tag only', 'body': '<p>Other body</p>', 'status': 'published',
+                          'category_id': category_id, 'tags': 'mCMS'}, '/admin/news/create')
+post('/admin/news/create', {'title': 'Future taxonomy private', 'body': 'Unified needle', 'status': 'published',
+                          'published_at': '2099-01-01T00:00', 'category_id': category_id, 'tags': 'CMS'}, '/admin/news/create')
+post('/admin/pages/create', {'title': 'Search public page', 'body': '<p>Unified needle page</p>', 'status': 'published'}, '/admin/pages/create')
+post('/admin/pages/create', {'title': 'Search private page', 'body': 'Unified needle private', 'status': 'draft'}, '/admin/pages/create')
+used, _ = post(category_path + '/delete', {'id': category_id, 'confirm': '1'}, category_path)
+assert 'This category is used by articles.' in used
+post(category_path + '/save', {'name': 'Empty category', 'slug': 'empty-category'}, category_path)
+empty_page = request(category_path)[0]
+empty_row = next(row for row in re.findall(r'<tr\b.*?</tr>', empty_page, re.S) if 'empty-category' in row)
+empty_id = re.search(r'data-category-delete="([0-9]+)"', empty_row).group(1)
+unconfirmed, _ = post(category_path + '/delete', {'id': empty_id}, category_path)
+assert 'Confirm category deletion.' in unconfirmed
+removed, _ = post(category_path + '/delete', {'id': empty_id, 'confirm': '1'}, category_path)
+assert 'Category deleted.' in removed and 'empty-category' not in removed
+for theme in ('mcms-default', 'mcms-signature'):
+    post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
+    filtered = request('/news?' + urllib.parse.urlencode({'q': 'Unified needle', 'category': category_id, 'tag': 'CMS'}))[0]
+    assert 'Taxonomy item' in filtered and 'Partial tag only' not in filtered and 'Future taxonomy private' not in filtered
+    links = [html.unescape(value) for value in re.findall(r'href="([^"]+)"', filtered)]
+    assert any('page=2' in value and 'tag=CMS' in value and 'category=' + str(category_id) in value and 'q=Unified' in value for value in links)
+    second_page = request('/news?' + urllib.parse.urlencode({'q': 'Unified needle', 'category': category_id, 'tag': 'CMS', 'page': 2}))[0]
+    assert 'Taxonomy item' in second_page
+    search = request('/search/results?q=Unified%20needle')[0]
+    assert 'Results: 22' in search and 'Search private page' not in search and 'Future taxonomy private' not in search
+    assert 'noindex, follow' in html.unescape(search) and 'page&#x3D;2' in search
+    search_second = request('/search/results?q=Unified%20needle&page=2')[0]
+    assert 'Taxonomy item' in search_second
+    assert 'Search public page' in search + search_second
+    assert 'No results.' in request('/search/results?q=%25')[0]
+module('news', 'disable')
+only_pages = request('/search/results?q=Unified%20needle')[0]
+assert 'Results: 1' in only_pages and 'Search public page' in only_pages and 'Taxonomy item' not in only_pages
+module('news')
+assert '>Tech<' in request(category_path)[0]
+
+print('Site HTTP smoke passed: categories/tags/filters/public search, theme appearance, personal autosave, revisions, SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')

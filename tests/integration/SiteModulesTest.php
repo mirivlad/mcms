@@ -407,6 +407,98 @@ final class SiteModulesTest extends CIUnitTestCase
         self::assertStringNotContainsString('class="mcms-brand-logo', $manager->render('home'));
     }
 
+    public function testNewsTaxonomyFiltersAndSafeCategoryLifecycle(): void
+    {
+        [, $services] = $this->boot(['news']);
+        $news = $services->get('news.repository');
+        $news->saveCategory(['name' => 'Технологии']);
+        $category = $news->categories()[0];
+        $id = (int) $category['id'];
+        self::assertSame('tehnologii', $category['slug']);
+        self::assertCount(1, $this->db->getForeignKeyData('news_articles'));
+        $public = $news->create(['title' => 'Public', 'body' => '<p>Body queryneedle</p>', 'status' => 'published', 'category_id' => $id, 'tags' => ' CMS, cms, Новости, ,mCMS']);
+        $news->create(['title' => 'Draft', 'body' => '', 'status' => 'draft', 'category_id' => $id, 'tags' => 'private']);
+        $news->create(['title' => 'Future', 'body' => '', 'status' => 'published', 'published_at' => date('Y-m-d H:i:s', time() + 3600), 'tags' => 'future']);
+        $news->create(['title' => 'Other', 'body' => '', 'status' => 'published', 'tags' => 'mCMS']);
+        self::assertSame('CMS, Новости, mCMS', $public['tags']);
+        self::assertSame('Технологии', $public['category']['name']);
+        self::assertSame(1, $news->countPublished('queryneedle', $id, 'CMS'));
+        self::assertSame(1, $news->countPublished('', null, 'CMS'));
+        self::assertSame(2, $news->countPublished('', null, 'mCMS'));
+        self::assertSame(0, $news->countPublished('', null, '%'), (string) $this->db->getLastQuery());
+        self::assertSame(2, $news->count('', null, $id));
+        self::assertSame(['CMS', 'mCMS', 'Новости'], $news->tags(true));
+        self::assertCount(1, $news->categories(true));
+        try {
+            $news->deleteCategory($id);
+            self::fail('A used category cannot be deleted.');
+        } catch (RuntimeException) {
+            self::assertCount(1, $news->categories());
+        }
+        try {
+            $news->saveCategory(['name' => 'Duplicate', 'slug' => $category['slug']]);
+            self::fail('Duplicate slug cannot be saved.');
+        } catch (InvalidArgumentException) {
+            self::assertCount(1, $news->categories());
+        }
+        $news->saveCategory(['name' => 'Renamed', 'slug' => 'renamed'], $id);
+        self::assertSame($id, $news->find($public['id'])['category_id']);
+        self::assertSame('Renamed', $news->find($public['id'])['category']['name']);
+        $before = $news->find($public['id']);
+        try {
+            $news->update($public['id'], [...$public, 'title' => 'Invalid', 'category_id' => 999999]);
+            self::fail('Missing category cannot change an article.');
+        } catch (InvalidArgumentException) {
+            self::assertSame($before, $news->find($public['id']));
+        }
+        $news->saveCategory(['name' => 'Empty']);
+        $empty = array_values(array_filter($news->categories(), static fn (array $row): bool => $row['name'] === 'Empty'))[0];
+        $news->deleteCategory((int) $empty['id']);
+        self::assertCount(1, $news->categories());
+    }
+
+    public function testPublicSearchPaginationOnlyExposesEnabledPublishedContent(): void
+    {
+        [$manager, $services] = $this->boot(['pages', 'news']);
+        $pages = $services->get('pages.repository');
+        for ($i = 0; $i < 21; $i++) {
+            $pages->create(['title' => 'Page ' . $i, 'body' => '<p>Needle text &amp; [gallery id="999"]</p>', 'status' => 'published']);
+        }
+        $pages->create(['title' => 'Secret page', 'body' => 'Needle', 'status' => 'draft']);
+        $pages->create(['title' => 'Legacy search page', 'slug' => 'search', 'body' => 'Existing URL', 'status' => 'published']);
+        $news = $services->get('news.repository');
+        for ($i = 0; $i < 4; $i++) {
+            $news->create(['title' => 'Article ' . $i, 'body' => '<p>Needle</p>', 'status' => 'published']);
+        }
+        $news->create(['title' => 'Secret article', 'body' => 'Needle', 'status' => 'draft']);
+        $news->create(['title' => 'Future article', 'body' => 'Needle', 'status' => 'published', 'published_at' => date('Y-m-d H:i:s', time() + 3600)]);
+        $search = new \MCMS\Core\Content\PublicSearch($services);
+        $first = $search->results('Needle');
+        $second = $search->results('Needle', 2);
+        self::assertSame(25, $first['count']);
+        self::assertCount(20, $first['items']);
+        self::assertCount(5, $second['items']);
+        self::assertSame(25, count(array_unique(array_column([...$first['items'], ...$second['items']], 'url'))));
+        self::assertStringNotContainsString('[gallery', $first['items'][0]['text']);
+        self::assertStringNotContainsString('<p>', $first['items'][0]['text']);
+        self::assertSame([], $search->results('')['items']);
+        self::assertSame(0, $search->results('%')['count'], (string) $this->db->getLastQuery());
+        foreach (['mcms-default', 'mcms-signature'] as $theme) {
+            service('mcmsThemes')->activate($theme);
+            $html = service('mcmsThemes')->render('search.index', [...$first, 'metaRobots' => 'noindex, follow']);
+            self::assertStringContainsString('search/results', $html);
+            self::assertStringContainsString('Page 20', $html);
+            self::assertStringNotContainsString('Secret page', $html);
+            self::assertStringContainsString('name="robots"', $html);
+        }
+        $manager->disable('news');
+        $fresh = new ModuleServiceRegistry();
+        Services::injectMock('mcmsModuleServices', $fresh);
+        (new ModuleManager($this->db, new AdminRegistry(), $fresh, ROOTPATH . 'modules'))->bootEnabled();
+        self::assertSame(21, (new \MCMS\Core\Content\PublicSearch($fresh))->results('Needle')['count']);
+        self::assertSame('/search', $pages->findPublishedBySlug('search')['url']);
+    }
+
     private function boot(array $modules): array
     {
         $services = new ModuleServiceRegistry();

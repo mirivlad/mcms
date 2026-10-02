@@ -38,7 +38,7 @@ final class ContentWorkflow
         $this->db->table($this->prefix . '_revisions')->insert([
             'content_id' => $id,
             'snapshot' => json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-            'created_by' => $userId,
+            'created_by' => $userId !== null && $userId > 0 ? $userId : null,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
     }

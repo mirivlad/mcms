@@ -13,7 +13,8 @@
     "news.article": "news/article",
     "galleries.index": "galleries/index",
     "galleries.album": "galleries/album",
-    "feedback.form": "feedback/form"
+    "feedback.form": "feedback/form",
+    "search.index": "search/index"
   },
   "menu_locations": {
     "header.primary": {

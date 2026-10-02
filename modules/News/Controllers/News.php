@@ -16,7 +16,10 @@ final class News extends BaseController
         $news = $this->news();
         $perPage = max(1, min(50, (int) (setting('news.per_page') ?? 10)));
         $page = max(1, (int) $this->request->getGet('page'));
-        $count = $news->countPublished();
+        $query = mb_substr(trim((string) $this->request->getGet('q')), 0, 120);
+        $categoryId = max(0, (int) $this->request->getGet('category')) ?: null;
+        $tag = mb_substr(trim((string) $this->request->getGet('tag')), 0, 1000);
+        $count = $news->countPublished($query, $categoryId, $tag);
         $lastPage = max(1, (int) ceil($count / $perPage));
         $page = min($page, $lastPage);
 
@@ -25,10 +28,13 @@ final class News extends BaseController
         return service('mcmsThemes')->render(
             'news.index',
             [
-                'articles' => $news->listPublished('', $perPage, ($page - 1) * $perPage),
+                'articles' => $news->listPublished($query, $perPage, ($page - 1) * $perPage, $categoryId, $tag),
                 'page' => $page,
                 'lastPage' => $lastPage,
                 'count' => $count,
+                'query' => $query, 'categoryId' => $categoryId, 'tag' => $tag,
+                'categories' => $news->categories(true), 'tags' => $news->tags(true),
+                'newsPageUrl' => static fn (int $target): string => site_url('news') . '?' . http_build_query(['q' => $query, 'category' => $categoryId, 'tag' => $tag, 'page' => $target]),
                 'siteName' => $siteName,
                 'metaTitle' => lang('News.Public.title') . ' · ' . $siteName,
             ],

@@ -30,6 +30,7 @@ final class Module implements ModuleProviderInterface
         );
 
         $context->services->register('news.repository', $repository);
+        $context->services->register('news.search', new \MCMS\Modules\News\Services\PublicSearch($repository));
         $context->navigation->register(new NewsArchiveNavigationProvider());
         $context->navigation->register(new NewsArticleNavigationProvider($repository));
 
@@ -47,6 +48,9 @@ final class Module implements ModuleProviderInterface
     {
         $routes->group('admin/news', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\News\\Controllers\\Admin::index');
+            $routes->get('categories', '\\MCMS\\Modules\\News\\Controllers\\Admin::categories');
+            $routes->post('categories/save', '\\MCMS\\Modules\\News\\Controllers\\Admin::saveCategory');
+            $routes->post('categories/delete', '\\MCMS\\Modules\\News\\Controllers\\Admin::deleteCategory');
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\News\\Controllers\\Admin::create');
             $routes->post('preview', '\\MCMS\\Modules\\News\\Controllers\\Admin::preview');
             $routes->match(['get', 'post'], 'draft', '\\MCMS\\Modules\\News\\Controllers\\Admin::draft');

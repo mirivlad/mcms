@@ -8,6 +8,7 @@
 <body><main class="container py-5">
 <h1 class="mb-4"><?= esc(lang('News.Public.title')) ?></h1>
 <?php if ($articles === []): ?><p class="text-secondary"><?= esc(lang('News.Public.empty')) ?></p><?php endif ?>
+<?= view('MCMS\\Modules\\News\\Views\\public_filters') ?>
 <div class="row g-4">
 <?php foreach ($articles as $article): ?>
 <div class="col-md-6"><article class="card h-100">

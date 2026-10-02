@@ -225,6 +225,14 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             </div>
 
             <div class="card mb-3"><div class="card-body">
+                    <label class="form-label" for="news-category"><?= esc(lang('News.Admin.category')) ?></label>
+                    <select id="news-category" class="form-select" name="category_id">
+                        <option value=""><?= esc(lang('News.Admin.noCategory')) ?></option>
+                        <?php foreach ($categories as $category): ?><option value="<?= (int) $category['id'] ?>" <?= (int) old('category_id', $article['category_id'] ?? 0) === (int) $category['id'] ? 'selected' : '' ?>><?= esc($category['name']) ?></option><?php endforeach ?>
+                    </select>
+                    <?php if ($canManageCategories): ?><a class="form-hint d-block mt-2" href="<?= site_url('admin/news/categories') ?>" target="_blank" rel="noopener"><?= esc(lang('News.Admin.categories')) ?></a><?php endif ?>
+                </div></div>
+            <div class="card mb-3"><div class="card-body">
                 <label class="form-label" for="content-tags"><?= esc(lang('MCMS.content.tags')) ?></label>
                 <input class="form-control" id="content-tags" name="tags" maxlength="1000" value="<?= esc(old('tags', $article['tags'] ?? '')) ?>">
                 <p class="form-hint mb-0"><?= esc(lang('MCMS.content.tagsHint')) ?></p>

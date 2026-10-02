@@ -10,6 +10,10 @@ interface PageRepositoryInterface
 
     public function count(string $query = '', ?string $status = null): int;
 
+    public function searchPublished(string $query, int $limit = 20, int $offset = 0): array;
+
+    public function countSearchPublished(string $query): int;
+
     public function find(int $id): ?array;
 
     public function findPublishedBySlug(string $slug): ?array;

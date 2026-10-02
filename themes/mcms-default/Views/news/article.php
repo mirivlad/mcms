@@ -15,7 +15,8 @@
             <time class="news-date" datetime="<?= esc((string) $article['published_at'], 'attr') ?>">
                 <?= esc(date('d.m.Y H:i', strtotime((string) $article['published_at']))) ?>
             </time>
-            <h1><?= esc($article['title']) ?></h1>
+            <?= view('MCMS\\Modules\\News\\Views\\taxonomy', ['article' => $article]) ?>
+<h1><?= esc($article['title']) ?></h1>
             <?php if (($article['excerpt'] ?? null) !== null): ?>
                 <p class="news-article-lead"><?= esc($article['excerpt']) ?></p>
             <?php endif ?>
