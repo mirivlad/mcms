@@ -29,6 +29,7 @@ services:
         condition: service_healthy
     volumes:
       - media_data:/var/www/html/public/assets/uploads
+      - product_images_data:/var/www/html/writable/product-images
 
   web:
     build:
@@ -79,5 +80,6 @@ services:
 volumes:
   db_data:
   media_data:
+  product_images_data:
   mail_queue:
   dkim_data:

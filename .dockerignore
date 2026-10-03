@@ -6,3 +6,5 @@ writable/logs
 writable/session
 writable/uploads
 public/assets/uploads
+
+writable/product-images/

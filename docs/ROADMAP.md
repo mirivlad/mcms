@@ -50,9 +50,9 @@
 ## Stage 2 — commerce modules
 
 - [x] Define the product-image boundary: dedicated images, independent of Media.
-- [ ] Agree Catalogue product/variant/price/stock/image contracts; see [commerce requirements](COMMERCE.md).
-- [ ] ProductImages: multiple uploads, crop/scale editor, main-image selection and drag-and-drop ordering.
-- [ ] Catalogue.
+- [x] Define first-stage Catalogue product/variant/price/stock/image contracts; see [commerce requirements](COMMERCE.md).
+- [x] ProductImages: multiple uploads, crop/scale editor, main-image selection and drag-and-drop ordering.
+- [x] Catalogue: products, variants/RUB prices, editor and public galleries in all themes.
 - [ ] Cart.
 - [ ] Orders.
 - [ ] Stock.

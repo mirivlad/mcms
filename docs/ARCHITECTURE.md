@@ -50,13 +50,14 @@ Those belong in modules.
 
 ## Product images in commerce
 
-The planned Catalogue/shop uses dedicated product images and works independently
-of Media and content Galleries. A separate product-image module owns image uploads,
-cropping, scaling, generated sizes and editing controls. Catalogue consumes its
-public service rather than Media APIs or another module's private tables.
-The module name, assignment schema and lifecycle remain part of the next commerce
-contract stage; see [commerce requirements](COMMERCE.md). No commerce runtime
-implementation is recorded here yet.
+Catalogue uses dedicated product images and works independently of Media and
+content Galleries. ProductImages owns original files, crop recipes, derived WebP
+revisions, ordered image sets, main-image selection and editor controls. Catalogue
+stores an opaque set ID and consumes `product-images.library` through its public
+interface. Originals live in private storage on an app-only Docker volume; Catalogue
+serves derivatives only for published associated products. Unsaved sets belong to
+the creating user; saved sets belong to one product. See [commerce contracts](COMMERCE.md)
+for limits, variant identity, integer prices and the future Stock boundary.
 
 ## Module lifecycle
 

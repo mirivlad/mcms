@@ -4,7 +4,7 @@ $footerPrimary = $themeMenus['footer.primary'] ?? [];
 $footerLegal = $themeMenus['footer.legal'] ?? [];
 if ($headerMenu === []) {
     $headerMenu[] = ['label' => lang('Focus.home'), 'url' => '/'];
-    foreach (['news.archive', 'galleries.archive', 'feedback.contact'] as $provider) {
+    foreach (['news.archive', 'galleries.archive', 'catalogue.archive', 'feedback.contact'] as $provider) {
         $resource = service('mcmsNavigation')->resolve($provider, 'index');
         if ($resource !== null) { $headerMenu[] = $resource; }
     }

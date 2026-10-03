@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+namespace MCMS\Modules\Catalogue\Controllers;
+
+use App\Controllers\BaseController;
+use CodeIgniter\Exceptions\PageNotFoundException;
+use CodeIgniter\HTTP\ResponseInterface;
+use MCMS\Modules\Catalogue\Api\CatalogueInterface;
+
+final class Shop extends BaseController
+{
+    public function index(): string
+    {
+        $query = mb_substr(trim((string) $this->request->getGet('q')), 0, 200);
+        $category = mb_substr(trim((string) $this->request->getGet('category')), 0, 120);
+        $count = $this->catalogue()->count($query, 'published', $category);
+        $lastPage = max(1, (int) ceil($count / 24));
+        $page = min($lastPage, max(1, (int) $this->request->getGet('page')));
+        return service('mcmsThemes')->render('catalogue.index', [
+            'products' => $this->catalogue()->list($query, 'published', 24, ($page - 1) * 24, $category),
+            'query' => $query, 'category' => $category, 'categories' => $this->catalogue()->categories(true),
+            'count' => $count, 'page' => $page, 'lastPage' => $lastPage,
+            'metaTitle' => lang('Catalogue.name') . ' · ' . setting('Core.siteName'),
+        ], 'MCMS\\Modules\\Catalogue\\Views\\public_index');
+    }
+
+    public function show(string $slug): string
+    {
+        $product = $this->catalogue()->findPublishedBySlug($slug) ?? throw PageNotFoundException::forPageNotFound();
+        return service('mcmsThemes')->render('catalogue.product', [
+            'product' => $product, 'metaTitle' => $product['title'] . ' · ' . setting('Core.siteName'),
+            'metaDescription' => $product['summary'],
+        ], 'MCMS\\Modules\\Catalogue\\Views\\public_product');
+    }
+
+    public function image(string $slug, int $id, string $size): ResponseInterface
+    {
+        $product = $this->catalogue()->findPublishedBySlug($slug);
+        if ($product === null || ! in_array($size, ['thumb', 'display', 'full'], true)) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        $file = service('mcmsModuleServices')->get('product-images.library')->file($product['image_set_id'], $id, $size);
+        if ($file === null) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        return $this->response->setHeader('Content-Type', $file['mime'])
+            ->setHeader('Cache-Control', 'no-cache')->setHeader('X-Content-Type-Options', 'nosniff')
+            ->setBody(file_get_contents($file['path']));
+    }
+
+    public function asset(string $name): ResponseInterface
+    {
+        $types = ['shop.css' => 'text/css; charset=UTF-8', 'shop.js' => 'text/javascript; charset=UTF-8'];
+        if (! isset($types[$name])) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        return $this->response->setHeader('Content-Type', $types[$name])->setBody(file_get_contents(dirname(__DIR__) . '/assets/' . $name));
+    }
+
+    private function catalogue(): CatalogueInterface
+    {
+        return service('mcmsModuleServices')->get('catalogue.repository');
+    }
+}

@@ -93,6 +93,20 @@ This document records the current known-good mCMS implementation checkpoint.
 - Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
 - Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
+### ProductImages / Catalogue 0.1.0
+
+- Catalogue depends only on ProductImages; Media/Galleries are independent.
+- Private persistent originals and generated WebP revisions, validated uploads,
+  EXIF orientation, repeatable crop/scale, main photo and ordered image sets.
+- Product editor with multiple-file chooser/drop uploads, per-file progress/errors,
+  crop dialog, drag-and-drop, keyboard/touch move buttons, replacement and removal.
+- Draft/published products, flat category labels and stable variants with unique
+  uppercase SKUs and integer RUB prices.
+- `/shop` listing/detail templates in all four themes, ordered thumbnails,
+  enlarged gallery with keyboard/swipe controls and variant price/SKU selection.
+- Published navigation/search/sitemap resources and generic slug-move redirects.
+- Module disable/re-enable preserves data; draft images and originals stay private.
+
 ## Themes
 
 ### mCMS Default 0.4.0
@@ -136,7 +150,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 76 tests / 724 assertions,
+Fresh local verification for this checkpoint includes 81 tests / 790 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -176,21 +190,34 @@ fixture responses: cover/logo isolation, selection/reset and focus restoration.
 Catalog previews are actual screenshots from the temporary site. No live-server
 deployment is recorded by this checkpoint.
 
+Catalogue verification additionally covers real PNG/JPEG processing, original hashes,
+crop output pixels/dimensions, EXIF rotation, file/pixel/photo limits, rejected
+cross-set actions, variant identity, exact prices, sanitization and expired pending
+sets. The dedicated HTTP smoke checks multipart uploads, repeated edits, order/main
+persistence, replacement/removal, draft privacy, editor permissions/user isolation,
+SEO/search, four themes, Media disablement and product deletion. Interactive editor
+checks used an unauthenticated copy of the actual rendered form with fixture
+responses: pointer cropping, output sizes, drag-and-drop, keyboard ordering, main
+selection, variant creation and desktop/390px layouts. Public gallery controls were
+checked on the real anonymous storefront. Recreating app/web containers preserved
+the published product and the exact derivative bytes on the private image volume.
+The final checkpoint was not deployed to
+a live server.
+
 ## Next sequence
 
-The approved content workflow is complete. Commerce remains a separate
-contract-definition stage, documented in [commerce requirements](COMMERCE.md).
+The approved content workflow and first commerce stage are implemented. Catalogue
+and ProductImages work independently of Media/content Galleries, with a dedicated
+private storage volume, preserved originals, multiple photos, crop/resize, explicit
+main selection, drag-and-drop and keyboard/touch ordering, replacement/removal.
+Catalogue stores products, flat category labels, stable variants and integer RUB
+prices. All four themes render listing/detail pages, enlarged image galleries and
+variant selectors. Published product resources participate in search, navigation,
+sitemap and automatic slug redirects.
 
-1. Inspect the CI4 Ferma shop and agree Catalogue product, variant, price, stock
-   and image contracts.
-2. Implement ProductImages for dedicated product images: multiple uploads,
-   cropping, scaling, main-image selection and drag-and-drop ordering.
-3. Integrate Catalogue and public product templates, then continue with commerce
-   modules against the accepted contracts.
-
-The shop has no Media/content Galleries dependency. ProductImages is a working
-module name; the accepted image requirements and proposed editing workflow are
-documented, and no commerce module implementation is claimed.
+Next: Stock availability/reservations keyed by variant ID, Cart, Orders, Delivery
+and export/report adapters. No purchase or stock availability is claimed by this stage.
+See [commerce contracts](COMMERCE.md) and the new modules' README files.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,
 paginated revision history and confirmed restoration into the editor. Content and its

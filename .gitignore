@@ -11,3 +11,5 @@ writable/uploads/*
 !writable/uploads/index.html
 public/assets/uploads/*
 !public/assets/uploads/.gitkeep
+
+writable/product-images/

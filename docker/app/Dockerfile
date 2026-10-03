@@ -16,9 +16,10 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-
 
 COPY . ./
 COPY docker/app/start.sh /usr/local/bin/mcms-start
+COPY docker/app/uploads.ini /usr/local/etc/php/conf.d/mcms-uploads.ini
 
 RUN composer dump-autoload --no-dev --classmap-authoritative \
-    && mkdir -p writable/cache writable/logs writable/session public/assets/uploads \
+    && mkdir -p writable/cache writable/logs writable/session writable/product-images public/assets/uploads \
     && chown -R www-data:www-data writable public/assets/uploads \
     && chmod 0755 /usr/local/bin/mcms-start
 

@@ -14,7 +14,9 @@
     "galleries.index": "galleries/index",
     "galleries.album": "galleries/album",
     "feedback.form": "feedback/form",
-    "search.index": "search/index"
+    "search.index": "search/index",
+    "catalogue.index": "catalogue/index",
+    "catalogue.product": "catalogue/product"
   },
   "menu_locations": {
     "header.primary": {

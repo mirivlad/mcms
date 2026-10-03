@@ -34,7 +34,7 @@ maintenance. Content and business features are installed as modules.
 ## Modules
 
 News, Galleries, Shop, Orders, Delivery and other domain features are not part
-of Core. Media, Pages, Menus, News, Galleries, Feedback and SEO are provided as reusable first-party modules.
+of Core. Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages and Catalogue are provided as reusable first-party modules.
 
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
@@ -44,11 +44,11 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 ## Development status
 
 The 2026-10-03 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
-Media, Pages, Menus, News, Galleries, Feedback and SEO are implemented as reusable modules and covered by
+Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages and Catalogue are implemented as reusable modules and covered by
 module/integration checks.
 
 Theme API, four first-party themes and Menus ↔ theme-location assignment are implemented.
-mCMS Default, [mCMS Signature](themes/mcms-signature/README.md), [mCMS Depth](themes/mcms-depth/README.md) and [mCMS Focus](themes/mcms-focus/README.md) render Home, Pages, News, Galleries, Feedback and Search through logical templates. Depth and Focus include generated local covers and an editable Home in Administration → Themes → Configure: heading, description, Media cover, button and News/Galleries sections, saved independently per theme. A published Home chosen in Pages settings retains priority; choose the built-in Home there to use the theme layout.
+mCMS Default, [mCMS Signature](themes/mcms-signature/README.md), [mCMS Depth](themes/mcms-depth/README.md) and [mCMS Focus](themes/mcms-focus/README.md) render Home, Pages, News, Galleries, Feedback, Search and Catalogue through logical templates. Depth and Focus include generated local covers and an editable Home in Administration → Themes → Configure: heading, description, Media cover, button and News/Galleries sections, saved independently per theme. A published Home chosen in Pages settings retains priority; choose the built-in Home there to use the theme layout.
 
 The Gallery button in Pages/News editors searches published albums and inserts a shortcode at the cursor. Choose a thumbnail grid, a large banner slider, a horizontal carousel or cards with captions. The same album can use different views on different pages; existing `[gallery id="12"]` shortcodes keep their grid layout. For example: `[gallery id="12" view="slider"]`, `[gallery id="12" view="carousel"]` or `[gallery id="12" view="cards"]`. The album editor also generates a shortcode for the selected view.
 
@@ -56,18 +56,19 @@ Pages and News editors provide private unsaved previews, personal autosave/recov
 and revision history. SEO supports manual metadata and per-content title/description
 rules, including keywords from tags. Theme configuration includes per-theme branding,
 accent and footer contacts. News supports categories/tag filters; `/search/results`
-searches published Pages/News through Core provider contracts.
+searches published Pages/News/Catalogue through Core provider contracts.
 
-The accepted content-workflow sequence is complete. The next implementation sequence is:
+Catalogue and ProductImages now implement the first commerce stage. Enable
+**Catalogue** in Administration → Modules; its separate image module is enabled
+as the sole dependency. Products have multiple photos, crop/resize from preserved
+originals, main selection, drag-and-drop order, variants and RUB prices. `/shop`
+renders the storefront in all four themes. Media and Galleries are independent.
+Photo edits save immediately; product/variant fields save with the product form.
 
-1. Inspect the CI4 Ferma shop and define Catalogue product/variant/price/stock/image contracts.
-2. Implement a separate ProductImages module with multiple uploads, cropping,
-   scaling and drag-and-drop ordering, then Catalogue and public product templates.
-3. Continue with Cart, Orders, Stock, Delivery and export/report adapters.
-
-The planned shop uses dedicated images and does not depend on Media or content Galleries.
-The proposed editor workflow and module boundary are recorded in
-[commerce requirements](docs/COMMERCE.md); commerce runtime modules are not implemented yet.
+The next stages are Stock, Cart, Orders, Delivery and export/report adapters.
+See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
+and [ProductImages](modules/ProductImages/README.md). Back up the dedicated
+`product_images_data` volume together with the database.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,

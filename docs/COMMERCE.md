@@ -1,6 +1,43 @@
 # Commerce requirements and next implementation stage
 
-Status: planning; commerce modules are not implemented yet.
+Status: Catalogue and ProductImages implemented; Cart/Orders/Stock/Delivery remain later stages.
+
+## First-stage data contracts
+
+- `Catalogue` depends only on `product-images`; neither depends on Media or Galleries.
+- A product has a permanent numeric ID, unique slug, title, category label,
+  short/plain description, sanitized HTML description and draft/published status.
+- Each product has at least one variant. A variant has a stable ID, globally
+  unique uppercase SKU, a label (e.g. size/color) and its own price. A single unnamed
+  variant is the normal product without options. Removed variant IDs are never
+  reassigned to another variant. All variants share the product's image set.
+- Prices are integer kopecks, currency RUB. Input accepts at most two decimal
+  digits, using a comma or dot; no floating-point money, currency conversion,
+  promotional prices or tax calculations in this stage.
+- Catalogue does not own stock quantities. The future Stock module will expose
+  availability/reservations keyed by variant ID; this stage does not claim stock
+  availability or accept purchases. Cart/order snapshots will copy SKU, label,
+  unit price and currency rather than relying on mutable catalogue prices.
+- `product-images.library` is the public API. ProductImages owns opaque image-set
+  IDs, image IDs, originals, derivative revisions, crop recipes, order and main
+  image. Catalogue stores only the unique image-set ID and consumes the API.
+- Unsaved sets belong to their creating user; another user cannot attach/edit
+  them. Attached sets are editable with `product-images.manage`. Photos save
+  immediately; the editor says so. Saving the product attaches its set.
+  Abandoned unsaved sets inactive for 24 hours are removed on the next set creation.
+  Deleting a product deletes its owned image set, including originals.
+- JPEG, PNG and WebP: up to 10 MiB/file, 12 megapixels, 20 images/product.
+  EXIF orientation is respected. Crop uses pixels in the oriented original;
+  output is limited to 300–2400 pixels on its longest side, without upscaling.
+  240px thumbnail and 800px display derivatives accompany the selected full size.
+  Repeated edits always start from the unchanged original.
+- Originals live in private `writable/product-images` storage, on a dedicated
+  Docker volume. Only Catalogue serves public derivatives, after checking the
+  published product/image association. Draft images and originals stay private.
+- `/shop` lists published products; `/shop/{slug}` renders the product gallery
+  and variant selector. Product resources participate in navigation, search,
+  sitemap and automatic redirects when a slug changes. All four bundled themes
+  support these templates.
 
 ## Confirmed product-image requirements
 
@@ -38,9 +75,9 @@ The useful reference is editing images in the product workflow. mCMS extends tha
 workflow to multiple images, explicit main-image selection, repeatable processing
 and image ordering, with a separate product-image module and a public image gallery.
 
-## Proposed module boundary
+## Implemented module boundary
 
-Working name: **ProductImages**. It owns original files, image processing,
+**ProductImages** owns original files, image processing,
 generated sizes and its editing controls. It provides a public module service for
 Catalogue, rather than exposing its tables or filesystem layout to consumers.
 Product images have their own storage and identifiers; they are not `media_files`
@@ -52,10 +89,10 @@ uses ProductImages controls and public services. The storefront receives the
 ordered product-image data through Catalogue's public presentation API and renders
 it through logical theme templates. Core remains independent of commerce.
 
-The final image-assignment schema, service signatures and lifecycle will be
-specified together with the Catalogue contract before runtime implementation.
+Image assignment, prices, variant identity and lifecycle follow the first-stage
+contracts above. Public service interfaces live in each module’s `Api` directory.
 
-## Proposed product editor workflow
+## Product editor workflow
 
 1. Open a new or existing product and its **Images** section.
 2. Add multiple files through a file chooser or a drop area; show upload progress
@@ -75,8 +112,7 @@ The product listing uses the chosen main image. A public product page offers a
 large image, ordered thumbnails, image switching and enlarged viewing, including
 mobile layouts. It should remain usable with zero, one or several images.
 
-This is a proposed UX for the first implementation, not an implemented screen or
-a decision to copy Ferma's database or controllers.
+Catalogue embeds the ProductImages editor; Ferma database/controllers are not copied.
 
 ## Work sequence
 
@@ -89,9 +125,9 @@ a decision to copy Ferma's database or controllers.
    public product templates. Verify editing and storefront behavior together.
 4. Continue with Cart, Orders, Stock, Delivery and export/report adapters.
 
-Product/variant image sharing, image sizes and supported upload limits are not
-fixed by this document. Price/currency and stock/reservation rules still belong to
-the next contract-definition step.
+The first-stage contracts fix shared product images, supported sizes/limits and
+RUB prices. Cart/Orders/Stock/Delivery contracts, including stock reservations,
+still require their own implementation stages.
 
 ## Verification targets for implementation
 

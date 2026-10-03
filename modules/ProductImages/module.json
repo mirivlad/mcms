@@ -1,0 +1,11 @@
+{
+  "id": "product-images",
+  "name": "@ProductImages.name",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\ProductImages",
+  "provider": "MCMS\\Modules\\ProductImages\\Module",
+  "mcms": "^0.1.5",
+  "description": "@ProductImages.description",
+  "permissions": {"product-images.manage": "@ProductImages.manage"},
+  "grants": {"admin": ["product-images.manage"]}
+}

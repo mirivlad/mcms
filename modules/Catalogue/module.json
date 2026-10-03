@@ -1,0 +1,16 @@
+{
+  "id": "catalogue",
+  "name": "@Catalogue.name",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Catalogue",
+  "provider": "MCMS\\Modules\\Catalogue\\Module",
+  "mcms": "^0.1.5",
+  "description": "@Catalogue.description",
+  "requires": [{"id": "product-images", "version": "^0.1"}],
+  "public_paths": ["shop"],
+  "permissions": {
+    "catalogue.view": "@Catalogue.view", "catalogue.create": "@Catalogue.create",
+    "catalogue.edit": "@Catalogue.edit", "catalogue.delete": "@Catalogue.delete"
+  },
+  "grants": {"admin": ["catalogue.view", "catalogue.create", "catalogue.edit", "catalogue.delete"]}
+}
