@@ -34,6 +34,7 @@ final class Module implements ModuleProviderInterface
             'ti ti-file-text',
             'pages.view',
             55,
+            group: 'content',
         );
     }
 

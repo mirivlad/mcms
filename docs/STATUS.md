@@ -15,7 +15,8 @@ This document records the current known-good mCMS implementation checkpoint.
 - Access groups shown in a responsive table/list with member and permission counts; creation and editing use a shared modal with input recovery after errors.
 - Group deletion requires confirmation, atomically removes group grants and memberships, and preserves accounts, other groups and direct permissions. Core/default registration groups cannot be deleted.
 - English/Russian localization.
-- Tabler 1.6.1 administration shell with responsive navigation.
+- Tabler 1.6.1 administration shell with responsive navigation, a public-site link
+  and permission-filtered collapsible Content, Appearance, Shop and Administration groups.
 - HTTPS reverse-proxy support and standard CodeIgniter error views.
 - Theme discovery, manifest validation, activation and logical template rendering.
 - Per-theme menu-location assignments through the Core navigation source contract.
@@ -150,7 +151,15 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 81 tests / 790 assertions,
+The sidebar checkpoint covers automatic group expansion on nested routes,
+subdirectory-aware public links, legacy module contributions, module disablement
+and user permission filtering. The isolated HTTP check exercised actual admin
+routes with all first-party modules and a Pages-only editor account. Anonymous
+copies of the rendered shell were inspected at desktop and 390px widths for
+disclosure clicks/keyboard controls, mobile toggling and scrolling without
+horizontal overflow; no authenticated browser session was used.
+
+Fresh local verification for this checkpoint includes 83 tests / 802 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and

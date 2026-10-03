@@ -1,4 +1,27 @@
 /* mCMS administration shell overrides. Keep module-specific styles in modules. */
+.admin-navigation { width: 100%; }
+.admin-site-link {
+    margin-bottom: .5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, .12);
+}
+.admin-menu-group summary { list-style: none; cursor: pointer; }
+.admin-menu-group summary::-webkit-details-marker { display: none; }
+.admin-menu-group summary:focus-visible,
+.admin-navigation a:focus-visible {
+    outline: 2px solid var(--tblr-primary);
+    outline-offset: -2px;
+}
+.admin-group-active { color: #fff; }
+.admin-menu-chevron { margin-left: auto; transition: transform .15s; }
+.admin-menu-group details[open] > summary .admin-menu-chevron { transform: rotate(90deg); }
+.admin-submenu {
+    margin: .25rem .75rem .5rem 1.5rem;
+    padding-left: .5rem;
+    border-left: 1px solid rgba(255, 255, 255, .18);
+}
+.navbar-vertical .admin-submenu .nav-link { padding: .5rem .75rem; min-height: 2.5rem; }
+.admin-submenu .nav-link-icon { width: 1.25rem; min-width: 1.25rem; margin-right: .5rem; }
+
 .admin-account {
     padding: .75rem 1rem 1rem;
     border-top: 1px solid rgba(255, 255, 255, .12);

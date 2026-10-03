@@ -27,7 +27,7 @@ final class Module implements ModuleProviderInterface
         $context->services->register('galleries.shortcode', new GalleryShortcode($repository));
         $context->navigation->register(new GalleryArchiveNavigationProvider());
         $context->navigation->register(new GalleryNavigationProvider($repository));
-        $context->admin->addMenu('galleries', '@Galleries.Admin.title', '/admin/galleries', 'ti ti-photo', 'galleries.view', 58);
+        $context->admin->addMenu('galleries', '@Galleries.Admin.title', '/admin/galleries', 'ti ti-photo', 'galleries.view', 58, group: 'content');
     }
 
     public function routes(RouteCollection $routes): void

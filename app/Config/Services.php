@@ -31,13 +31,13 @@ class Services extends BaseService
         }
 
         $registry = new AdminRegistry();
-        $registry->addMenu('dashboard', '@MCMS.nav.dashboard', '/admin', 'ti ti-home', 'core.admin', 10);
-        $registry->addMenu('users', '@MCMS.nav.users', '/admin/users', 'ti ti-users', 'core.users', 30);
-        $registry->addMenu('access', '@MCMS.nav.access', '/admin/access', 'ti ti-shield-lock', 'core.access', 40);
-        $registry->addMenu('modules', '@MCMS.nav.modules', '/admin/modules', 'ti ti-plug', 'core.modules', 50);
-        $registry->addMenu('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 65);
-        $registry->addMenu('settings', '@MCMS.nav.settings', '/admin/settings', 'ti ti-settings', 'core.settings', 70);
-        $registry->addMenu('system', '@MCMS.nav.system', '/admin/system', 'ti ti-activity', 'core.system', 90);
+        $registry->addMenu('dashboard', '@MCMS.nav.dashboard', '/admin', 'ti ti-home', 'core.admin', 10, group: 'main');
+        $registry->addMenu('users', '@MCMS.nav.users', '/admin/users', 'ti ti-users', 'core.users', 30, group: 'administration');
+        $registry->addMenu('access', '@MCMS.nav.access', '/admin/access', 'ti ti-shield-lock', 'core.access', 40, group: 'administration');
+        $registry->addMenu('modules', '@MCMS.nav.modules', '/admin/modules', 'ti ti-plug', 'core.modules', 50, group: 'administration');
+        $registry->addMenu('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 65, group: 'appearance');
+        $registry->addMenu('settings', '@MCMS.nav.settings', '/admin/settings', 'ti ti-settings', 'core.settings', 70, group: 'administration');
+        $registry->addMenu('system', '@MCMS.nav.system', '/admin/system', 'ti ti-activity', 'core.system', 90, group: 'administration');
 
         return $registry;
     }

@@ -32,6 +32,7 @@ final class Module implements ModuleProviderInterface
             'ti ti-photo',
             'media.view',
             60,
+            group: 'content',
         );
     }
 

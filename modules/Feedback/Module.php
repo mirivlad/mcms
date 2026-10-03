@@ -16,7 +16,7 @@ final class Module implements ModuleProviderInterface
     {
         $context->services->register('feedback.repository', new FeedbackRepository(db_connect()));
         $context->navigation->register(new ContactNavigationProvider());
-        $context->admin->addMenu('feedback', '@Feedback.Admin.title', '/admin/feedback', 'ti ti-mail', 'feedback.view', 59);
+        $context->admin->addMenu('feedback', '@Feedback.Admin.title', '/admin/feedback', 'ti ti-mail', 'feedback.view', 59, group: 'administration');
     }
 
     public function routes(RouteCollection $routes): void

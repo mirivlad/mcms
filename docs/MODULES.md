@@ -88,7 +88,8 @@ final class Module implements ModuleProviderInterface
             'example',
             '@Example.Admin.menuLabel',
             '/admin/example',
-            permission: 'example.manage'
+            permission: 'example.manage',
+            group: 'content'
         );
     }
 
@@ -104,6 +105,13 @@ final class Module implements ModuleProviderInterface
 Module manifest `name`, `description`, permission descriptions, and admin menu
 labels may begin with `@`. Such values are language keys and are resolved in the
 active site locale after module discovery registers the module namespace.
+
+Admin menu contributions choose one sidebar `group`: `content`, `appearance`,
+`commerce` or `administration`. Contributions that omit the group (or use an
+unknown group) appear under `extensions`, preserving compatibility with existing
+modules. `main` is reserved for standalone links such as the Core dashboard.
+Empty groups are hidden after filtering by user permissions; the current page's
+group opens automatically, including on nested editor/settings routes.
 
 First-party modules should ship their own `Language/<locale>/...` files and avoid
 hard-coded UI strings. This keeps module translations inside the module instead of

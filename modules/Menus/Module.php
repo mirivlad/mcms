@@ -25,6 +25,7 @@ final class Module implements ModuleProviderInterface
             'ti ti-menu-2',
             'menus.view',
             60,
+            group: 'appearance',
         );
     }
 

@@ -41,6 +41,7 @@ final class Module implements ModuleProviderInterface
             'ti ti-news',
             'news.view',
             57,
+            group: 'content',
         );
     }
 

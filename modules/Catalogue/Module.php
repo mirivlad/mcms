@@ -21,7 +21,7 @@ final class Module implements ModuleProviderInterface
         $context->services->register('catalogue.search', new PublicSearch($repository));
         $context->navigation->register(new Archive());
         $context->navigation->register(new Products($repository));
-        $context->admin->addMenu('catalogue', '@Catalogue.name', '/admin/catalogue', 'ti ti-building-store', 'catalogue.view', 65);
+        $context->admin->addMenu('catalogue', '@Catalogue.name', '/admin/catalogue', 'ti ti-building-store', 'catalogue.view', 65, group: 'commerce');
     }
 
     public function routes(RouteCollection $routes): void
