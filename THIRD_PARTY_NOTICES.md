@@ -4,6 +4,13 @@ mCMS bundles the following third-party frontend assets in its web image.
 
 Only the listed package files are copied into the mCMS runtime image. Tabler demo/vendor libraries such as ApexCharts are not bundled by mCMS Core.
 
+## Manrope
+
+The Depth and Focus themes bundle the Manrope variable font, converted to WOFF2.
+Source: [Google Fonts Manrope](https://github.com/google/fonts/tree/main/ofl/manrope).
+Copyright and the SIL Open Font License 1.1 are included in each theme at
+`assets/fonts/OFL.txt`. The font is served locally; the site does not contact Google Fonts.
+
 ## Tabler Core 1.6.1
 
 Source package: `@tabler/core@1.6.1`

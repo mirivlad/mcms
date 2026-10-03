@@ -1,0 +1,48 @@
+{
+  "id": "mcms-depth",
+  "name": "@Depth.name",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Themes\\Depth",
+  "description": "@Depth.description",
+  "author": "mCMS",
+  "screenshot": "screenshot.webp",
+  "templates": {
+    "home": "home",
+    "page": "page",
+    "news.index": "news/index",
+    "news.article": "news/article",
+    "galleries.index": "galleries/index",
+    "galleries.album": "galleries/album",
+    "feedback.form": "feedback/form",
+    "galleries.embed": "galleries/embed",
+    "search.index": "search/index"
+  },
+  "menu_locations": {
+    "header.primary": {
+      "label": "@MCMS.themes.locationHeaderPrimary",
+      "description": "@MCMS.themes.locationHeaderPrimaryDescription",
+      "max_depth": 2
+    },
+    "footer.primary": {
+      "label": "@MCMS.themes.locationFooterPrimary",
+      "description": "@MCMS.themes.locationFooterPrimaryDescription",
+      "max_depth": 1
+    },
+    "footer.legal": {
+      "label": "@MCMS.themes.locationFooterLegal",
+      "description": "@MCMS.themes.locationFooterLegalDescription",
+      "max_depth": 1
+    }
+  },
+  "home_defaults": {
+    "eyebrow": "@Depth.homeDefaults.eyebrow",
+    "title": "@Depth.homeDefaults.title",
+    "description": "@Depth.homeDefaults.description",
+    "button_label": "@Depth.homeDefaults.button_label",
+    "intro_title": "@Depth.homeDefaults.intro_title",
+    "intro_text": "@Depth.homeDefaults.intro_text",
+    "button_url": "#home-content",
+    "show_news": true,
+    "show_galleries": true
+  }
+}

@@ -78,6 +78,7 @@ final class Themes extends BaseAdminController
             'menus' => $manager->availableMenus(),
             'assignments' => $manager->menuAssignments($theme),
             'appearance' => $manager->appearance($theme),
+            'homeContent' => $manager->homeContent($theme),
             'imagesAvailable' => $manager->imagesAvailable(),
         ]);
     }
@@ -105,6 +106,19 @@ final class Themes extends BaseAdminController
             mb_substr(trim((string) $this->request->getGet('q')), 0, 100),
             max(0, (int) $this->request->getGet('offset')),
         ));
+    }
+
+    public function home(string $id): RedirectResponse
+    {
+        if (($redirect = $this->guard('core.themes')) !== null) {
+            return $redirect;
+        }
+        try {
+            service('mcmsThemes')->saveHomeContent($id, (array) $this->request->getPost('home'));
+            return redirect()->to('/admin/themes/' . $id)->with('message', lang('MCMS.themes.homeSaved'));
+        } catch (\Throwable $e) {
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     public function activate(string $id): RedirectResponse

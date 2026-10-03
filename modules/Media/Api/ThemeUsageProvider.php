@@ -21,6 +21,13 @@ final class ThemeUsageProvider implements MediaUsageProviderInterface
                     ];
                 }
             }
+            if ((int) $manager->homeContent($theme)['image_media_id'] === $mediaId) {
+                $usages[] = [
+                    'resource_id' => $theme->id . ':home',
+                    'label' => $manager->displayName($theme) . ' — ' . lang('MCMS.themes.homeCover'),
+                    'edit_url' => '/admin/themes/' . $theme->id . '#theme-home-form',
+                ];
+            }
         }
         return $usages;
     }

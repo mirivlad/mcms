@@ -210,7 +210,7 @@ for path in ('/', '/site-smoke-page-renamed', '/news', '/news/site-smoke-article
     assert 'Signature.' not in rendered, path
     assert len(re.findall(r'<h1\b', rendered)) == 1, path
 assert 'sig-gallery-embed' in request('/site-smoke-page-renamed')[0]
-for theme in ('mcms-default', 'mcms-signature'):
+for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
     for mode in ('slider', 'carousel', 'cards'):
         display_shortcode = '[gallery id="' + str(album_id) + '" view="' + mode + '"]'
@@ -287,12 +287,52 @@ for theme, color, email in [('mcms-default', '#123456', 'default@example.test'),
     invalid, _ = post(path + '/appearance', {**fields, 'appearance[accent]': 'invalid'}, path)
     assert 'Use a color in #RRGGBB format.' in invalid and 'value="invalid"' in invalid
 
+# Editable theme Home is independent per theme and never replaces a selected page.
+post('/admin/pages/settings', {'default_status': 'draft', 'home_page_id': 0})
+for theme in ('mcms-depth', 'mcms-focus'):
+    path = '/admin/themes/' + theme
+    form = request(path)[0]
+    assert 'id="theme-home-form"' in form and 'id="home-image"' in form
+    post(path + '/activate', {}, '/admin/themes')
+    for public_path in ('/', '/site-smoke-page-renamed', '/news', '/news/site-smoke-article',
+                        '/galleries', '/galleries/site-smoke-album', '/contact', '/search/results?q=Site'):
+        rendered = request(public_path)[0]
+        assert 'data-theme="' + theme + '"' in rendered
+        assert len(re.findall(r'<h1\b', rendered)) == 1
+    fields = {'home[eyebrow]': 'Edited Home', 'home[title]': theme + ' <heading>',
+              'home[description]': '<script>Text only</script>', 'home[button_label]': 'Read now',
+              'home[button_url]': '/news', 'home[intro_title]': 'Edited section',
+              'home[intro_text]': 'Section text', 'home[image_media_id]': first['id'],
+              'home[show_news]': 1, 'home[show_galleries]': 1}
+    saved, _ = post(path + '/home', fields, path)
+    assert 'Home page saved.' in saved
+    public = request('/')[0]
+    assert theme + ' &lt;heading&gt;' in public and '<script>Text only</script>' not in public
+    assert first['url'] in html.unescape(public) and 'Read now' in public
+    assert 'Site smoke article' in public and 'Site smoke album' in public
+    invalid, _ = post(path + '/home', {**fields, 'home[button_url]': 'javascript:alert(1)'}, path)
+    assert 'Use a local path' in invalid and 'value="javascript&#x3A;alert' in invalid
+    assert 'Read now' in request('/')[0]
+    post(path + '/home', {**fields, 'home[show_news]': 0, 'home[show_galleries]': 0}, path)
+    public = request('/')[0]
+    assert 'Site smoke article' not in public and 'Site smoke album' not in public
+    assert theme + ' &lt;heading&gt;' in public
+    for asset in ('css/theme.css', 'js/theme.js', 'fonts/manrope.woff2', 'images/hero.webp', 'screenshot.webp'):
+        assert len(opener.open(base + '/assets/themes/' + theme + '/' + asset).read()) > 100
+for theme in ('mcms-depth', 'mcms-focus'):
+    post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
+    assert theme + ' &lt;heading&gt;' in request('/')[0]
+post('/admin/pages/settings', {'default_status': 'draft', 'home_page_id': page_id})
+assert 'Site smoke home content' in request('/')[0] and 'site-home"' not in request('/')[0]
+post('/admin/themes/mcms-signature/activate', {}, '/admin/themes')
+
 # Used-file deletion must first show all references, including disabled Galleries.
 module('galleries', 'disable')
 confirmation, _ = post('/admin/media/' + str(first['id']) + '/delete', {}, '/admin/media')
 assert 'Delete a file used by content?' in confirmation
 assert 'Site smoke album' in confirmation and 'Site smoke article' in confirmation and 'Site smoke page' in confirmation
 assert 'Logo' in confirmation and 'Favicon' in confirmation
+assert 'Home cover' in confirmation
 assert any(item['id'] == first['id'] for item in json.loads(request('/admin/media/api/files')[0])['items'])
 post('/admin/media/' + str(first['id']) + '/delete', {'confirm': '1', 'usage_token': token(confirmation, 'usage_token')}, form_html=confirmation)
 expect_404(first['url'])
@@ -312,7 +352,7 @@ saved, _ = post('/admin/seo/settings', seo_rules, '/admin/seo')
 assert 'SEO settings saved.' in saved
 invalid, _ = post('/admin/seo/settings', {**seo_rules, 'rules[news][title]': '{bad_token}'}, '/admin/seo')
 assert 'Unknown template variable.' in invalid
-for theme in ('mcms-default', 'mcms-signature'):
+for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
     for kind, fields, content_id, public_path in [('pages', page_fields, page_id, '/site-smoke-page-renamed'),
                                                 ('news', news_fields, news_id, '/news/site-smoke-article')]:
@@ -377,6 +417,9 @@ try:
         raise AssertionError('Create-only editor accessed theme image picker')
     except urllib.error.HTTPError as error:
         assert error.code == 403
+    for theme in ('mcms-depth', 'mcms-focus'):
+        _, denied_url = post('/admin/themes/' + theme + '/home', {'home[title]': 'Unauthorized change'}, '/admin/pages/create')
+        assert denied_url == base + '/'
     for kind, content_id in [('pages', page_id), ('news', news_id)]:
         fields = {'title': 'Create-only draft preview', 'body': '<p>Private draft</p>', 'status': 'draft'}
         try:
@@ -437,7 +480,7 @@ unconfirmed, _ = post(category_path + '/delete', {'id': empty_id}, category_path
 assert 'Confirm category deletion.' in unconfirmed
 removed, _ = post(category_path + '/delete', {'id': empty_id, 'confirm': '1'}, category_path)
 assert 'Category deleted.' in removed and 'empty-category' not in removed
-for theme in ('mcms-default', 'mcms-signature'):
+for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     post('/admin/themes/' + theme + '/activate', {}, '/admin/themes')
     filtered = request('/news?' + urllib.parse.urlencode({'q': 'Unified needle', 'category': category_id, 'tag': 'CMS'}))[0]
     assert 'Taxonomy item' in filtered and 'Partial tag only' not in filtered and 'Future taxonomy private' not in filtered
@@ -458,4 +501,4 @@ assert 'Results: 1' in only_pages and 'Search public page' in only_pages and 'Ta
 module('news')
 assert '>Tech<' in request(category_path)[0]
 
-print('Site HTTP smoke passed: categories/tags/filters/public search, theme appearance, personal autosave, revisions, SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and both themes.')
+print('Site HTTP smoke passed: categories/tags/filters/public search, theme appearance, editable Home, personal autosave, revisions, SEO metadata/rules, private unsaved previews, group management, Media, Galleries, Home, Feedback, sitemap, redirects and all four themes.')

@@ -8,7 +8,7 @@
             <?php $value = (string) old('appearance.' . $field . '_media_id', $appearance[$field . '_media_id'] ?? ''); $image = $value !== '' && (int) $value === (int) ($appearance[$field . '_media_id'] ?? 0) ? $appearance[$field] : null; ?>
             <div class="col-sm-6">
                 <label class="form-label" for="appearance-<?= $field ?>"><?= esc(lang('MCMS.themes.' . $field)) ?></label>
-                <input id="appearance-<?= $field ?>" type="hidden" name="appearance[<?= $field ?>_media_id]" value="<?= esc($value, 'attr') ?>">
+                <input id="appearance-<?= $field ?>" data-image-input="<?= $field ?>" type="hidden" name="appearance[<?= $field ?>_media_id]" value="<?= esc($value, 'attr') ?>">
                 <div class="border rounded p-3 mb-2" style="min-height:85px" data-image-preview="<?= $field ?>">
                     <?php if ($image !== null): ?><img src="<?= esc(site_url(ltrim($image['url'], '/')), 'attr') ?>" alt="<?= esc($image['title'], 'attr') ?>" style="max-height:64px;max-width:100%"><?php else: ?><span class="text-secondary"><?= esc(lang('MCMS.themes.defaultImage')) ?></span><?php endif ?>
                 </div>
@@ -47,19 +47,20 @@
 <script>
 (() => {
     const form = document.getElementById('theme-appearance-form');
+    const forms = [form, document.getElementById('theme-home-form')].filter(Boolean);
     const dialog = document.getElementById('theme-image-dialog');
     const items = dialog.querySelector('[data-image-items]');
     const status = dialog.querySelector('[data-image-status]');
     const more = dialog.querySelector('[data-image-more]');
     const search = dialog.querySelector('[data-image-search]');
     const defaultLabel = <?= json_encode(lang('MCMS.themes.defaultImage')) ?>;
-    let field, trigger, offset = 0, requestId = 0;
+    let field, trigger, targetForm = form, offset = 0, requestId = 0;
     function select(image) {
-        const input = form.querySelector('#appearance-' + field);
+        const input = targetForm.querySelector('[data-image-input="' + field + '"]');
         input.value = image.id;
-        const preview = form.querySelector('[data-image-preview="' + field + '"]');
+        const preview = targetForm.querySelector('[data-image-preview="' + field + '"]');
         const img = document.createElement('img'); img.src = image.url; img.alt = image.title;
-        img.style.maxHeight = '64px'; img.style.maxWidth = '100%'; preview.replaceChildren(img);
+        img.style.maxHeight = preview.dataset.imageHeight || '64px'; img.style.maxWidth = '100%'; preview.replaceChildren(img);
         dialog.close();
     }
     async function load(reset = false) {
@@ -84,12 +85,14 @@
         } catch (failure) {if (current === requestId) status.textContent = failure.message;}
         finally {if (current === requestId) more.disabled = false;}
     }
-    form.querySelectorAll('[data-theme-image]').forEach(button => button.addEventListener('click', () => {field = button.dataset.themeImage; trigger = button; search.reset(); dialog.showModal(); load(true);}));
-    form.querySelectorAll('[data-image-clear]').forEach(button => button.addEventListener('click', () => {
-        form.querySelector('#appearance-' + button.dataset.imageClear).value = '';
-        const text = document.createElement('span'); text.className = 'text-secondary'; text.textContent = defaultLabel;
-        form.querySelector('[data-image-preview="' + button.dataset.imageClear + '"]').replaceChildren(text);
-    }));
+    forms.forEach(owner => {
+        owner.querySelectorAll('[data-theme-image]').forEach(button => button.addEventListener('click', () => {targetForm = owner; field = button.dataset.themeImage; trigger = button; search.reset(); dialog.showModal(); load(true);}));
+        owner.querySelectorAll('[data-image-clear]').forEach(button => button.addEventListener('click', () => {
+            owner.querySelector('[data-image-input="' + button.dataset.imageClear + '"]').value = '';
+            const text = document.createElement('span'); text.className = 'text-secondary'; text.textContent = defaultLabel;
+            owner.querySelector('[data-image-preview="' + button.dataset.imageClear + '"]').replaceChildren(text);
+        }));
+    });
     dialog.querySelector('[data-theme-image-close]').addEventListener('click', () => dialog.close());
     dialog.addEventListener('close', () => {++requestId; trigger?.focus();});
     search.addEventListener('submit', event => {event.preventDefault(); load(true);});

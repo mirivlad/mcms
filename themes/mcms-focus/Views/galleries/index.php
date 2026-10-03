@@ -1,0 +1,7 @@
+<?= $this->extend('MCMS\\Themes\\Focus\\Views\\layout') ?>
+<?= $this->section('content') ?>
+<div class="site-container site-collection-shell"><header class="site-section-heading"><p class="site-eyebrow"><?= esc($siteName) ?></p><h1><?= esc(lang('Galleries.Public.title')) ?><span class="site-heading-dot" aria-hidden="true">.</span></h1><p class="site-lead"><?= esc(lang('Focus.galleryLead')) ?></p></header>
+<?php if ($albums === []): ?><div class="site-empty"><h2><?= esc(lang('Focus.emptyTitle')) ?></h2><p><?= esc(lang('Galleries.Public.empty')) ?></p></div><?php else: ?><?= view('MCMS\\Themes\\Focus\\Views\\galleries\\_cards', ['albums' => $albums]) ?><?php endif ?>
+<?php if ($lastPage > 1): ?><nav class="site-pagination" aria-label="<?= esc(lang('Galleries.Public.title'), 'attr') ?>"><span><?php if ($page > 1): ?><a class="site-button site-button-secondary" href="<?= site_url('galleries') ?>?page=<?= $page - 1 ?>">← <?= esc(lang('MCMS.common.previousPage')) ?></a><?php endif ?></span><span><?= esc(lang('Focus.page')) ?> <?= (int) $page ?> / <?= (int) $lastPage ?></span><span><?php if ($page < $lastPage): ?><a class="site-button site-button-secondary" href="<?= site_url('galleries') ?>?page=<?= $page + 1 ?>"><?= esc(lang('MCMS.common.nextPage')) ?> →</a><?php endif ?></span></nav><?php endif ?>
+</div>
+<?= $this->endSection() ?>

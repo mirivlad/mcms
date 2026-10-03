@@ -24,6 +24,7 @@ final class ThemeManifest
         public readonly ?string $screenshot,
         public readonly array $templates,
         public readonly array $menuLocations,
+        public readonly array $homeDefaults,
         public readonly string $path,
     ) {
     }
@@ -87,6 +88,7 @@ final class ThemeManifest
             $screenshot,
             $templates,
             $menuLocations,
+            self::homeDefaults($data['home_defaults'] ?? []),
             dirname($manifestPath),
         );
     }
@@ -104,6 +106,27 @@ final class ThemeManifest
     public function assetBaseUrl(): string
     {
         return 'assets/themes/' . rawurlencode($this->id) . '/';
+    }
+
+    private static function homeDefaults(mixed $raw): array
+    {
+        if (! is_array($raw)) {
+            throw new InvalidArgumentException('Theme home_defaults must be an object.');
+        }
+        foreach ($raw as $key => $value) {
+            if (in_array($key, ['show_news', 'show_galleries'], true)) {
+                if (! is_bool($value)) {
+                    throw new InvalidArgumentException('Theme Home section defaults must be booleans.');
+                }
+            } elseif (! in_array($key, ['eyebrow', 'title', 'description', 'button_label', 'button_url', 'intro_title', 'intro_text'], true)
+                || ! is_string($value)) {
+                throw new InvalidArgumentException('Invalid theme Home default.');
+            }
+        }
+        if ($raw !== [] && trim((string) ($raw['title'] ?? '')) === '') {
+            throw new InvalidArgumentException('An editable theme Home requires a title.');
+        }
+        return $raw;
     }
 
     private static function requiredString(array $data, string $key, string $manifestPath): string

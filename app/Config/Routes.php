@@ -26,6 +26,7 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->get('themes', 'Admin\Themes::index', ['as' => 'admin.themes']);
     $routes->get('themes/images', 'Admin\Themes::images');
     $routes->post('themes/(:segment)/appearance', 'Admin\Themes::appearance/$1');
+    $routes->post('themes/(:segment)/home', 'Admin\Themes::home/$1');
     $routes->match(['get', 'post'], 'themes/(:segment)', 'Admin\Themes::configure/$1');
     $routes->post('themes/(:segment)/activate', 'Admin\Themes::activate/$1');
     $routes->get('system', 'Admin\System::index', ['as' => 'admin.system']);

@@ -148,11 +148,21 @@ Themes declare:
 - a stable ID, version and namespace;
 - logical view templates such as `home`, `page`, `news.index` and `news.article`;
 - optional metadata such as author and screenshot;
+- optional `home_defaults` for an editable built-in Home;
 - supported menu locations, each with a label and optional maximum depth.
 
 Modules request logical templates through `ThemeManager::render()` and may
 provide their own fallback view. This keeps domain modules independent of any
 concrete theme while allowing the active theme to override public presentation.
+
+Depth and Focus declare editable Home defaults. Core stores their text, button,
+cover Media ID and News/Galleries visibility flags per theme in `Core.themeHome`.
+`ThemeManager` supplies resolved `themeHome` data and an `isThemeHome` flag to
+views. The existing `ThemeImageSourceInterface` resolves covers; unavailable
+images fall back to the theme asset without deleting the assignment. Media usage
+inspection includes covers in inactive themes. Home settings accept escaped plain
+text and validated local, anchor or HTTP(S) button URLs. A published page selected
+in Pages settings still takes priority over the built-in Home.
 
 Theme menu locations are declarations only. Menu instances and menu trees remain
 owned by the Menus module. Core stores per-theme location assignments in
@@ -240,7 +250,7 @@ POSTs are serialized, updating CSRF before the next request or manual submission
 Core stores appearance per theme in Settings and exposes ThemeImageSourceInterface.
 Media implements the image source and reports theme assignments via its installed
 media.usage data provider. ThemeManager injects themeAppearance into public and
-preview views. Both bundled themes render custom branding and footer contacts;
+preview views. All bundled themes render custom branding and footer contacts;
 accent values accept only six-digit hex colors, and contact output is escaped.
 Missing/disabled image sources preserve assignments and render theme defaults.
 

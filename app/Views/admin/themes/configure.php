@@ -46,6 +46,7 @@
     </div>
 
     <div class="col-lg-8">
+        <?php if ($theme->homeDefaults !== []): ?><?= view('admin/themes/home') ?><?php endif ?>
         <?= view('admin/themes/appearance') ?>
         <form method="post" class="card">
             <?= csrf_field() ?>

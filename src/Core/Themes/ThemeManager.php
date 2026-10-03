@@ -91,6 +91,7 @@ final class ThemeManager
 
     public function render(string $logicalTemplate, array $data = [], ?string $fallbackView = null): string
     {
+        $data['isThemeHome'] = $logicalTemplate === 'home';
         foreach (service('mcmsModuleServices')->all() as $provider) {
             if ($provider instanceof PageMetadataProviderInterface) {
                 $data = array_replace($data, $provider->metadata($logicalTemplate, $data));
@@ -206,6 +207,69 @@ final class ThemeManager
     public function images(string $query = '', int $offset = 0): array
     {
         return $this->imageSource()?->images($query, max(0, $offset)) ?? ['items' => [], 'count' => 0];
+    }
+
+    public function homeContent(?ThemeManifest $theme = null): array
+    {
+        $theme ??= $this->active();
+        $defaults = [
+            'eyebrow' => '', 'title' => '', 'description' => '', 'button_label' => '',
+            'button_url' => '#home-content', 'intro_title' => '', 'intro_text' => '',
+            'image_media_id' => null, 'show_news' => true, 'show_galleries' => true,
+        ];
+        foreach ($theme?->homeDefaults ?? [] as $key => $value) {
+            $defaults[$key] = is_string($value) ? $this->resolveText($value) : $value;
+        }
+        $all = $this->settings->get('Core.themeHome');
+        $stored = $theme !== null && is_array($all) ? ($all[$theme->id] ?? []) : [];
+        $values = array_replace($defaults, is_array($stored) ? array_intersect_key($stored, $defaults) : []);
+        $values['image'] = $this->imageSource()?->findImage((int) $values['image_media_id']);
+        return $values;
+    }
+
+    public function saveHomeContent(string $themeId, array $input): void
+    {
+        $theme = $this->find($themeId);
+        if ($theme === null || $theme->homeDefaults === []) {
+            throw new InvalidArgumentException(lang('MCMS.themes.homeUnavailable'));
+        }
+        $values = [];
+        foreach (['eyebrow' => 120, 'title' => 180, 'description' => 600, 'button_label' => 80,
+            'button_url' => 1000, 'intro_title' => 180, 'intro_text' => 600] as $key => $limit) {
+            if (isset($input[$key]) && ! is_string($input[$key])) {
+                throw new InvalidArgumentException(lang('MCMS.themes.invalidHome'));
+            }
+            $values[$key] = trim((string) ($input[$key] ?? ''));
+            if (mb_strlen($values[$key]) > $limit) {
+                throw new InvalidArgumentException(lang('MCMS.themes.invalidHome'));
+            }
+        }
+        if ($values['title'] === '') {
+            throw new InvalidArgumentException(lang('MCMS.themes.homeTitleRequired'));
+        }
+        $url = $values['button_url'];
+        if ($url !== '' && (preg_match('/[\x00-\x20\x7f\\\\]/', $url)
+            || ! ((str_starts_with($url, '/') && ! str_starts_with($url, '//'))
+                || preg_match('/^#[A-Za-z][A-Za-z0-9_.:-]*$/', $url)
+                || (preg_match('/^https?:\/\//i', $url) && filter_var($url, FILTER_VALIDATE_URL))))) {
+            throw new InvalidArgumentException(lang('MCMS.themes.invalidHomeUrl'));
+        }
+        $current = $this->homeContent($theme);
+        $rawId = $input['image_media_id'] ?? null;
+        $id = $rawId === null || $rawId === '' || $rawId === '0' || $rawId === 0 ? null : filter_var($rawId, FILTER_VALIDATE_INT);
+        $source = $this->imageSource();
+        if ($id !== null && ($id === false || $id <= 0
+            || ($source === null ? $id !== $current['image_media_id'] : $source->findImage($id) === null))) {
+            throw new InvalidArgumentException(lang('MCMS.themes.invalidImage'));
+        }
+        $values['image_media_id'] = $id;
+        foreach (['show_news', 'show_galleries'] as $key) {
+            $values[$key] = in_array($input[$key] ?? null, [true, 1, '1'], true);
+        }
+        $all = $this->settings->get('Core.themeHome');
+        $all = is_array($all) ? $all : [];
+        $all[$themeId] = $values;
+        $this->settings->set('Core.themeHome', $all);
     }
 
     public function imagesAvailable(): bool
@@ -343,6 +407,9 @@ final class ThemeManager
 
         $data['theme'] = $theme;
         $data['themeAppearance'] = $this->appearance($theme);
+        if ($theme !== null && $theme->homeDefaults !== []) {
+            $data['themeHome'] = $this->homeContent($theme);
+        }
 
         if ($theme !== null) {
             $data['themeAssets'] = site_url($theme->assetBaseUrl());

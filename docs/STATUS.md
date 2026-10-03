@@ -19,6 +19,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - HTTPS reverse-proxy support and standard CodeIgniter error views.
 - Theme discovery, manifest validation, activation and logical template rendering.
 - Per-theme menu-location assignments through the Core navigation source contract.
+- Per-theme built-in Home text, button, cover and section settings for themes declaring `home_defaults`.
 
 ## First-party modules
 
@@ -70,7 +71,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Stable-ID gallery shortcodes in Pages/News/Home, following live publication state.
 - Gallery buttons in Pages/News editors: published-album search, pagination and insertion at the saved cursor or selection.
 - Grid, banner-slider, carousel and captioned-card views selected per insertion; the album editor generates each shortcode.
-- Shared display assets in both first-party themes and Pages/News fallbacks; independent slider state, keyboard controls and responsive layouts.
+- Shared display assets in all first-party themes and Pages/News fallbacks; independent slider state, keyboard controls and responsive layouts.
 - Disabled albums preserve data and remain visible to Media usage inspection.
 
 ### Feedback 0.1.0
@@ -115,17 +116,27 @@ This document records the current known-good mCMS implementation checkpoint.
 - Native mobile/submenu disclosures, skip link, focus indicators and reduced-motion support.
 - Gallery dialog with arrow keys, Escape, captions, original-image fallback and focus restoration.
 
+### mCMS Depth / Focus 0.1.0
+
+- Two separate themes: deep blue landscape with orange accents, and a red/white magazine with a night-city cover.
+- Local generated WebP covers and a bundled Cyrillic Manrope font with its OFL license.
+- Complete Home, Pages, News, Galleries, Feedback and Search templates, including embedded galleries.
+- Editable built-in Home under Themes → theme settings: text, button, Media cover, introductory section and News/Galleries toggles.
+- Independent settings retained when switching themes; a selected published Pages Home keeps priority.
+- Shared Media usage inspection includes Home covers in inactive themes.
+- Native mobile navigation, keyboard gallery dialog, skip links, focus indicators and reduced-motion support.
+
 ## Menus ↔ themes
 
 - Assignments are managed from the Themes administration screen.
 - Assignments are persisted per theme in Core settings.
 - Only enabled menu items are supplied to public theme rendering.
 - Theme `max_depth` is enforced by Core before rendering.
-- Disabling Menus does not remove assignments or break the public theme; assigned navigation becomes empty until Menus is enabled again. Signature falls back to its automatic public navigation.
+- Disabling Menus does not remove assignments or break the public theme; assigned navigation becomes empty until Menus is enabled again. Signature, Depth and Focus fall back to automatic public navigation.
 
 ## Verification
 
-Fresh local verification for this checkpoint includes 66 tests / 572 assertions,
+Fresh local verification for this checkpoint includes 76 tests / 724 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
@@ -151,7 +162,19 @@ The checkpoint is covered by:
 - generic Pages/News → Menus internal-resource discovery and resolution checks;
 - News scheduling, sanitization, featured Media and public archive/article checks.
 
-SEO/preview checks additionally cover both themes, per-content overrides, tag-derived keywords, invalid-rule rejection, unchanged published content after preview, rotated CSRF tokens, create-only editor restrictions and draft-news dates. Preview UI was exercised on unauthenticated copies of real editor forms with fixture responses.
+SEO/preview HTTP checks additionally cover all four themes, per-content overrides, tag-derived keywords, invalid-rule rejection, unchanged published content after preview, rotated CSRF tokens, create-only editor restrictions and draft-news dates. Preview UI was exercised on unauthenticated copies of real editor forms with fixture responses.
+
+The Depth/Focus checkpoint also covers independent Home settings, escaped text,
+button URL validation, cover usage in inactive themes, image-source disablement and
+published Pages Home priority. The clean-install HTTP smoke exercises Home forms,
+invalid input recovery, section flags and permissions, plus public rendering,
+embedded galleries, search and assets for all four themes. Depth/Focus Home and
+content layouts were checked in an anonymous browser at desktop, 390px and 320px
+widths, including mobile menu Escape and gallery keyboard/focus behavior. The Home
+Media picker was exercised in an unauthenticated copy of the rendered form with
+fixture responses: cover/logo isolation, selection/reset and focus restoration.
+Catalog previews are actual screenshots from the temporary site. No live-server
+deployment is recorded by this checkpoint.
 
 ## Next sequence
 
@@ -184,7 +207,7 @@ references are protected by a database foreign key; taxonomy survives disablemen
 Public search at `/search/results` aggregates enabled Pages/News providers, searches
 titles/bodies/tags and excludes drafts and future news. Results are paginated in
 module groups, excerpts remove HTML/shortcodes and search pages are noindex. The
-two-segment route preserves existing root-level `/search` pages. Both themes expose
+two-segment route preserves existing root-level `/search` pages. All four themes expose
 search and taxonomy links. Verification includes migration up/down, category guards,
 filter-preserving pagination, literal wildcard queries, module disable/re-enable,
 real HTTP forms and unauthenticated category dialogs/public mobile search.
