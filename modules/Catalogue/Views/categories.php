@@ -1,0 +1,23 @@
+<?= $this->extend('layouts/admin') ?>
+<?= $this->section('content') ?>
+<?= view('MCMS\\Modules\\Catalogue\\Views\\category_assets') ?>
+<div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-4"><h1 class="page-title"><?= esc(lang('Catalogue.categories')) ?></h1><div class="d-flex gap-2"><a class="btn" href="<?= site_url('admin/catalogue') ?>"><?= esc(lang('Catalogue.back')) ?></a><?php if ($canCreate): ?><a class="btn btn-primary" href="<?= site_url('admin/catalogue/categories/create') ?>"><?= esc(lang('Catalogue.createCategory')) ?></a><?php endif ?></div></div>
+<p class="text-muted"><?= esc(lang('Catalogue.categoryTreeHint')) ?></p>
+<div class="card"><div class="list-group list-group-flush">
+<?php foreach ($categories as $category): ?>
+    <div class="list-group-item d-flex align-items-center gap-3 flex-wrap">
+        <div class="mcms-category-entry flex-fill" style="padding-inline-start:<?= min(6, $category['depth']) ?>rem">
+            <?= view('MCMS\\Modules\\Catalogue\\Views\\category_icon', ['category' => $category]) ?>
+            <div><strong><?= esc($category['name']) ?></strong><div class="text-muted small"><?= esc($category['path']) ?></div><a class="small" href="<?= site_url(ltrim($category['url'], '/')) ?>" target="_blank" rel="noopener"><?= esc($category['url']) ?></a></div>
+        </div>
+        <?php if ($canCreate): ?><a class="btn btn-sm" href="<?= site_url('admin/catalogue/categories/create') ?>?parent=<?= $category['id'] ?>"><?= esc(lang('Catalogue.addSubcategory')) ?></a><?php endif ?>
+        <?php if ($canEdit): ?><a class="btn btn-sm" href="<?= site_url('admin/catalogue/categories/' . $category['id'] . '/edit') ?>"><?= esc(lang('Catalogue.editCategory')) ?></a><?php endif ?>
+        <?php if ($canDelete): ?><button class="btn btn-sm btn-outline-danger" type="button" data-delete-category="<?= site_url('admin/catalogue/categories/' . $category['id'] . '/delete') ?>" data-title="<?= esc($category['name'], 'attr') ?>"><?= esc(lang('Catalogue.deleteCategory')) ?></button><?php endif ?>
+    </div>
+<?php endforeach ?>
+<?php if ($categories === []): ?><div class="card-body text-muted"><?= esc(lang('Catalogue.noCategories')) ?></div><?php endif ?>
+</div></div>
+<?php if ($canDelete): ?>
+<dialog class="mcms-category-dialog" data-delete-category-dialog aria-labelledby="delete-category-title"><h2 class="h3" id="delete-category-title"></h2><p><?= esc(lang('Catalogue.confirmCategoryDelete')) ?></p><form method="post"><?= csrf_field() ?><input type="hidden" name="confirm" value="1"><div class="d-flex justify-content-end gap-2"><button class="btn" type="button" data-close-dialog><?= esc(lang('Catalogue.cancel')) ?></button><button class="btn btn-danger" type="submit"><?= esc(lang('Catalogue.deleteCategory')) ?></button></div></form></dialog>
+<?php endif ?>
+<?= $this->endSection() ?>

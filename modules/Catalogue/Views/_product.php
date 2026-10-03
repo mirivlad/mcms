@@ -10,7 +10,7 @@
                 </div>
             <?php else: ?><div class="mcms-product-hero mcms-product-placeholder"><?= esc(lang('Catalogue.noPhoto')) ?></div><?php endif ?>
         </div>
-        <div class="mcms-product-info"><p class="mcms-shop-eyebrow"><?= esc($product['category']) ?></p><h1><?= esc($product['title']) ?></h1><p class="mcms-product-summary"><?= nl2br(esc($product['summary'])) ?></p>
+        <div class="mcms-product-info"><p class="mcms-shop-eyebrow"><?php if ($product['category_url'] !== null): ?><a href="<?= esc(site_url(ltrim($product['category_url'], '/')), 'attr') ?>"><?= esc($product['category']) ?></a><?php endif ?></p><h1><?= esc($product['title']) ?></h1><p class="mcms-product-summary"><?= nl2br(esc($product['summary'])) ?></p>
             <?php if ($product['variants'] !== []): $variant = $product['variants'][0]; ?>
                 <p class="mcms-product-price" data-variant-price><?= esc($variant['price_display']) ?></p><p class="mcms-shop-sku"><?= esc(lang('Catalogue.sku')) ?>: <span data-variant-sku><?= esc($variant['sku']) ?></span></p>
                 <?php if (count($product['variants']) > 1): ?><label for="shop-variant" class="form-label"><?= esc(lang('Catalogue.chooseVariant')) ?></label><select id="shop-variant" class="form-select" data-variant-select><?php foreach ($product['variants'] as $option): ?><option value="<?= $option['id'] ?>" data-price="<?= esc($option['price_display'], 'attr') ?>" data-sku="<?= esc($option['sku'], 'attr') ?>"><?= esc($option['label'] ?: $option['sku']) ?></option><?php endforeach ?></select><?php endif ?>

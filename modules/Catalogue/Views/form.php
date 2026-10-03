@@ -43,8 +43,8 @@ $status = old('status', $product['status'] ?? 'draft');
             <label class="form-label" for="product-status"><?= esc(lang('Catalogue.status')) ?></label>
             <select class="form-select mb-3" id="product-status" name="status"><?php foreach (['draft', 'published'] as $value): ?><option value="<?= $value ?>" <?= $status === $value ? 'selected' : '' ?>><?= esc(lang('Catalogue.' . $value)) ?></option><?php endforeach ?></select>
             <label class="form-label" for="product-category"><?= esc(lang('Catalogue.category')) ?></label>
-            <input class="form-control mb-3" id="product-category" name="category" maxlength="120" list="product-categories" value="<?= esc(old('category', $product['category'] ?? ''), 'attr') ?>">
-            <datalist id="product-categories"><?php foreach ($categories as $name): ?><option value="<?= esc($name, 'attr') ?>"><?php endforeach ?></datalist>
+            <select class="form-select mb-2" id="product-category" name="category_id"><option value=""><?= esc(lang('Catalogue.noCategory')) ?></option><?php foreach ($categories as $item): ?><option value="<?= $item['id'] ?>" <?= (string) old('category_id', $product['category_id'] ?? '') === (string) $item['id'] ? 'selected' : '' ?>><?= esc($item['path']) ?></option><?php endforeach ?></select>
+            <a class="d-block mb-3" href="<?= site_url('admin/catalogue/categories') ?>"><?= esc(lang('Catalogue.manageCategories')) ?></a>
             <button class="btn btn-primary w-100" type="submit" data-product-save><?= esc(lang('Catalogue.save')) ?></button>
             <?php if ($product !== null && $product['status'] === 'published'): ?><a href="<?= site_url(ltrim($product['url'], '/')) ?>" class="btn w-100 mt-2" target="_blank" rel="noopener"><?= esc(lang('Catalogue.open')) ?></a><?php endif ?>
         </div></div></div>

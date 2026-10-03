@@ -8,21 +8,34 @@ use App\Controllers\BaseController;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\ResponseInterface;
 use MCMS\Modules\Catalogue\Api\CatalogueInterface;
+use MCMS\Modules\Catalogue\Services\Categories;
 
 final class Shop extends BaseController
 {
     public function index(): string
     {
+        return $this->listing();
+    }
+
+    public function category(string $slug): string
+    {
+        $category = $this->categories()->bySlug($slug) ?? throw PageNotFoundException::forPageNotFound();
+        return $this->listing($category);
+    }
+
+    private function listing(?array $selectedCategory = null): string
+    {
         $query = mb_substr(trim((string) $this->request->getGet('q')), 0, 200);
-        $category = mb_substr(trim((string) $this->request->getGet('category')), 0, 120);
+        $category = $selectedCategory['slug'] ?? mb_substr(trim((string) $this->request->getGet('category')), 0, 190);
         $count = $this->catalogue()->count($query, 'published', $category);
         $lastPage = max(1, (int) ceil($count / 24));
         $page = min($lastPage, max(1, (int) $this->request->getGet('page')));
         return service('mcmsThemes')->render('catalogue.index', [
             'products' => $this->catalogue()->list($query, 'published', 24, ($page - 1) * 24, $category),
             'query' => $query, 'category' => $category, 'categories' => $this->catalogue()->categories(true),
+            'selectedCategory' => $selectedCategory,
             'count' => $count, 'page' => $page, 'lastPage' => $lastPage,
-            'metaTitle' => lang('Catalogue.name') . ' · ' . setting('Core.siteName'),
+            'metaTitle' => ($selectedCategory['name'] ?? lang('Catalogue.name')) . ' · ' . setting('Core.siteName'),
         ], 'MCMS\\Modules\\Catalogue\\Views\\public_index');
     }
 
@@ -52,11 +65,25 @@ final class Shop extends BaseController
 
     public function asset(string $name): ResponseInterface
     {
-        $types = ['shop.css' => 'text/css; charset=UTF-8', 'shop.js' => 'text/javascript; charset=UTF-8'];
+        $types = ['shop.css' => 'text/css; charset=UTF-8', 'shop.js' => 'text/javascript; charset=UTF-8',
+            'categories.css' => 'text/css; charset=UTF-8', 'categories.js' => 'text/javascript; charset=UTF-8',
+            'tabler-icons.json' => 'application/json'];
         if (! isset($types[$name])) {
             throw PageNotFoundException::forPageNotFound();
         }
         return $this->response->setHeader('Content-Type', $types[$name])->setBody(file_get_contents(dirname(__DIR__) . '/assets/' . $name));
+    }
+
+    public function categoryIcon(int $id): ResponseInterface
+    {
+        $path = $this->categories()->imageFile($id) ?? throw PageNotFoundException::forPageNotFound();
+        return $this->response->setHeader('Content-Type', 'image/webp')->setHeader('X-Content-Type-Options', 'nosniff')
+            ->setHeader('Cache-Control', 'no-cache')->setBody(file_get_contents($path));
+    }
+
+    private function categories(): Categories
+    {
+        return service('mcmsModuleServices')->get('catalogue.categories');
     }
 
     private function catalogue(): CatalogueInterface

@@ -33,8 +33,7 @@ final class Catalogue implements CatalogueInterface
 
     public function categories(bool $publishedOnly = false): array
     {
-        return array_column($this->builder('', $publishedOnly ? 'published' : null, '')
-            ->select('category')->where('category !=', '')->distinct()->orderBy('category')->get()->getResultArray(), 'category');
+        return (new Categories($this->db))->list($publishedOnly);
     }
 
     public function find(int $id): ?array
@@ -106,8 +105,13 @@ final class Catalogue implements CatalogueInterface
             $seenSkus[] = mb_strtolower($sku);
             $seenIds[] = $variantId;
         }
+        $categoryId = trim((string) ($data['category_id'] ?? ''));
+        $category = $categoryId === '' ? null : (new Categories($this->db))->find((int) $categoryId);
+        if ($categoryId !== '' && (preg_match('/^[1-9][0-9]*$/', $categoryId) !== 1 || $category === null)) {
+            throw new InvalidArgumentException(lang('Catalogue.categoryNotFound'));
+        }
         $record = ['title' => $title, 'slug' => $slug, 'status' => $status, 'image_set_id' => $setId,
-            'category' => mb_substr(trim((string) ($data['category'] ?? '')), 0, 120),
+            'category_id' => $category['id'] ?? null, 'category' => $category['name'] ?? '',
             'summary' => mb_substr(strip_tags((string) ($data['summary'] ?? '')), 0, 2000),
             'body' => (new HtmlSanitizer())->sanitize(mb_substr((string) ($data['body'] ?? ''), 0, 100000)),
             'updated_at' => date('Y-m-d H:i:s')];
@@ -172,7 +176,14 @@ final class Catalogue implements CatalogueInterface
             $builder->where('status', $status);
         }
         if ($category !== '') {
-            $builder->where('category', $category);
+            $categories = new Categories($this->db);
+            $selected = $categories->bySlug($category);
+            if ($selected === null) {
+                // Old bookmarks used a label in the query string.
+                $row = $this->db->table('catalogue_categories')->where('name', $category)->get()->getRowArray();
+                $selected = $row;
+            }
+            $builder->whereIn('category_id', $selected === null ? [0] : $categories->descendants((int) $selected['id']));
         }
         return $builder;
     }
@@ -180,6 +191,8 @@ final class Catalogue implements CatalogueInterface
     private function decorate(array $row): array
     {
         $row['id'] = (int) $row['id'];
+        $row['category_id'] = $row['category_id'] === null ? null : (int) $row['category_id'];
+        $row['category_url'] = $row['category_id'] === null ? null : (new Categories($this->db))->find($row['category_id'])['url'];
         $row['url'] = '/shop/' . $row['slug'];
         $row['updated_at'] = max($row['updated_at'], $this->images->updatedAt($row['image_set_id']));
         $row['images'] = $this->images->images($row['image_set_id']);

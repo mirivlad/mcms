@@ -4,11 +4,25 @@ Enable **Catalogue** in Administration → Modules. ProductImages is enabled as 
 sole dependency. The product editor is at `/admin/catalogue`, the public catalogue
 at `/shop`. Media and Galleries can remain disabled.
 
-Products have a unique address, title, category label, descriptions and publication
+Products have a unique address, title, category, descriptions and publication
 status. Add one variant for a regular product, or several variants for sizes/colors.
 Each variant has a stable ID, unique uppercase SKU and a RUB price in integer
 kopecks. Input accepts a dot or comma and at most two decimal places. Updating an
-existing variant retains its ID. Categories are flat labels in this first stage.
+existing variant retains its ID. Categories are managed at `/admin/catalogue/categories`, with a parent, unique slug
+and an uploaded JPEG/PNG/WebP image or a Tabler icon selected in a searchable modal.
+Tabler icons support a color picker. Images are resized to at most 256 pixels,
+retain transparency, and live privately in the existing ProductImages volume.
+The image limit is 5 MiB and 12 megapixels. Category images are public via Catalogue.
+
+Products select one category from the tree. `/shop/category/{slug}` includes products
+from the selected category and all descendants. Category pages participate in Menus,
+sitemap and slug-change redirects. Public navigation includes categories with
+published products and their ancestors. Delete is blocked while a category has
+products (including drafts) or children; moving a category under its descendant is
+blocked. Existing text labels migrate to root categories without losing product
+associations; their generated `category-N` slugs can be edited.
+The committed `assets/tabler-icons.json` lists the icons from the web image's
+`@tabler/icons-webfont@3.48.0`; update that index when upgrading the bundled font.
 
 The photo section provides multi-file selection/drop uploads with per-file progress,
 crop/resize from retained originals, main selection, drag-and-drop ordering,

@@ -71,6 +71,43 @@ if not args.cookies:
                      'password': 'Local-Commerce-2026!', 'password_confirm': 'Local-Commerce-2026!'}, '/install')
 module('catalogue')
 module('seo')
+categories_path = '/admin/catalogue/categories'
+assert 'Manage categories' in page('/admin/catalogue')
+assert 'Add category' in page(categories_path)
+
+
+def save_category(fields, category_id=None, image=None):
+    path = categories_path + ('/create' if category_id is None else f'/{category_id}/edit')
+    fields = {**fields, 'csrf_test_name': token(page(path))}
+    if image is None:
+        body = urllib.parse.urlencode(fields).encode()
+        headers = {}
+    else:
+        boundary = 'MCMSCategorySmokeBoundary'
+        body = bytearray()
+        for key, value in fields.items():
+            body.extend(('--' + boundary + '\r\nContent-Disposition: form-data; name="' + key + '"\r\n\r\n' + str(value) + '\r\n').encode())
+        body.extend(('--' + boundary + '\r\nContent-Disposition: form-data; name="image"; filename="category.png"\r\nContent-Type: image/png\r\n\r\n').encode())
+        body.extend(image)
+        body.extend(('\r\n--' + boundary + '--\r\n').encode())
+        headers = {'Content-Type': 'multipart/form-data; boundary=' + boundary}
+    response, url = request(path, bytes(body), headers)
+    assert 'Category saved.' in response.decode(), response.decode()[-3000:]
+    return int(re.search(r'/categories/(\d+)/edit', url)[1])
+
+
+root_fields = {'name': 'Drinks', 'slug': 'drinks', 'parent_id': '', 'icon_type': 'tabler', 'icon': 'cup', 'icon_color': '#e24c27'}
+root_id = save_category(root_fields)
+child_fields = {'name': 'Coffee', 'slug': 'coffee', 'parent_id': root_id, 'icon_type': 'image', 'icon': 'coffee', 'icon_color': '#206bc4'}
+child_id = save_category(child_fields, image=png(30, 98, 130))
+category_editor = page(categories_path + f'/{child_id}/edit')
+assert f'value="{root_id}" selected' in category_editor and 'name="icon_type"' in category_editor
+assert 'data-open-icon-picker' in category_editor and 'type="color"' in category_editor
+icon_bytes = request(f'/shop/category-icons/{child_id}', anonymous=True)[0]
+assert icon_bytes.startswith(b'RIFF') and icon_bytes[8:12] == b'WEBP'
+assert len(json.loads(request('/shop/assets/tabler-icons.json', anonymous=True)[0])) > 5000
+category_form_fixture = page(categories_path + '/create')
+category_list_fixture = page(categories_path)
 editor = page('/admin/catalogue/create')
 assert 'Product photos' in editor and 'data-drop-zone' in editor and 'data-add-variant' in editor
 set_id = re.search(r'name="image_set_id" value="([a-f0-9]+)"', editor)[1]
@@ -113,7 +150,7 @@ image_post(f'{second}/crop', {'x': 100, 'y': 50, 'width': 300, 'height': 300, 's
 image_post('arrange', {'ids': [third, second, first], 'main_id': second})
 image_post('arrange', {'ids': [second], 'main_id': second}, expect_error=True)
 fields = {'title': 'Workshop coffee', 'slug': 'workshop-coffee', 'summary': 'Roasted beans for a slow morning.',
-          'body': '<p>Fresh roast. Two sizes.</p><script>bad()</script>', 'category': 'Coffee', 'status': 'draft', 'image_set_id': set_id,
+          'body': '<p>Fresh roast. Two sizes.</p><script>bad()</script>', 'category_id': child_id, 'status': 'draft', 'image_set_id': set_id,
           'variants[0][id]': '0', 'variants[0][sku]': 'COFFEE-250', 'variants[0][label]': '250 g', 'variants[0][price]': '1250,05',
           'variants[1][id]': '0', 'variants[1][sku]': 'COFFEE-500', 'variants[1][label]': '500 g', 'variants[1][price]': '2400'}
 response, url = request('/admin/catalogue/create', urllib.parse.urlencode({**fields, 'csrf_test_name': csrf}).encode())
@@ -146,6 +183,39 @@ listing = html.unescape(request('/shop', anonymous=True)[0].decode())
 assert f'/images/{second}/display' in listing
 assert 'Workshop coffee' in request('/search/results?q=Workshop', anonymous=True)[0].decode()
 assert '/shop/workshop-coffee' in request('/sitemap.xml', anonymous=True)[0].decode()
+assert f'value="{child_id}" selected' in page(edit_path)
+root_page = html.unescape(request('/shop/category/drinks', anonymous=True)[0].decode())
+assert 'Workshop coffee' in root_page and 'ti-cup' in root_page and '#e24c27' in root_page
+assert f'/shop/category-icons/{child_id}' in root_page
+assert 'Workshop coffee' in request('/shop/category/coffee', anonymous=True)[0].decode()
+assert 'Workshop coffee' in request('/shop?category=drinks', anonymous=True)[0].decode()
+assert 'Workshop coffee' not in request('/shop?category=missing', anonymous=True)[0].decode()
+assert '/shop/category/drinks' in request('/sitemap.xml', anonymous=True)[0].decode()
+# The server rejects cycles even if a client forges an unavailable parent option.
+cycle = post(categories_path + f'/{root_id}/edit', {**root_fields, 'parent_id': child_id}, categories_path + f'/{root_id}/edit')
+assert 'A category cannot be its own parent' in cycle
+assert 'Move products and subcategories first.' in post(categories_path + f'/{root_id}/delete', {'confirm': 1}, categories_path)
+assert 'Move products and subcategories first.' in post(categories_path + f'/{child_id}/delete', {'confirm': 1}, categories_path)
+# Changing the name or slug retains the product association and redirects the old URL.
+child_fields.update(name='Roasted coffee', slug='roasted-coffee')
+save_category(child_fields, child_id)
+assert request('/shop/category/coffee', anonymous=True)[1].endswith('/shop/category/roasted-coffee')
+assert 'Roasted coffee' in page(edit_path)
+assert 'Workshop coffee' in request('/shop/category/drinks', anonymous=True)[0].decode()
+not_public('/shop/category/missing-category')
+# Replacing an image changes the public revision; switching to Tabler removes it.
+replaced_editor = html.unescape(page(categories_path + f'/{child_id}/edit'))
+old_revision = re.search(r'/shop/category-icons/[^" ]+', replaced_editor)[0]
+save_category(child_fields, child_id, png(220, 50, 30))
+assert old_revision not in html.unescape(page(categories_path + f'/{child_id}/edit'))
+save_category({**child_fields, 'icon_type': 'tabler', 'icon': 'coffee', 'icon_color': '#123abc'}, child_id)
+not_public(f'/shop/category-icons/{child_id}')
+assert 'ti-coffee' in request('/shop/category/roasted-coffee', anonymous=True)[0].decode()
+# Empty categories can be removed through the confirmed form, including their image.
+empty_id = save_category({**child_fields, 'name': 'Empty', 'slug': 'empty', 'parent_id': ''}, image=png(1, 2, 3))
+assert 'Category deleted.' in post(categories_path + f'/{empty_id}/delete', {'confirm': 1}, categories_path)
+not_public(f'/shop/category-icons/{empty_id}')
+not_public('/shop/category/empty')
 # Repeat processing and replacement retain IDs, order and main image after saving.
 csrf = token(page(edit_path))
 image_post('upload', {'replace_id': first}, file=png(120, 68, 46), name='new-front.png')
@@ -168,6 +238,7 @@ for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     rendered = request('/shop/artisan-coffee', anonymous=True)[0].decode()
     assert f'data-theme="{theme}"' in rendered and 'data-product-gallery' in rendered
     assert 'Workshop coffee' in request('/shop', anonymous=True)[0].decode()
+    assert 'Workshop coffee' in request('/shop/category/drinks', anonymous=True)[0].decode()
     public_saved[theme] = rendered
 module('catalogue', 'disable')
 not_public('/shop')
@@ -184,6 +255,8 @@ if args.artifacts:
     for cookie in jar: evidence_jar.set_cookie(cookie)
     evidence_jar.save(ignore_discard=True, ignore_expires=True)
     (destination / 'editor.html').write_text(reopened)
+    (destination / 'category-form.html').write_text(category_form_fixture)
+    (destination / 'categories.html').write_text(category_list_fixture)
     (destination / 'config.json').write_text(json.dumps(json.loads(html.unescape(re.search(r'data-config="([^"]+)"', reopened)[1]))))
     for theme, rendered in public_saved.items():
         (destination / (theme + '.html')).write_text(rendered)
@@ -242,4 +315,4 @@ not_public('/shop/delete-fixture')
 if args.cookies:
     for name in ('media', 'news', 'galleries'):
         module(name)
-print('Catalogue HTTP smoke passed: upload/crop/order/main/replace/remove, variants/prices, draft privacy, SEO/search, Media independence, four themes, disable/re-enable and deletion.')
+print('Catalogue HTTP smoke passed: upload/crop/order/main/replace/remove, variants/prices, nested categories/icons/colors/images/guards/redirects, draft privacy, SEO/search, Media independence, four themes, disable/re-enable and deletion.')

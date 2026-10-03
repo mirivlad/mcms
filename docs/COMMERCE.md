@@ -5,8 +5,16 @@ Status: Catalogue and ProductImages implemented; Cart/Orders/Stock/Delivery rema
 ## First-stage data contracts
 
 - `Catalogue` depends only on `product-images`; neither depends on Media or Galleries.
-- A product has a permanent numeric ID, unique slug, title, category label,
+- A product has a permanent numeric ID, unique slug, title, optional category ID,
   short/plain description, sanitized HTML description and draft/published status.
+- Catalogue owns a category tree with stable IDs, optional parents and globally
+  unique editable slugs. Categories use a searchable Tabler icon picker and color,
+  or a JPEG/PNG/WebP upload (5 MiB, 12 megapixels, resized to at most 256 pixels).
+  Category icon files use Catalogue's `category-icons` directory inside the
+  existing private ProductImages storage volume; Catalogue serves those icons.
+  Each product selects one category; parent pages include descendant products.
+  Existing category labels migrate without losing assignments. Cycles and deletion
+  of categories containing products or children are rejected.
 - Each product has at least one variant. A variant has a stable ID, globally
   unique uppercase SKU, a label (e.g. size/color) and its own price. A single unnamed
   variant is the normal product without options. Removed variant IDs are never

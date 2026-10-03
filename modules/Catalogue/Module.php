@@ -9,6 +9,8 @@ use MCMS\Core\Modules\ModuleContext;
 use MCMS\Core\Modules\ModuleProviderInterface;
 use MCMS\Modules\Catalogue\Navigation\Archive;
 use MCMS\Modules\Catalogue\Navigation\Products;
+use MCMS\Modules\Catalogue\Navigation\Categories as CategoryNavigation;
+use MCMS\Modules\Catalogue\Services\Categories;
 use MCMS\Modules\Catalogue\Services\Catalogue;
 use MCMS\Modules\Catalogue\Services\PublicSearch;
 
@@ -18,22 +20,32 @@ final class Module implements ModuleProviderInterface
     {
         $repository = new Catalogue(db_connect(), $context->services->get('product-images.library'));
         $context->services->register('catalogue.repository', $repository);
+        $categories = new Categories(db_connect());
+        $context->services->register('catalogue.categories', $categories);
         $context->services->register('catalogue.search', new PublicSearch($repository));
         $context->navigation->register(new Archive());
         $context->navigation->register(new Products($repository));
+        $context->navigation->register(new CategoryNavigation($categories));
         $context->admin->addMenu('catalogue', '@Catalogue.name', '/admin/catalogue', 'ti ti-building-store', 'catalogue.view', 65, group: 'commerce');
+        $context->admin->addMenu('catalogue-categories', '@Catalogue.categories', '/admin/catalogue/categories', 'ti ti-folders', 'catalogue.view', 66, group: 'commerce');
     }
 
     public function routes(RouteCollection $routes): void
     {
         $routes->group('admin/catalogue', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::index');
+            $routes->get('categories', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::index');
+            $routes->match(['get', 'post'], 'categories/create', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::create');
+            $routes->match(['get', 'post'], 'categories/(:num)/edit', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::edit/$1');
+            $routes->post('categories/(:num)/delete', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::delete/$1');
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::create');
             $routes->match(['get', 'post'], '(:num)/edit', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::edit/$1');
             $routes->post('(:num)/delete', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::delete/$1');
         });
         $routes->get('shop/assets/(:segment)', '\\MCMS\\Modules\\Catalogue\\Controllers\\Shop::asset/$1');
         $routes->get('shop', '\\MCMS\\Modules\\Catalogue\\Controllers\\Shop::index');
+        $routes->get('shop/category/(:segment)', '\\MCMS\\Modules\\Catalogue\\Controllers\\Shop::category/$1');
+        $routes->get('shop/category-icons/(:num)', '\\MCMS\\Modules\\Catalogue\\Controllers\\Shop::categoryIcon/$1');
         $routes->get('shop/(:segment)/images/(:num)/(:segment)', '\\MCMS\\Modules\\Catalogue\\Controllers\\Shop::image/$1/$2/$3');
         $routes->get('shop/(:segment)', '\\MCMS\\Modules\\Catalogue\\Controllers\\Shop::show/$1');
     }

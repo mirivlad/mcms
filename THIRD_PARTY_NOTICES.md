@@ -41,6 +41,9 @@ THE SOFTWARE.
 
 Source package: `@tabler/icons-webfont@3.48.0`
 
+Catalogue's `assets/tabler-icons.json` is the icon-name index extracted from this
+version's CSS. The picker and public catalogue use the locally bundled webfont.
+
 The MIT License (MIT)
 
 Copyright (c) 2020-2026 Paweł Kuna

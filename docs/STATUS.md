@@ -94,14 +94,15 @@ This document records the current known-good mCMS implementation checkpoint.
 - Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
 - Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
-### ProductImages / Catalogue 0.1.0
+### ProductImages 0.1.0 / Catalogue 0.2.0
 
 - Catalogue depends only on ProductImages; Media/Galleries are independent.
 - Private persistent originals and generated WebP revisions, validated uploads,
   EXIF orientation, repeatable crop/scale, main photo and ordered image sets.
 - Product editor with multiple-file chooser/drop uploads, per-file progress/errors,
   crop dialog, drag-and-drop, keyboard/touch move buttons, replacement and removal.
-- Draft/published products, flat category labels and stable variants with unique
+- Draft/published products, nested categories with slugs and image/Tabler icons,
+  and stable variants with unique
   uppercase SKUs and integer RUB prices.
 - `/shop` listing/detail templates in all four themes, ordered thumbnails,
   enlarged gallery with keyboard/swipe controls and variant price/SKU selection.
@@ -219,7 +220,7 @@ The approved content workflow and first commerce stage are implemented. Catalogu
 and ProductImages work independently of Media/content Galleries, with a dedicated
 private storage volume, preserved originals, multiple photos, crop/resize, explicit
 main selection, drag-and-drop and keyboard/touch ordering, replacement/removal.
-Catalogue stores products, flat category labels, stable variants and integer RUB
+Catalogue stores products, nested categories, stable variants and integer RUB
 prices. All four themes render listing/detail pages, enlarged image galleries and
 variant selectors. Published product resources participate in search, navigation,
 sitemap and automatic slug redirects.
@@ -254,3 +255,14 @@ two-segment route preserves existing root-level `/search` pages. All four themes
 search and taxonomy links. Verification includes migration up/down, category guards,
 filter-preserving pagination, literal wildcard queries, module disable/re-enable,
 real HTTP forms and unauthenticated category dialogs/public mobile search.
+
+Catalogue 0.2.0 adds category trees, editable slugs, a visual Tabler picker with
+color selection, and independent category-image uploads. Existing text labels
+migrate into root categories while retaining product assignments. Parent sections
+include descendant products; categories participate in Menus, sitemap and slug
+redirects. Cycles and deletion of categories with products or children are blocked.
+Verification: 87 PHPUnit tests / 851 assertions; legacy migration up/down on SQLite
+and MariaDB; Docker HTTP smoke across all four themes, category CRUD, uploads,
+replacement, appearance switching, assignment, descendant filters and redirects.
+Anonymous copies of actual forms were checked in a browser for icon search/paging,
+selection/color, file preview, delete confirmation and 390px layouts without overflow.
