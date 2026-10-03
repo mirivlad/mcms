@@ -48,6 +48,16 @@ Core does not contain:
 
 Those belong in modules.
 
+## Product images in commerce
+
+The planned Catalogue/shop uses dedicated product images and works independently
+of Media and content Galleries. A separate product-image module owns image uploads,
+cropping, scaling, generated sizes and editing controls. Catalogue consumes its
+public service rather than Media APIs or another module's private tables.
+The module name, assignment schema and lifecycle remain part of the next commerce
+contract stage; see [commerce requirements](COMMERCE.md). No commerce runtime
+implementation is recorded here yet.
+
 ## Module lifecycle
 
 A module is code on disk plus a `module.json` manifest and a provider implementing

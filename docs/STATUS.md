@@ -178,12 +178,19 @@ deployment is recorded by this checkpoint.
 
 ## Next sequence
 
-The approved content workflow continues with autosave/recovery and revision history,
-per-theme branding settings, then categories/tags/filtering and public search.
-Commerce remains a separate contract-definition stage.
+The approved content workflow is complete. Commerce remains a separate
+contract-definition stage, documented in [commerce requirements](COMMERCE.md).
 
-1. Agree Catalogue product, variant, price and stock contracts.
-2. Implement commerce modules after that agreement.
+1. Inspect the CI4 Ferma shop and agree Catalogue product, variant, price, stock
+   and image contracts.
+2. Implement ProductImages for dedicated product images: multiple uploads,
+   cropping, scaling, main-image selection and drag-and-drop ordering.
+3. Integrate Catalogue and public product templates, then continue with commerce
+   modules against the accepted contracts.
+
+The shop has no Media/content Galleries dependency. ProductImages is a working
+module name; the accepted image requirements and proposed editing workflow are
+documented, and no commerce module implementation is claimed.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,
 paginated revision history and confirmed restoration into the editor. Content and its

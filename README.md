@@ -60,8 +60,14 @@ searches published Pages/News through Core provider contracts.
 
 The accepted content-workflow sequence is complete. The next implementation sequence is:
 
-1. Define Catalogue product/variant/price/stock contracts.
-2. Implement commerce modules against those accepted contracts.
+1. Inspect the CI4 Ferma shop and define Catalogue product/variant/price/stock/image contracts.
+2. Implement a separate ProductImages module with multiple uploads, cropping,
+   scaling and drag-and-drop ordering, then Catalogue and public product templates.
+3. Continue with Cart, Orders, Stock, Delivery and export/report adapters.
+
+The planned shop uses dedicated images and does not depend on Media or content Galleries.
+The proposed editor workflow and module boundary are recorded in
+[commerce requirements](docs/COMMERCE.md); commerce runtime modules are not implemented yet.
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,
