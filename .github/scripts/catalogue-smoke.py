@@ -72,7 +72,11 @@ if not args.cookies:
 module('catalogue')
 module('seo')
 categories_path = '/admin/catalogue/categories'
-assert 'Manage categories' in page('/admin/catalogue')
+store_fixture = page('/admin/catalogue')
+assert 'Store management' in store_fixture and 'Manage categories' in store_fixture and 'Manage products' in store_fixture
+products_fixture = page('/admin/catalogue/products')
+assert 'Back to store management' in products_fixture and 'Manage categories' not in products_fixture
+assert 'Back to store management' in page(categories_path)
 assert 'Add category' in page(categories_path)
 
 
@@ -110,6 +114,9 @@ category_form_fixture = page(categories_path + '/create')
 category_list_fixture = page(categories_path)
 editor = page('/admin/catalogue/create')
 assert 'Product photos' in editor and 'data-drop-zone' in editor and 'data-add-variant' in editor
+assert 'Manage categories' not in editor and '/admin/catalogue/products' in editor
+assert 'Upload an image' in category_form_fixture
+assert re.search(r'<div[^>]*data-image-fields[^>]*>', category_form_fixture)[0].find('hidden') == -1
 set_id = re.search(r'name="image_set_id" value="([a-f0-9]+)"', editor)[1]
 csrf = token(editor)
 images_base = '/admin/product-images/' + set_id
@@ -256,6 +263,8 @@ if args.artifacts:
     evidence_jar.save(ignore_discard=True, ignore_expires=True)
     (destination / 'editor.html').write_text(reopened)
     (destination / 'category-form.html').write_text(category_form_fixture)
+    (destination / 'store.html').write_text(store_fixture)
+    (destination / 'products.html').write_text(products_fixture)
     (destination / 'categories.html').write_text(category_list_fixture)
     (destination / 'config.json').write_text(json.dumps(json.loads(html.unescape(re.search(r'data-config="([^"]+)"', reopened)[1]))))
     for theme, rendered in public_saved.items():
@@ -308,7 +317,7 @@ deletion_fields = {**fields, 'title': 'Delete fixture', 'slug': 'delete-fixture'
                    'variants[0][id]': 0, 'variants[0][sku]': 'DELETE-250', 'variants[1][id]': 0, 'variants[1][sku]': 'DELETE-500'}
 _, delete_url = request('/admin/catalogue/create', urllib.parse.urlencode({**deletion_fields, 'csrf_test_name': token(new_editor)}).encode())
 delete_id = re.search(r'/admin/catalogue/(\d+)/edit', delete_url)[1]
-result = post('/admin/catalogue/' + delete_id + '/delete', {'confirm': '1'}, '/admin/catalogue')
+result = post('/admin/catalogue/' + delete_id + '/delete', {'confirm': '1'}, '/admin/catalogue/products')
 assert 'Product and its photos deleted.' in result
 not_public('/shop/delete-fixture')
 # Restore content dependencies in CI's shared disposable fixture.

@@ -277,3 +277,12 @@ Verification: 91 PHPUnit tests / 910 assertions, default-off and opted-in Docker
 installation, seeding an existing installation at redeploy, public HTTP content,
 draft privacy, two 301 redirects and unchanged repeat-command snapshots. Recreated
 containers retained original content, manual demo edits/deletion and the marker.
+
+Catalogue administration now opens Store management with links to products and
+categories. Both lists return to that page; the product list and editor no longer
+link directly to category management. Category image upload is always visible
+alongside the Tabler picker. Selecting a file selects image appearance; selecting
+an icon in the modal selects Tabler appearance. Verification: 91 PHPUnit tests /
+910 assertions, Docker HTTP smoke including uploaded/replaced category images,
+store navigation and product deletion, Russian HTTP views, and anonymous browser
+form/navigation checks including a 390px viewport without horizontal overflow.

@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <?= view('MCMS\\Modules\\Catalogue\\Views\\category_assets') ?>
-<div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-4"><h1 class="page-title"><?= esc(lang('Catalogue.categories')) ?></h1><div class="d-flex gap-2"><a class="btn" href="<?= site_url('admin/catalogue') ?>"><?= esc(lang('Catalogue.back')) ?></a><?php if ($canCreate): ?><a class="btn btn-primary" href="<?= site_url('admin/catalogue/categories/create') ?>"><?= esc(lang('Catalogue.createCategory')) ?></a><?php endif ?></div></div>
+<div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-4"><h1 class="page-title"><?= esc(lang('Catalogue.categories')) ?></h1><div class="d-flex gap-2"><a class="btn" href="<?= site_url('admin/catalogue') ?>"><?= esc(lang('Catalogue.backStore')) ?></a><?php if ($canCreate): ?><a class="btn btn-primary" href="<?= site_url('admin/catalogue/categories/create') ?>"><?= esc(lang('Catalogue.createCategory')) ?></a><?php endif ?></div></div>
 <p class="text-muted"><?= esc(lang('Catalogue.categoryTreeHint')) ?></p>
 <div class="card"><div class="list-group list-group-flush">
 <?php foreach ($categories as $category): ?>

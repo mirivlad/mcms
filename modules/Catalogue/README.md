@@ -1,8 +1,9 @@
 # Catalogue
 
 Enable **Catalogue** in Administration → Modules. ProductImages is enabled as its
-sole dependency. The product editor is at `/admin/catalogue`, the public catalogue
-at `/shop`. Media and Galleries can remain disabled.
+sole dependency. **Store management** at `/admin/catalogue` links to products
+(`/admin/catalogue/products`) and categories. Each list links back to store management.
+The public catalogue is at `/shop`. Media and Galleries can remain disabled.
 
 Products have a unique address, title, category, descriptions and publication
 status. Add one variant for a regular product, or several variants for sizes/colors.
@@ -10,7 +11,8 @@ Each variant has a stable ID, unique uppercase SKU and a RUB price in integer
 kopecks. Input accepts a dot or comma and at most two decimal places. Updating an
 existing variant retains its ID. Categories are managed at `/admin/catalogue/categories`, with a parent, unique slug
 and an uploaded JPEG/PNG/WebP image or a Tabler icon selected in a searchable modal.
-Tabler icons support a color picker. Images are resized to at most 256 pixels,
+The image upload is always visible; choosing a file selects image appearance.
+Choosing an icon in the modal selects Tabler appearance. Tabler icons support a color picker. Images are resized to at most 256 pixels,
 retain transparency, and live privately in the existing ProductImages volume.
 The image limit is 5 MiB and 12 megapixels. Category images are public via Catalogue.
 

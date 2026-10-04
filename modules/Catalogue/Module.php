@@ -26,14 +26,14 @@ final class Module implements ModuleProviderInterface
         $context->navigation->register(new Archive());
         $context->navigation->register(new Products($repository));
         $context->navigation->register(new CategoryNavigation($categories));
-        $context->admin->addMenu('catalogue', '@Catalogue.name', '/admin/catalogue', 'ti ti-building-store', 'catalogue.view', 65, group: 'commerce');
-        $context->admin->addMenu('catalogue-categories', '@Catalogue.categories', '/admin/catalogue/categories', 'ti ti-folders', 'catalogue.view', 66, group: 'commerce');
+        $context->admin->addMenu('catalogue', '@Catalogue.manageStore', '/admin/catalogue', 'ti ti-building-store', 'catalogue.view', 65, group: 'commerce');
     }
 
     public function routes(RouteCollection $routes): void
     {
         $routes->group('admin/catalogue', ['filter' => 'session'], static function (RouteCollection $routes): void {
-            $routes->get('/', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::index');
+            $routes->get('/', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::store');
+            $routes->get('products', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::index');
             $routes->get('categories', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::index');
             $routes->match(['get', 'post'], 'categories/create', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::create');
             $routes->match(['get', 'post'], 'categories/(:num)/edit', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::edit/$1');

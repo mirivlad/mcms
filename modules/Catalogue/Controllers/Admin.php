@@ -11,6 +11,16 @@ use MCMS\Modules\ProductImages\Api\ProductImagesInterface;
 
 final class Admin extends BaseAdminController
 {
+    public function store(): string|RedirectResponse
+    {
+        if (($redirect = $this->guard('catalogue.view')) !== null) {
+            return $redirect;
+        }
+        return view('MCMS\\Modules\\Catalogue\\Views\\store', [
+            'title' => lang('Catalogue.manageStore'), 'adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
+        ]);
+    }
+
     public function index(): string|RedirectResponse
     {
         if (($redirect = $this->guard('catalogue.view')) !== null) {
@@ -21,7 +31,7 @@ final class Admin extends BaseAdminController
         $lastPage = max(1, (int) ceil($count / 24));
         $page = min($lastPage, max(1, (int) $this->request->getGet('page')));
         return view('MCMS\\Modules\\Catalogue\\Views\\index', [
-            'title' => lang('Catalogue.name'), 'adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
+            'title' => lang('Catalogue.manageProducts'), 'adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
             'products' => $this->catalogue()->list($query, null, 24, ($page - 1) * 24), 'query' => $query,
             'count' => $count, 'page' => $page, 'lastPage' => $lastPage,
             'canCreate' => $this->can('catalogue.create'), 'canEdit' => $this->can('catalogue.edit'),
@@ -43,7 +53,7 @@ final class Admin extends BaseAdminController
             return $redirect;
         }
         $product = $this->catalogue()->find($id);
-        return $product === null ? redirect()->to('/admin/catalogue')->with('error', lang('Catalogue.notFound')) : $this->editor($product);
+        return $product === null ? redirect()->to('/admin/catalogue/products')->with('error', lang('Catalogue.notFound')) : $this->editor($product);
     }
 
     public function delete(int $id): RedirectResponse
@@ -56,9 +66,9 @@ final class Admin extends BaseAdminController
                 throw new \RuntimeException(lang('Catalogue.confirmDelete'));
             }
             $this->catalogue()->delete($id);
-            return redirect()->to('/admin/catalogue')->with('message', lang('Catalogue.deleted'));
+            return redirect()->to('/admin/catalogue/products')->with('message', lang('Catalogue.deleted'));
         } catch (\Throwable $e) {
-            return redirect()->to('/admin/catalogue')->with('error', $e->getMessage());
+            return redirect()->to('/admin/catalogue/products')->with('error', $e->getMessage());
         }
     }
 

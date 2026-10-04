@@ -6,7 +6,7 @@ $variants = is_array($variants) ? array_slice(array_values(array_filter($variant
 $variants = $variants ?: [['id' => 0, 'sku' => '', 'label' => '', 'price' => '']];
 $status = old('status', $product['status'] ?? 'draft');
 ?>
-<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4"><div><div class="page-pretitle"><?= esc(lang('Catalogue.name')) ?></div><h1 class="page-title"><?= esc($product['title'] ?? lang('Catalogue.new')) ?></h1></div><a class="btn" href="<?= site_url('admin/catalogue') ?>"><?= esc(lang('Catalogue.back')) ?></a></div>
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4"><div><div class="page-pretitle"><?= esc(lang('Catalogue.manageProducts')) ?></div><h1 class="page-title"><?= esc($product['title'] ?? lang('Catalogue.new')) ?></h1></div><a class="btn" href="<?= site_url('admin/catalogue/products') ?>"><?= esc(lang('Catalogue.back')) ?></a></div>
 <form method="post" id="product-form">
     <?= csrf_field() ?><input type="hidden" name="image_set_id" value="<?= esc($setId, 'attr') ?>">
     <div class="row g-3">
@@ -44,7 +44,6 @@ $status = old('status', $product['status'] ?? 'draft');
             <select class="form-select mb-3" id="product-status" name="status"><?php foreach (['draft', 'published'] as $value): ?><option value="<?= $value ?>" <?= $status === $value ? 'selected' : '' ?>><?= esc(lang('Catalogue.' . $value)) ?></option><?php endforeach ?></select>
             <label class="form-label" for="product-category"><?= esc(lang('Catalogue.category')) ?></label>
             <select class="form-select mb-2" id="product-category" name="category_id"><option value=""><?= esc(lang('Catalogue.noCategory')) ?></option><?php foreach ($categories as $item): ?><option value="<?= $item['id'] ?>" <?= (string) old('category_id', $product['category_id'] ?? '') === (string) $item['id'] ? 'selected' : '' ?>><?= esc($item['path']) ?></option><?php endforeach ?></select>
-            <a class="d-block mb-3" href="<?= site_url('admin/catalogue/categories') ?>"><?= esc(lang('Catalogue.manageCategories')) ?></a>
             <button class="btn btn-primary w-100" type="submit" data-product-save><?= esc(lang('Catalogue.save')) ?></button>
             <?php if ($product !== null && $product['status'] === 'published'): ?><a href="<?= site_url(ltrim($product['url'], '/')) ?>" class="btn w-100 mt-2" target="_blank" rel="noopener"><?= esc(lang('Catalogue.open')) ?></a><?php endif ?>
         </div></div></div>

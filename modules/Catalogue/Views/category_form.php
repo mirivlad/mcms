@@ -19,14 +19,16 @@ $color = preg_match('/^#[0-9a-fA-F]{6}$/', (string) $color) === 1 ? $color : '#2
         <label class="form-label" for="category-parent"><?= esc(lang('Catalogue.parentCategory')) ?></label><select class="form-select mb-3" id="category-parent" name="parent_id"><option value=""><?= esc(lang('Catalogue.rootCategory')) ?></option><?php foreach ($parents as $item): ?><option value="<?= $item['id'] ?>" <?= (string) $parent === (string) $item['id'] ? 'selected' : '' ?>><?= esc($item['path']) ?></option><?php endforeach ?></select>
         <p class="text-muted"><?= esc(lang('Catalogue.categoryTreeHint')) ?></p>
     </div></div></div><div class="col-lg-5"><div class="card"><div class="card-body">
-        <label class="form-label" for="category-icon-type"><?= esc(lang('Catalogue.categoryAppearance')) ?></label><select class="form-select mb-3" id="category-icon-type" name="icon_type"><option value="tabler" <?= $type === 'tabler' ? 'selected' : '' ?>><?= esc(lang('Catalogue.tablerIcon')) ?></option><option value="image" <?= $type === 'image' ? 'selected' : '' ?>><?= esc(lang('Catalogue.uploadedIcon')) ?></option></select>
-        <div data-tabler-fields <?= $type === 'image' ? 'hidden' : '' ?>>
+        <h2 class="h3 mb-3"><?= esc(lang('Catalogue.categoryAppearance')) ?></h2>
+        <div class="border rounded p-3 mb-3" data-tabler-fields>
+            <label class="form-check mb-3"><input class="form-check-input" type="radio" name="icon_type" value="tabler" <?= $type !== 'image' ? 'checked' : '' ?>><span class="form-check-label"><?= esc(lang('Catalogue.tablerIcon')) ?></span></label>
             <input type="hidden" name="icon" value="<?= esc($icon, 'attr') ?>">
             <button class="btn w-100 mb-3 d-flex gap-3 align-items-center justify-content-center" type="button" data-open-icon-picker aria-haspopup="dialog" aria-controls="category-icon-dialog"><i class="ti ti-<?= esc($icon, 'attr') ?> mcms-category-icon" data-icon-preview style="color:<?= esc($color, 'attr') ?>" aria-hidden="true"></i><?= esc(lang('Catalogue.chooseIcon')) ?></button>
             <label class="form-label" for="category-icon-color"><?= esc(lang('Catalogue.iconColor')) ?></label><input class="form-control form-control-color mb-3" id="category-icon-color" type="color" name="icon_color" value="<?= esc($color, 'attr') ?>">
         </div>
-        <div data-image-fields <?= $type === 'image' ? '' : 'hidden' ?>>
-            <label class="form-label" for="category-image"><?= esc(lang('Catalogue.uploadedIcon')) ?></label><input class="form-control mb-2" type="file" id="category-image" name="image" accept="image/jpeg,image/png,image/webp" <?= $type === 'image' && ($category['image_url'] ?? null) === null ? 'required' : '' ?>>
+        <div class="border rounded p-3 mb-3" data-image-fields>
+            <label class="form-check mb-3"><input class="form-check-input" type="radio" name="icon_type" value="image" <?= $type === 'image' ? 'checked' : '' ?>><span class="form-check-label"><?= esc(lang('Catalogue.uploadedIcon')) ?></span></label>
+            <label class="form-label" for="category-image"><?= esc(lang('Catalogue.uploadCategoryImage')) ?></label><input class="form-control mb-2" type="file" id="category-image" name="image" accept="image/jpeg,image/png,image/webp" <?= $type === 'image' && ($category['image_url'] ?? null) === null ? 'required' : '' ?>>
             <p class="text-muted small"><?= esc(lang('Catalogue.categoryImageHint')) ?></p>
             <img class="mcms-category-image-preview mb-3" data-image-preview src="<?= ($category['image_url'] ?? null) === null ? '' : esc(site_url(ltrim($category['image_url'], '/')), 'attr') ?>" alt="<?= esc(lang('Catalogue.iconPreview'), 'attr') ?>" <?= ($category['image_url'] ?? null) === null ? 'hidden' : '' ?> data-existing="<?= ($category['image_url'] ?? null) === null ? '0' : '1' ?>">
         </div>

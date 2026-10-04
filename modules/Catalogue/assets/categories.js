@@ -15,17 +15,16 @@
     const imageInput = form.elements.image;
     const imagePreview = form.querySelector('[data-image-preview]');
     const updateType = () => {
-        form.querySelector('[data-tabler-fields]').hidden = type.value !== 'tabler';
-        form.querySelector('[data-image-fields]').hidden = type.value !== 'image';
-        imageInput.disabled = type.value !== 'image';
         imageInput.required = type.value === 'image' && imagePreview.dataset.existing !== '1';
     };
-    type.addEventListener('change', updateType);
+    form.querySelectorAll('[name="icon_type"]').forEach(input => input.addEventListener('change', updateType));
     updateType();
     let objectUrl;
     imageInput.addEventListener('change', () => {
         if (objectUrl) URL.revokeObjectURL(objectUrl);
         if (imageInput.files[0]) {
+            type.value = 'image';
+            updateType();
             objectUrl = URL.createObjectURL(imageInput.files[0]);
             imagePreview.src = objectUrl;
             imagePreview.hidden = false;
@@ -65,6 +64,8 @@
             button.append(glyph, label);
             button.addEventListener('click', () => {
                 icon.value = name;
+                type.value = 'tabler';
+                updateType();
                 preview.className = 'ti ti-' + name + ' mcms-category-icon';
                 dialog.close();
             });
