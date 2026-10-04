@@ -3,6 +3,7 @@
 namespace Config;
 
 use CodeIgniter\Config\BaseService;
+use App\Services\DemoData;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
@@ -16,6 +17,15 @@ use MCMS\Core\Content\ShortcodeRenderer;
 
 class Services extends BaseService
 {
+    public static function mcmsDemoData(bool $getShared = true): DemoData
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsDemoData');
+        }
+
+        return new DemoData(db_connect());
+    }
+
     public static function mcmsShortcodes(bool $getShared = true): ShortcodeRenderer
     {
         if ($getShared) {

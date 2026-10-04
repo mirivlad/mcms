@@ -36,5 +36,6 @@ final class McmsCreateSuperadmin extends BaseCommand
         );
 
         CLI::write('Super administrator created: ' . $email, 'green');
+        service('mcmsDemoData')->seed();
     }
 }

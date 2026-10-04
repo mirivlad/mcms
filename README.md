@@ -66,9 +66,15 @@ renders the storefront in all four themes. Media and Galleries are independent.
 Photo edits save immediately; product/variant fields save with the product form.
 
 The next stages are Stock, Cart, Orders, Delivery and export/report adapters.
+
 See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
 and [ProductImages](modules/ProductImages/README.md). Back up the dedicated
 `product_images_data` volume together with the database.
+
+For your own test instance, optional one-time demo content can be enabled with
+`MCMS_DEMO_SEED=1` before installation or redeployment. The default is `0`; an
+existing database completion marker prevents repeated seeding. Real content is
+preserved. See [demo setup](docs/PORTAINER.md#optional-demo-content-for-your-own-test-stack).
 
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,

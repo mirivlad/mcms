@@ -84,6 +84,8 @@ final class Install extends BaseController
 
                 auth('session')->getAuthenticator()->login($user);
 
+                service('mcmsDemoData')->seed();
+
                 return redirect()->to('/admin')
                     ->with('message', lang('MCMS.messages.installComplete'));
             } catch (RuntimeException $e) {

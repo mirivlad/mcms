@@ -80,6 +80,36 @@ Open the public URL. A fresh database redirects to `/install`.
 Create the first superadmin and finish the installer. After setup, `/install`
 closes automatically.
 
+### Optional demo content for your own test stack
+
+Demo seeding is **off by default**. To populate only your test instance, set
+`MCMS_DEMO_SEED=1` in that stack's Portainer environment variables and redeploy.
+Do not change the default in the repository. An installed instance is populated
+at container startup; a fresh instance is populated after creating its first owner.
+
+The bundle adds 5 pages, 6 news articles (one draft), 12 products (one draft),
+6 nested product categories with colored Tabler icons, and 2 redirects. Products
+include single and multiple variants, with demo RUB prices and empty photo sections.
+All demo addresses start with `demo-`, product SKUs with `MCMS-DEMO-`; the text is
+marked as demo content. Pages, News, Catalogue, SEO and their dependencies are
+enabled explicitly for this bundle. Existing content, matching addresses, site
+identity, theme and menu assignments are preserved.
+
+Completion is saved in the database as `Core.demoSeedCompletedAt`. Once complete,
+further redeploys or explicit command runs do nothing, even with the flag still
+set. Edited or deleted demo entries are not restored. Content and completion are
+committed together; a failed content transaction can be retried after resolving
+its error. The guard belongs to that database and survives rebuilding containers.
+
+After the first successful run, remove the variable or set it back to `0`.
+For a manual run in an opted-in container, use `php spark mcms:demo:seed`.
+The command also requires the exact value `MCMS_DEMO_SEED=1` and has no force/reset
+option. This mechanism never clears or replaces the site's content.
+
+Try `/demo-about`, `/news`, `/shop`, `/shop/category/demo-home`,
+`/demo-about-old.html` → `/demo-about` and
+`/demo-delivery-old.html` → `/demo-delivery`.
+
 ## 4. Install Media
 
 Open **Admin → Modules**.

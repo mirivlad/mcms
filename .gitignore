@@ -13,3 +13,4 @@ public/assets/uploads/*
 !public/assets/uploads/.gitkeep
 
 writable/product-images/
+writable/demo-seed.lock

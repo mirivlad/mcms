@@ -515,6 +515,9 @@ jobs:
       - name: Verify catalogue and independent product images through HTTP
         run: python3 .github/scripts/catalogue-smoke.py --cookies /tmp/mcms.cookies
 
+      - name: Verify explicit one-time demo data and unchanged repeat runs
+        run: python3 .github/scripts/demo-smoke.py
+
       - name: Verify installer is closed after setup
         run: |
           code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/install)"

@@ -3,6 +3,10 @@
 mCMS is designed to install against an empty database without importing any
 application-specific dump.
 
+Demo content is optional and disabled by default. For your own test instance,
+set `MCMS_DEMO_SEED=1` before installation or a redeploy. Seeding is additive and
+runs only once per database. See [Portainer demo setup](PORTAINER.md#optional-demo-content-for-your-own-test-stack).
+
 ## Docker Compose / Portainer flow
 
 Copy the environment template:

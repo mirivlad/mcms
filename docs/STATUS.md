@@ -266,3 +266,14 @@ and MariaDB; Docker HTTP smoke across all four themes, category CRUD, uploads,
 replacement, appearance switching, assignment, descendant filters and redirects.
 Anonymous copies of actual forms were checked in a browser for icon search/paging,
 selection/color, file preview, delete confirmation and 390px layouts without overflow.
+
+Optional demo data is disabled by default (`MCMS_DEMO_SEED=0`). Explicit opt-in
+adds 5 pages, 6 news articles, 12 products, 6 nested categories and 2 redirects,
+once per database. A persistent completion marker prevents repeated redeploys
+from restoring deleted demo content or changing manual edits. Existing content
+and site/theme/menu settings are preserved. Module initialization precedes an
+atomic content/marker transaction; failure does not mark the bundle complete.
+Verification: 91 PHPUnit tests / 910 assertions, default-off and opted-in Docker
+installation, seeding an existing installation at redeploy, public HTTP content,
+draft privacy, two 301 redirects and unchanged repeat-command snapshots. Recreated
+containers retained original content, manual demo edits/deletion and the marker.
