@@ -1,7 +1,7 @@
 {
   "id": "catalogue",
   "name": "@Catalogue.name",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "namespace": "MCMS\\Modules\\Catalogue",
   "provider": "MCMS\\Modules\\Catalogue\\Module",
   "mcms": "^0.1.5",

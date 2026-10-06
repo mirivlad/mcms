@@ -1,0 +1,18 @@
+{
+  "id": "stock",
+  "name": "@Stock.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Stock",
+  "provider": "MCMS\\Modules\\Stock\\Module",
+  "mcms": "^0.1.5",
+  "description": "@Stock.description",
+  "requires": [{"id": "catalogue", "version": "^0.2"}],
+  "public_paths": [],
+  "permissions": {
+    "stock.view": "@Stock.Permissions.view",
+    "stock.manage": "@Stock.Permissions.manage"
+  },
+  "grants": {
+    "admin": ["stock.view", "stock.manage"]
+  }
+}

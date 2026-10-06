@@ -18,5 +18,15 @@
             </div>
         </a>
     </div>
+    <?php if ($showStock ?? false): ?>
+    <div class="col-md-6">
+        <a class="card card-link" href="<?= site_url('admin/stock') ?>">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="ti ti-packages fs-1" aria-hidden="true"></i>
+                <h2 class="h3 mb-0"><?= esc(lang('Stock.title')) ?></h2>
+            </div>
+        </a>
+    </div>
+    <?php endif ?>
 </div>
 <?= $this->endSection() ?>

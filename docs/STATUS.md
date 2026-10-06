@@ -1,4 +1,4 @@
-# Current baseline — 2026-10-03
+# Current baseline — 2026-10-06
 
 This document records the current known-good mCMS implementation checkpoint.
 
@@ -94,7 +94,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
 - Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
-### ProductImages 0.1.0 / Catalogue 0.2.0
+### ProductImages 0.1.0 / Catalogue 0.2.1
 
 - Catalogue depends only on ProductImages; Media/Galleries are independent.
 - Private persistent originals and generated WebP revisions, validated uploads,
@@ -108,6 +108,18 @@ This document records the current known-good mCMS implementation checkpoint.
   enlarged gallery with keyboard/swipe controls and variant price/SKU selection.
 - Published navigation/search/sitemap resources and generic slug-move redirects.
 - Module disable/re-enable preserves data; draft images and originals stay private.
+- Catalogue 0.2.1 exposes stable variant lookup/search for dependent commerce modules.
+
+### Stock 0.1.0
+
+- Separate Catalogue-dependent module; Catalogue remains usable with Stock disabled.
+- Physical on-hand, reserved and available quantities are keyed by stable variant ID.
+- Absolute manual corrections are audited and may not reduce physical quantity below reservations.
+- Reservation API supports create/update, release, expiry and consumption for the upcoming Cart/Orders modules.
+- Standalone administration supports search and per-variant correction.
+- Users with stock.manage get compact correction controls in Catalogue product lists,
+  existing product editors and authenticated public storefront cards/product pages.
+- Deleting a Catalogue variant cascades live stock and reservations while retaining movement history.
 
 ## Themes
 
@@ -225,9 +237,15 @@ prices. All four themes render listing/detail pages, enlarged image galleries an
 variant selectors. Published product resources participate in search, navigation,
 sitemap and automatic slug redirects.
 
-Next: Stock availability/reservations keyed by variant ID, Cart, Orders, Delivery
-and export/report adapters. No purchase or stock availability is claimed by this stage.
-See [commerce contracts](COMMERCE.md) and the new modules' README files.
+Stock 0.1.0 now owns variant-level on-hand quantities, reservations and availability.
+Managers can correct stock from the standalone Stock screen, Catalogue product list,
+product editor and the public storefront while authenticated. Corrections are audited,
+reservations cannot exceed availability, expired reservations are released lazily, and
+physical stock cannot be corrected below the reserved quantity. Catalogue 0.2.1 exposes
+variant lookup/search through its public API but remains usable with Stock disabled.
+
+Next: Cart on top of Stock reservations, then Orders, Delivery and export/report adapters.
+See [commerce contracts](COMMERCE.md) and the modules' README files.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,
 paginated revision history and confirmed restoration into the editor. Content and its
@@ -256,7 +274,7 @@ search and taxonomy links. Verification includes migration up/down, category gua
 filter-preserving pagination, literal wildcard queries, module disable/re-enable,
 real HTTP forms and unauthenticated category dialogs/public mobile search.
 
-Catalogue 0.2.0 adds category trees, editable slugs, a visual Tabler picker with
+Catalogue 0.2.1 includes the 0.2.0 category-tree work: editable slugs, a visual Tabler picker with
 color selection, and independent category-image uploads. Existing text labels
 migrate into root categories while retaining product assignments. Parent sections
 include descendant products; categories participate in Menus, sitemap and slug

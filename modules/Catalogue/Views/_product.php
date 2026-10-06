@@ -15,6 +15,18 @@
                 <p class="mcms-product-price" data-variant-price><?= esc($variant['price_display']) ?></p><p class="mcms-shop-sku"><?= esc(lang('Catalogue.sku')) ?>: <span data-variant-sku><?= esc($variant['sku']) ?></span></p>
                 <?php if (count($product['variants']) > 1): ?><label for="shop-variant" class="form-label"><?= esc(lang('Catalogue.chooseVariant')) ?></label><select id="shop-variant" class="form-select" data-variant-select><?php foreach ($product['variants'] as $option): ?><option value="<?= $option['id'] ?>" data-price="<?= esc($option['price_display'], 'attr') ?>" data-sku="<?= esc($option['sku'], 'attr') ?>"><?= esc($option['label'] ?: $option['sku']) ?></option><?php endforeach ?></select><?php endif ?>
             <?php endif ?>
+            <?php if ($canManageStock ?? false): ?>
+                <section class="mcms-stock-product-panel" aria-label="<?= esc(lang('Stock.title'), 'attr') ?>">
+                    <h2><?= esc(lang('Stock.title')) ?></h2>
+                    <?php foreach ($product['variants'] as $stockVariant): ?>
+                        <?= view('MCMS\Modules\Stock\Views\quick', [
+                            'variant' => $stockVariant,
+                            'stock' => $stockLevels[$stockVariant['id']] ?? null,
+                            'returnPath' => $stockReturn,
+                        ]) ?>
+                    <?php endforeach ?>
+                </section>
+            <?php endif ?>
             <?php if ($product['body'] !== ''): ?><div class="mcms-product-description"><h2><?= esc(lang('Catalogue.details')) ?></h2><div class="mcms-page-content"><?= $product['body'] ?></div></div><?php endif ?>
         </div>
     </div>

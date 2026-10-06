@@ -36,6 +36,30 @@ final class Catalogue implements CatalogueInterface
         return (new Categories($this->db))->list($publishedOnly);
     }
 
+    public function variants(string $query = '', int $limit = 50, int $offset = 0): array
+    {
+        $builder = $this->variantBuilder($query);
+        $rows = $builder->orderBy('p.title', 'ASC')->orderBy('v.position', 'ASC')
+            ->limit(max(1, min(200, $limit)), max(0, $offset))->get()->getResultArray();
+
+        return array_map(fn (array $row): array => $this->decorateVariant($row), $rows);
+    }
+
+    public function countVariants(string $query = ''): int
+    {
+        return $this->variantBuilder($query)->countAllResults();
+    }
+
+    public function findVariant(int $id): ?array
+    {
+        $row = $this->db->table('catalogue_variants v')
+            ->select('v.*, p.title AS product_title, p.slug AS product_slug, p.status AS product_status')
+            ->join('catalogue_products p', 'p.id = v.product_id')
+            ->where('v.id', $id)->get()->getRowArray();
+
+        return $row === null ? null : $this->decorateVariant($row);
+    }
+
     public function find(int $id): ?array
     {
         $row = $this->db->table('catalogue_products')->where('id', $id)->get()->getRowArray();
@@ -166,6 +190,38 @@ final class Catalogue implements CatalogueInterface
         $this->images->deleteSet($product['image_set_id']);
     }
 
+    private function variantBuilder(string $query): object
+    {
+        $builder = $this->db->table('catalogue_variants v')
+            ->select('v.*, p.title AS product_title, p.slug AS product_slug, p.status AS product_status')
+            ->join('catalogue_products p', 'p.id = v.product_id');
+        $query = trim($query);
+        if ($query !== '') {
+            $builder->groupStart()
+                ->like('p.title', $query)
+                ->orLike('v.sku', $query)
+                ->orLike('v.label', $query)
+                ->groupEnd();
+        }
+
+        return $builder;
+    }
+
+    private function decorateVariant(array $variant): array
+    {
+        $variant['id'] = (int) $variant['id'];
+        $variant['product_id'] = (int) $variant['product_id'];
+        $variant['price_minor'] = (int) $variant['price_minor'];
+        $variant['price'] = intdiv($variant['price_minor'], 100) . '.' . str_pad((string) ($variant['price_minor'] % 100), 2, '0', STR_PAD_LEFT);
+        $variant['price_display'] = number_format(intdiv($variant['price_minor'], 100), 0, ',', ' ')
+            . ',' . str_pad((string) ($variant['price_minor'] % 100), 2, '0', STR_PAD_LEFT) . ' ₽';
+        if (isset($variant['product_slug'])) {
+            $variant['product_url'] = '/shop/' . $variant['product_slug'];
+        }
+
+        return $variant;
+    }
+
     private function builder(string $query, ?string $status, string $category): object
     {
         $builder = $this->db->table('catalogue_products');
@@ -206,14 +262,10 @@ final class Catalogue implements CatalogueInterface
             }
         }
         unset($image);
-        $row['variants'] = array_map(static function (array $variant): array {
-            $variant['id'] = (int) $variant['id'];
-            $variant['price_minor'] = (int) $variant['price_minor'];
-            $variant['price'] = intdiv($variant['price_minor'], 100) . '.' . str_pad((string) ($variant['price_minor'] % 100), 2, '0', STR_PAD_LEFT);
-            $variant['price_display'] = number_format(intdiv($variant['price_minor'], 100), 0, ',', ' ')
-                . ',' . str_pad((string) ($variant['price_minor'] % 100), 2, '0', STR_PAD_LEFT) . ' ₽';
-            return $variant;
-        }, $this->db->table('catalogue_variants')->where('product_id', $row['id'])->orderBy('position')->get()->getResultArray());
+        $row['variants'] = array_map(
+            fn (array $variant): array => $this->decorateVariant($variant),
+            $this->db->table('catalogue_variants')->where('product_id', $row['id'])->orderBy('position')->get()->getResultArray()
+        );
         $row['from_price'] = $row['variants'] === [] ? '' : array_reduce($row['variants'],
             static fn (?array $min, array $variant): array => $min === null || $variant['price_minor'] < $min['price_minor'] ? $variant : $min)['price_display'];
         return $row;

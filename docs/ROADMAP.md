@@ -55,7 +55,7 @@
 - [x] Catalogue: products, variants/RUB prices, editor and public galleries in all themes.
 - [ ] Cart.
 - [ ] Orders.
-- [ ] Stock.
+- [x] Stock: variant-level on-hand/available quantities, reservations, audited corrections and manager quick controls.
 - [ ] Delivery.
 - [ ] Export/report adapters.
 

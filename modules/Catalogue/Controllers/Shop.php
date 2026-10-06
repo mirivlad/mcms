@@ -20,6 +20,7 @@ final class Shop extends BaseController
     public function category(string $slug): string
     {
         $category = $this->categories()->bySlug($slug) ?? throw PageNotFoundException::forPageNotFound();
+
         return $this->listing($category);
     }
 
@@ -30,11 +31,22 @@ final class Shop extends BaseController
         $count = $this->catalogue()->count($query, 'published', $category);
         $lastPage = max(1, (int) ceil($count / 24));
         $page = min($lastPage, max(1, (int) $this->request->getGet('page')));
+        $products = $this->catalogue()->list($query, 'published', 24, ($page - 1) * 24, $category);
+        $stock = $this->stock();
+        $canManageStock = $stock !== null && $this->canManageStock();
+
         return service('mcmsThemes')->render('catalogue.index', [
-            'products' => $this->catalogue()->list($query, 'published', 24, ($page - 1) * 24, $category),
-            'query' => $query, 'category' => $category, 'categories' => $this->catalogue()->categories(true),
+            'products' => $products,
+            'query' => $query,
+            'category' => $category,
+            'categories' => $this->catalogue()->categories(true),
             'selectedCategory' => $selectedCategory,
-            'count' => $count, 'page' => $page, 'lastPage' => $lastPage,
+            'count' => $count,
+            'page' => $page,
+            'lastPage' => $lastPage,
+            'canManageStock' => $canManageStock,
+            'stockLevels' => $canManageStock ? $stock->levels($this->variantIds($products)) : [],
+            'stockReturn' => $this->returnPath(),
             'metaTitle' => ($selectedCategory['name'] ?? lang('Catalogue.name')) . ' · ' . setting('Core.siteName'),
         ], 'MCMS\\Modules\\Catalogue\\Views\\public_index');
     }
@@ -42,9 +54,16 @@ final class Shop extends BaseController
     public function show(string $slug): string
     {
         $product = $this->catalogue()->findPublishedBySlug($slug) ?? throw PageNotFoundException::forPageNotFound();
+        $stock = $this->stock();
+        $canManageStock = $stock !== null && $this->canManageStock();
+
         return service('mcmsThemes')->render('catalogue.product', [
-            'product' => $product, 'metaTitle' => $product['title'] . ' · ' . setting('Core.siteName'),
+            'product' => $product,
+            'metaTitle' => $product['title'] . ' · ' . setting('Core.siteName'),
             'metaDescription' => $product['summary'],
+            'canManageStock' => $canManageStock,
+            'stockLevels' => $canManageStock ? $stock->levels(array_column($product['variants'], 'id')) : [],
+            'stockReturn' => $this->returnPath(),
         ], 'MCMS\\Modules\\Catalogue\\Views\\public_product');
     }
 
@@ -58,6 +77,7 @@ final class Shop extends BaseController
         if ($file === null) {
             throw PageNotFoundException::forPageNotFound();
         }
+
         return $this->response->setHeader('Content-Type', $file['mime'])
             ->setHeader('Cache-Control', 'no-cache')->setHeader('X-Content-Type-Options', 'nosniff')
             ->setBody(file_get_contents($file['path']));
@@ -65,20 +85,63 @@ final class Shop extends BaseController
 
     public function asset(string $name): ResponseInterface
     {
-        $types = ['shop.css' => 'text/css; charset=UTF-8', 'shop.js' => 'text/javascript; charset=UTF-8',
-            'categories.css' => 'text/css; charset=UTF-8', 'categories.js' => 'text/javascript; charset=UTF-8',
-            'tabler-icons.json' => 'application/json'];
+        $types = [
+            'shop.css' => 'text/css; charset=UTF-8',
+            'shop.js' => 'text/javascript; charset=UTF-8',
+            'categories.css' => 'text/css; charset=UTF-8',
+            'categories.js' => 'text/javascript; charset=UTF-8',
+            'tabler-icons.json' => 'application/json',
+        ];
         if (! isset($types[$name])) {
             throw PageNotFoundException::forPageNotFound();
         }
-        return $this->response->setHeader('Content-Type', $types[$name])->setBody(file_get_contents(dirname(__DIR__) . '/assets/' . $name));
+
+        return $this->response->setHeader('Content-Type', $types[$name])
+            ->setBody(file_get_contents(dirname(__DIR__) . '/assets/' . $name));
     }
 
     public function categoryIcon(int $id): ResponseInterface
     {
         $path = $this->categories()->imageFile($id) ?? throw PageNotFoundException::forPageNotFound();
-        return $this->response->setHeader('Content-Type', 'image/webp')->setHeader('X-Content-Type-Options', 'nosniff')
-            ->setHeader('Cache-Control', 'no-cache')->setBody(file_get_contents($path));
+
+        return $this->response->setHeader('Content-Type', 'image/webp')
+            ->setHeader('X-Content-Type-Options', 'nosniff')
+            ->setHeader('Cache-Control', 'no-cache')
+            ->setBody(file_get_contents($path));
+    }
+
+    private function stock(): ?object
+    {
+        $services = service('mcmsModuleServices');
+
+        return $services->has('stock.inventory') ? $services->get('stock.inventory') : null;
+    }
+
+    private function canManageStock(): bool
+    {
+        $user = auth()->user();
+
+        return $user !== null && $user->can('stock.manage');
+    }
+
+    private function variantIds(array $products): array
+    {
+        $ids = [];
+        foreach ($products as $product) {
+            foreach ($product['variants'] ?? [] as $variant) {
+                $ids[] = (int) $variant['id'];
+            }
+        }
+
+        return $ids;
+    }
+
+    private function returnPath(): string
+    {
+        $uri = $this->request->getUri();
+        $path = '/' . ltrim($uri->getPath(), '/');
+
+        return $uri->getQuery() === '' ? $path : $path . '?' . $uri->getQuery();
     }
 
     private function categories(): Categories

@@ -49,6 +49,21 @@ $status = old('status', $product['status'] ?? 'draft');
         </div></div></div>
     </div>
 </form>
+<?php if ($canManageStock ?? false): ?>
+<div class="card mb-4">
+    <div class="card-header d-flex align-items-center justify-content-between"><h2 class="card-title"><?= esc(lang('Stock.title')) ?></h2><a href="<?= site_url('admin/stock') ?>" class="btn btn-sm"><?= esc(lang('Stock.title')) ?></a></div>
+    <div class="card-body d-flex flex-column gap-3">
+        <?php foreach ($product['variants'] as $variant): ?>
+            <?= view('MCMS\Modules\Stock\Views\quick', [
+                'variant' => $variant,
+                'stock' => $stockLevels[$variant['id']] ?? null,
+                'returnPath' => $stockReturn,
+                'admin' => true,
+            ]) ?>
+        <?php endforeach ?>
+    </div>
+</div>
+<?php endif ?>
 <script>
 (() => {
     const form = document.querySelector('#product-form');

@@ -34,7 +34,7 @@ maintenance. Content and business features are installed as modules.
 ## Modules
 
 News, Galleries, Shop, Orders, Delivery and other domain features are not part
-of Core. Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages and Catalogue are provided as reusable first-party modules.
+of Core. Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue and Stock are provided as reusable first-party modules.
 
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
@@ -44,7 +44,7 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 ## Development status
 
 The 2026-10-03 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
-Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages and Catalogue are implemented as reusable modules and covered by
+Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue and Stock are implemented as reusable modules and covered by
 module/integration checks.
 
 Theme API, four first-party themes and Menus ↔ theme-location assignment are implemented.
@@ -65,10 +65,10 @@ originals, main selection, drag-and-drop order, variants and RUB prices. `/shop`
 renders the storefront in all four themes. Media and Galleries are independent.
 Photo edits save immediately; product/variant fields save with the product form.
 
-The next stages are Stock, Cart, Orders, Delivery and export/report adapters.
+Stock is the next completed commerce layer: variant-level on-hand/reserved/available quantities, reservations and quick manager correction from the stock screen, Catalogue and storefront. The next stages are Cart, Orders, Delivery and export/report adapters.
 
 See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
-and [ProductImages](modules/ProductImages/README.md). Back up the dedicated
+and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md). Back up the dedicated
 `product_images_data` volume together with the database.
 
 For your own test instance, optional one-time demo content can be enabled with

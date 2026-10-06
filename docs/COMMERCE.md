@@ -1,6 +1,6 @@
 # Commerce requirements and next implementation stage
 
-Status: Catalogue and ProductImages implemented; Cart/Orders/Stock/Delivery remain later stages.
+Status: Catalogue, ProductImages and Stock implemented; Cart/Orders/Delivery remain later stages.
 
 ## First-stage data contracts
 
@@ -22,10 +22,11 @@ Status: Catalogue and ProductImages implemented; Cart/Orders/Stock/Delivery rema
 - Prices are integer kopecks, currency RUB. Input accepts at most two decimal
   digits, using a comma or dot; no floating-point money, currency conversion,
   promotional prices or tax calculations in this stage.
-- Catalogue does not own stock quantities. The future Stock module will expose
-  availability/reservations keyed by variant ID; this stage does not claim stock
-  availability or accept purchases. Cart/order snapshots will copy SKU, label,
-  unit price and currency rather than relying on mutable catalogue prices.
+- Catalogue does not own stock quantities. Stock owns on-hand quantities, active
+  reservations and availability keyed by stable variant ID. Manual corrections are
+  audited and cannot reduce on-hand below reserved quantity. Cart/order snapshots
+  will copy SKU, label, unit price and currency rather than relying on mutable
+  catalogue prices.
 - `product-images.library` is the public API. ProductImages owns opaque image-set
   IDs, image IDs, originals, derivative revisions, crop recipes, order and main
   image. Catalogue stores only the unique image-set ID and consumes the API.
@@ -131,11 +132,12 @@ Catalogue embeds the ProductImages editor; Ferma database/controllers are not co
    part of that contract.
 3. Implement ProductImages and its editor controls, then integrate Catalogue and
    public product templates. Verify editing and storefront behavior together.
-4. Continue with Cart, Orders, Stock, Delivery and export/report adapters.
+4. Implement Stock as a separate Catalogue-dependent module with absolute on-hand
+   corrections, reservations and quick manager controls in administration and storefront.
+5. Continue with Cart, Orders, Delivery and export/report adapters.
 
-The first-stage contracts fix shared product images, supported sizes/limits and
-RUB prices. Cart/Orders/Stock/Delivery contracts, including stock reservations,
-still require their own implementation stages.
+The first-stage contracts now cover product images, variants/prices and Stock
+availability/reservations. Cart, Orders and Delivery remain separate implementation stages.
 
 ## Verification targets for implementation
 
