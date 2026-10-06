@@ -8,7 +8,9 @@ use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModuleServiceRegistry;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
+use MCMS\Modules\Catalogue\Services\Catalogue;
 use MCMS\Modules\Stock\Api\StockInterface;
+use MCMS\Modules\Stock\Services\Stock;
 
 final class StockModuleTest extends CIUnitTestCase
 {
@@ -38,7 +40,12 @@ final class StockModuleTest extends CIUnitTestCase
         );
         $this->manager->enable('stock');
         $this->manager->bootEnabled();
-        $this->stock = $this->services->get('stock.inventory');
+        // Module services use the application's shared connection. The test database is an
+        // isolated in-memory SQLite connection, so exercise Stock against that same connection.
+        $this->stock = new Stock(
+            $this->db,
+            new Catalogue($this->db, $this->services->get('product-images.library'))
+        );
 
         $now = date('Y-m-d H:i:s');
         $this->db->table('catalogue_products')->insert([

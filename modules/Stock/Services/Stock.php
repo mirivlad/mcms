@@ -99,7 +99,7 @@ final class Stock implements StockInterface
 
             $now = date('Y-m-d H:i:s');
             $this->db->query(
-                'UPDATE stock_levels SET on_hand = ?, updated_at = ?, updated_by = ? WHERE variant_id = ? AND reserved <= ?',
+                'UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET on_hand = ?, updated_at = ?, updated_by = ? WHERE variant_id = ? AND reserved <= ?',
                 [$quantity, $now, $userId > 0 ? $userId : null, $variantId, $quantity]
             );
             if ($this->db->affectedRows() === 0) {
@@ -157,7 +157,7 @@ final class Stock implements StockInterface
 
             if ($delta > 0) {
                 $this->db->query(
-                    'UPDATE stock_levels SET reserved = reserved + ?, updated_at = ? WHERE variant_id = ? AND (on_hand - reserved) >= ?',
+                    'UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET reserved = reserved + ?, updated_at = ? WHERE variant_id = ? AND (on_hand - reserved) >= ?',
                     [$delta, $now, $variantId, $delta]
                 );
                 if ($this->db->affectedRows() !== 1) {
@@ -166,7 +166,7 @@ final class Stock implements StockInterface
             } elseif ($delta < 0) {
                 $release = -$delta;
                 $this->db->query(
-                    'UPDATE stock_levels SET reserved = reserved - ?, updated_at = ? WHERE variant_id = ? AND reserved >= ?',
+                    'UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET reserved = reserved - ?, updated_at = ? WHERE variant_id = ? AND reserved >= ?',
                     [$release, $now, $variantId, $release]
                 );
                 if ($this->db->affectedRows() !== 1) {
@@ -244,7 +244,7 @@ final class Stock implements StockInterface
                 $quantity = (int) $row['quantity'];
                 $before = $this->rawLevel($variantId);
                 $this->db->query(
-                    'UPDATE stock_levels SET on_hand = on_hand - ?, reserved = reserved - ?, updated_at = ? WHERE variant_id = ? AND on_hand >= ? AND reserved >= ?',
+                    'UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET on_hand = on_hand - ?, reserved = reserved - ?, updated_at = ? WHERE variant_id = ? AND on_hand >= ? AND reserved >= ?',
                     [$quantity, $quantity, $now, $variantId, $quantity, $quantity]
                 );
                 if ($this->db->affectedRows() !== 1) {
@@ -301,7 +301,7 @@ final class Stock implements StockInterface
             $quantity = (int) $row['quantity'];
             $variantId = (int) $row['variant_id'];
             $this->db->query(
-                'UPDATE stock_levels SET reserved = reserved - ?, updated_at = ? WHERE variant_id = ? AND reserved >= ?',
+                'UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET reserved = reserved - ?, updated_at = ? WHERE variant_id = ? AND reserved >= ?',
                 [$quantity, $now, $variantId, $quantity]
             );
             if ($this->db->affectedRows() !== 1) {
