@@ -191,6 +191,41 @@ assert f'/images/{second}/display' in listing
 assert 'Workshop coffee' in request('/search/results?q=Workshop', anonymous=True)[0].decode()
 assert '/shop/workshop-coffee' in request('/sitemap.xml', anonymous=True)[0].decode()
 assert f'value="{child_id}" selected' in page(edit_path)
+
+# Stock is a separate optional layer. Enabling it must preserve Catalogue and add
+# manager-only quick corrections to administration and the authenticated storefront.
+module('stock')
+stock_store = page('/admin/catalogue')
+assert 'Stock' in stock_store and '/admin/stock' in stock_store
+stock_page = page('/admin/stock')
+assert 'COFFEE-250' in stock_page and 'COFFEE-500' in stock_page
+first_variant_id = int(fields['variants[0][id]'])
+second_variant_id = int(fields['variants[1][id]'])
+stock_page = post(
+    f'/admin/stock/variant/{first_variant_id}',
+    {'quantity': 17, 'note': 'smoke delivery', 'return': '/admin/stock'},
+    '/admin/stock',
+)
+assert 'Stock updated.' in stock_page and 'value="17"' in stock_page
+admin_products = page('/admin/catalogue/products')
+assert f'/admin/stock/variant/{first_variant_id}' in admin_products
+assert f'/admin/stock/variant/{second_variant_id}' in admin_products
+manager_product = page('/shop/workshop-coffee')
+assert f'/stock/variant/{first_variant_id}' in manager_product and 'value="17"' in manager_product
+anonymous_product = request('/shop/workshop-coffee', anonymous=True)[0].decode()
+assert '/stock/variant/' not in anonymous_product
+manager_product = post(
+    f'/stock/variant/{first_variant_id}',
+    {'quantity': 15, 'return': '/shop/workshop-coffee'},
+    '/shop/workshop-coffee',
+)
+assert 'value="15"' in manager_product
+module('stock', 'disable')
+assert 'Workshop coffee' in request('/shop/workshop-coffee', anonymous=True)[0].decode()
+assert '/stock/variant/' not in page('/shop/workshop-coffee')
+module('stock')
+assert 'value="15"' in page('/admin/stock')
+
 root_page = html.unescape(request('/shop/category/drinks', anonymous=True)[0].decode())
 assert 'Workshop coffee' in root_page and 'ti-cup' in root_page and '#e24c27' in root_page
 assert f'/shop/category-icons/{child_id}' in root_page
@@ -247,10 +282,15 @@ for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     assert 'Workshop coffee' in request('/shop', anonymous=True)[0].decode()
     assert 'Workshop coffee' in request('/shop/category/drinks', anonymous=True)[0].decode()
     public_saved[theme] = rendered
+# Stock depends on Catalogue, so disable the dependent module before exercising
+# Catalogue's own disable/re-enable lifecycle.
+module('stock', 'disable')
 module('catalogue', 'disable')
 not_public('/shop')
 module('catalogue')
+module('stock')
 assert 'Workshop coffee' in request('/shop/artisan-coffee', anonymous=True)[0].decode()
+assert 'value="15"' in page('/admin/stock')
 reopened = page(edit_path)
 for script in re.findall(r'<script\b[^>]*>(.*?)</script>', reopened, re.S):
     if script.strip():
@@ -324,4 +364,4 @@ not_public('/shop/delete-fixture')
 if args.cookies:
     for name in ('media', 'news', 'galleries'):
         module(name)
-print('Catalogue HTTP smoke passed: upload/crop/order/main/replace/remove, variants/prices, nested categories/icons/colors/images/guards/redirects, draft privacy, SEO/search, Media independence, four themes, disable/re-enable and deletion.')
+print('Catalogue HTTP smoke passed: upload/crop/order/main/replace/remove, variants/prices, Stock corrections/persistence/manager visibility, nested categories/icons/colors/images/guards/redirects, draft privacy, SEO/search, Media independence, four themes, disable/re-enable and deletion.')
