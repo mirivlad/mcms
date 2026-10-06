@@ -1,17 +1,39 @@
 <?= view('MCMS\\Modules\\Catalogue\\Views\\public_assets') ?>
+<?php if ($cartEnabled ?? false): ?><?= view('MCMS\\Modules\\Cart\\Views\\public_assets') ?><?php endif ?>
 <section class="mcms-shop">
-    <header class="mcms-shop-heading"><div><p class="mcms-shop-eyebrow"><?= esc($siteName) ?></p><h1><?= esc($selectedCategory['name'] ?? lang('Catalogue.name')) ?></h1></div><span><?= esc(lang('Catalogue.count')) ?>: <?= $count ?></span></header>
+    <header class="mcms-shop-heading">
+        <div>
+            <p class="mcms-shop-eyebrow"><?= esc($siteName) ?></p>
+            <h1><?= esc($selectedCategory['name'] ?? lang('Catalogue.name')) ?></h1>
+        </div>
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+            <span><?= esc(lang('Catalogue.count')) ?>: <?= $count ?></span>
+            <?php if ($cartEnabled ?? false): ?>
+                <?= view('MCMS\\Modules\\Cart\\Views\\link', ['count' => $cartCount, 'class' => 'mcms-cart-link mcms-cart-shop-link']) ?>
+            <?php endif ?>
+        </div>
+    </header>
     <form class="mcms-shop-filter" method="get" action="<?= site_url('shop') ?>"><input class="form-control" name="q" value="<?= esc($query, 'attr') ?>" placeholder="<?= esc(lang('Catalogue.search'), 'attr') ?>" aria-label="<?= esc(lang('Catalogue.search'), 'attr') ?>"><select class="form-select" name="category" aria-label="<?= esc(lang('Catalogue.category'), 'attr') ?>"><option value=""><?= esc(lang('Catalogue.allCategories')) ?></option><?php foreach ($categories as $item): ?><option value="<?= esc($item['slug'], 'attr') ?>" <?= $category === $item['slug'] ? 'selected' : '' ?>><?= esc($item['path']) ?></option><?php endforeach ?></select><button class="btn btn-outline-secondary" type="submit"><?= esc(lang('Catalogue.search')) ?></button></form>
     <?php if ($selectedCategory !== null): ?><a class="mcms-shop-back" href="<?= site_url('shop') ?>">← <?= esc(lang('Catalogue.allCategories')) ?></a><?php endif ?>
     <?php if ($categories !== []): ?><nav class="mcms-shop-categories" aria-label="<?= esc(lang('Catalogue.categories'), 'attr') ?>"><?php foreach ($categories as $item): ?><a href="<?= esc(site_url(ltrim($item['url'], '/')), 'attr') ?>" style="padding-inline-start:<?= min(6, $item['depth']) + 1 ?>rem" <?= $category === $item['slug'] ? 'aria-current="page"' : '' ?>><?= view('MCMS\\Modules\\Catalogue\\Views\\category_icon', ['category' => $item]) ?><span><?= esc($item['path']) ?></span></a><?php endforeach ?></nav><?php endif ?>
 
     <div class="mcms-product-grid">
     <?php foreach ($products as $product): ?>
-        <article class="mcms-product-card">
+        <article class="mcms-product-card" data-cart-product-card>
             <a class="mcms-product-card-link" href="<?= esc(site_url(ltrim($product['url'], '/')), 'attr') ?>">
                 <div class="mcms-product-card-image"><?php if ($product['main_image'] !== null): ?><img src="<?= esc(site_url(ltrim($product['main_image']['display_url'], '/')), 'attr') ?>" alt="<?= esc($product['title'], 'attr') ?>" loading="lazy"><?php else: ?><span><?= esc(lang('Catalogue.noPhoto')) ?></span><?php endif ?></div>
                 <div class="mcms-product-card-body"><span class="mcms-shop-eyebrow"><?= esc($product['category']) ?></span><h2><?= esc($product['title']) ?></h2><p><?= esc($product['summary']) ?></p><strong class="mcms-product-price"><?= count($product['variants']) > 1 ? esc(lang('Catalogue.from')) . ' ' : '' ?><?= esc($product['from_price']) ?></strong></div>
             </a>
+            <?php if ($cartEnabled ?? false): ?>
+                <div class="mcms-cart-add-panel">
+                    <?= view('MCMS\\Modules\\Cart\\Views\\add_form', [
+                        'variants' => $product['variants'],
+                        'stockLevels' => $cartStockLevels,
+                        'returnPath' => $cartReturn,
+                        'showVariantSelect' => true,
+                    ]) ?>
+                </div>
+            <?php endif ?>
             <?php if ($canManageStock ?? false): ?>
                 <div class="mcms-stock-card-panel">
                     <?php if (count($product['variants']) > 1): ?><details><summary><?= esc(lang('Stock.title')) ?></summary><div class="mcms-stock-card-rows"><?php endif ?>

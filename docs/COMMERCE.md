@@ -1,6 +1,6 @@
 # Commerce requirements and next implementation stage
 
-Status: Catalogue, ProductImages and Stock implemented; Cart/Orders/Delivery remain later stages.
+Status: Catalogue, ProductImages, Stock and Cart implemented; Orders/Delivery remain later stages.
 
 ## First-stage data contracts
 
@@ -27,6 +27,20 @@ Status: Catalogue, ProductImages and Stock implemented; Cart/Orders/Delivery rem
   audited and cannot reduce on-hand below reserved quantity. Cart/order snapshots
   will copy SKU, label, unit price and currency rather than relying on mutable
   catalogue prices.
+- Cart is session-scoped for guests and authenticated visitors and deliberately
+  does not reserve stock. It checks current Stock availability on add/update/open and
+  clamps stale quantities to the live maximum. This prevents abandoned or malicious
+  carts from blocking inventory.
+- Cart line snapshots copy product title/slug, SKU, variant label, integer unit price
+  and currency when first added. Later Catalogue price edits do not rewrite an
+  existing cart. Unpublished/deleted variants are removed during reconciliation.
+- Public quantity changes are saved automatically after a short debounce; there is no
+  separate Update button. A stock clamp returns the corrected quantity and the UI
+  briefly highlights the affected row.
+- Orders is the first reservation boundary. Successful checkout reserves every line
+  with an `order:<id>` Stock key. Cancellation releases reservations; completion
+  consumes them and writes physical stock off. Active orders hold variant locks so a
+  Catalogue edit cannot delete a variant that is still reserved by an order.
 - `product-images.library` is the public API. ProductImages owns opaque image-set
   IDs, image IDs, originals, derivative revisions, crop recipes, order and main
   image. Catalogue stores only the unique image-set ID and consumes the API.
@@ -134,10 +148,14 @@ Catalogue embeds the ProductImages editor; Ferma database/controllers are not co
    public product templates. Verify editing and storefront behavior together.
 4. Implement Stock as a separate Catalogue-dependent module with absolute on-hand
    corrections, reservations and quick manager controls in administration and storefront.
-5. Continue with Cart, Orders, Delivery and export/report adapters.
+5. Implement Cart with session ownership, immutable line snapshots, live Stock checks
+   without reservation and automatic quantity updates.
+6. Implement Orders. Successful checkout is the first point that reserves Stock;
+   cancellation releases it and completion consumes it.
+7. Continue with Delivery and export/report adapters.
 
-The first-stage contracts now cover product images, variants/prices and Stock
-availability/reservations. Cart, Orders and Delivery remain separate implementation stages.
+The first-stage contracts now cover product images, variants/prices, Stock, Cart and
+Orders. Delivery remains a separate implementation stage.
 
 ## Verification targets for implementation
 

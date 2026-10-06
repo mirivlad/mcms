@@ -51,3 +51,6 @@
 .mcms-stock-product-panel{border:1px solid var(--shop-border);border-radius:12px;padding:1rem;margin-top:1.5rem;display:flex;flex-direction:column;gap:.7rem}
 .mcms-stock-product-panel h2{font-size:1rem;margin:0 0 .2rem}
 @media(max-width:480px){.mcms-stock-quick{grid-template-columns:minmax(0,1fr) 4.7rem 2.6rem}}
+.mcms-stock-quick-message{grid-column:1/-1;min-height:1rem;font-size:.72rem}
+.mcms-stock-quick-message[data-kind=success]{opacity:.7}
+.mcms-stock-quick-message[data-kind=error]{color:#b42318}

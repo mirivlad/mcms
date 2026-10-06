@@ -1,6 +1,12 @@
 <?= view('MCMS\\Modules\\Catalogue\\Views\\public_assets') ?>
+<?php if ($cartEnabled ?? false): ?><?= view('MCMS\\Modules\\Cart\\Views\\public_assets') ?><?php endif ?>
 <article class="mcms-shop" data-product-gallery>
-    <a class="mcms-shop-back" href="<?= site_url('shop') ?>">← <?= esc(lang('Catalogue.back')) ?></a>
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+        <a class="mcms-shop-back" href="<?= site_url('shop') ?>">← <?= esc(lang('Catalogue.back')) ?></a>
+        <?php if ($cartEnabled ?? false): ?>
+            <?= view('MCMS\\Modules\\Cart\\Views\\link', ['count' => $cartCount, 'class' => 'mcms-cart-link mcms-cart-shop-link']) ?>
+        <?php endif ?>
+    </div>
     <div class="mcms-product-detail">
         <div class="mcms-product-photos">
             <?php if ($product['main_image'] !== null): ?>
@@ -13,13 +19,23 @@
         <div class="mcms-product-info"><p class="mcms-shop-eyebrow"><?php if ($product['category_url'] !== null): ?><a href="<?= esc(site_url(ltrim($product['category_url'], '/')), 'attr') ?>"><?= esc($product['category']) ?></a><?php endif ?></p><h1><?= esc($product['title']) ?></h1><p class="mcms-product-summary"><?= nl2br(esc($product['summary'])) ?></p>
             <?php if ($product['variants'] !== []): $variant = $product['variants'][0]; ?>
                 <p class="mcms-product-price" data-variant-price><?= esc($variant['price_display']) ?></p><p class="mcms-shop-sku"><?= esc(lang('Catalogue.sku')) ?>: <span data-variant-sku><?= esc($variant['sku']) ?></span></p>
-                <?php if (count($product['variants']) > 1): ?><label for="shop-variant" class="form-label"><?= esc(lang('Catalogue.chooseVariant')) ?></label><select id="shop-variant" class="form-select" data-variant-select><?php foreach ($product['variants'] as $option): ?><option value="<?= $option['id'] ?>" data-price="<?= esc($option['price_display'], 'attr') ?>" data-sku="<?= esc($option['sku'], 'attr') ?>"><?= esc($option['label'] ?: $option['sku']) ?></option><?php endforeach ?></select><?php endif ?>
+                <?php if (count($product['variants']) > 1): ?><label for="shop-variant" class="form-label"><?= esc(lang('Catalogue.chooseVariant')) ?></label><select id="shop-variant" class="form-select" data-variant-select><?php foreach ($product['variants'] as $option): $available = (int) (($cartStockLevels[$option['id']]['available'] ?? 0)); ?><option value="<?= $option['id'] ?>" data-price="<?= esc($option['price_display'], 'attr') ?>" data-sku="<?= esc($option['sku'], 'attr') ?>" data-available="<?= $available ?>"><?= esc($option['label'] ?: $option['sku']) ?></option><?php endforeach ?></select><?php endif ?>
+            <?php endif ?>
+            <?php if ($cartEnabled ?? false): ?>
+                <div class="mcms-cart-add-panel mt-3">
+                    <?= view('MCMS\\Modules\\Cart\\Views\\add_form', [
+                        'variants' => $product['variants'],
+                        'stockLevels' => $cartStockLevels,
+                        'returnPath' => $cartReturn,
+                        'showVariantSelect' => false,
+                    ]) ?>
+                </div>
             <?php endif ?>
             <?php if ($canManageStock ?? false): ?>
                 <section class="mcms-stock-product-panel" aria-label="<?= esc(lang('Stock.title'), 'attr') ?>">
                     <h2><?= esc(lang('Stock.title')) ?></h2>
                     <?php foreach ($product['variants'] as $stockVariant): ?>
-                        <?= view('MCMS\Modules\Stock\Views\quick', [
+                        <?= view('MCMS\\Modules\\Stock\\Views\\quick', [
                             'variant' => $stockVariant,
                             'stock' => $stockLevels[$stockVariant['id']] ?? null,
                             'returnPath' => $stockReturn,

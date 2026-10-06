@@ -104,6 +104,8 @@ jobs:
           grep -q 'Pages' /tmp/admin-modules.html
           grep -q 'Menus' /tmp/admin-modules.html
           grep -q 'Stock' /tmp/admin-modules.html
+          grep -q 'Cart' /tmp/admin-modules.html
+          grep -q 'Orders' /tmp/admin-modules.html
           grep -q 'Not installed' /tmp/admin-modules.html
           grep -q 'Themes' /tmp/admin-themes.html
           grep -q 'mCMS Default' /tmp/admin-themes.html

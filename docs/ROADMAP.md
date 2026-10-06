@@ -53,8 +53,8 @@
 - [x] Define first-stage Catalogue product/variant/price/stock/image contracts; see [commerce requirements](COMMERCE.md).
 - [x] ProductImages: multiple uploads, crop/scale editor, main-image selection and drag-and-drop ordering.
 - [x] Catalogue: products, variants/RUB prices, editor and public galleries in all themes.
-- [ ] Cart.
-- [ ] Orders.
+- [x] Cart: guest/session cart, live Stock checks without reservation, immutable line snapshots and automatic quantity correction.
+- [x] Orders: checkout snapshots, reserve-on-order, manager statuses, cancel release and completion write-off.
 - [x] Stock: variant-level on-hand/available quantities, reservations, audited corrections and manager quick controls.
 - [ ] Delivery.
 - [ ] Export/report adapters.

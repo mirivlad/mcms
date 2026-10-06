@@ -33,7 +33,11 @@ final class Shop extends BaseController
         $page = min($lastPage, max(1, (int) $this->request->getGet('page')));
         $products = $this->catalogue()->list($query, 'published', 24, ($page - 1) * 24, $category);
         $stock = $this->stock();
+        $cart = $this->cart();
         $canManageStock = $stock !== null && $this->canManageStock();
+        $cartEnabled = $cart !== null && $stock !== null;
+        $variantIds = $this->variantIds($products);
+        $levels = ($canManageStock || $cartEnabled) && $stock !== null ? $stock->levels($variantIds) : [];
 
         return service('mcmsThemes')->render('catalogue.index', [
             'products' => $products,
@@ -45,8 +49,12 @@ final class Shop extends BaseController
             'page' => $page,
             'lastPage' => $lastPage,
             'canManageStock' => $canManageStock,
-            'stockLevels' => $canManageStock ? $stock->levels($this->variantIds($products)) : [],
+            'stockLevels' => $canManageStock ? $levels : [],
             'stockReturn' => $this->returnPath(),
+            'cartEnabled' => $cartEnabled,
+            'cartCount' => $cartEnabled ? $cart->count() : 0,
+            'cartStockLevels' => $cartEnabled ? $levels : [],
+            'cartReturn' => $this->returnPath(),
             'metaTitle' => ($selectedCategory['name'] ?? lang('Catalogue.name')) . ' · ' . setting('Core.siteName'),
         ], 'MCMS\\Modules\\Catalogue\\Views\\public_index');
     }
@@ -55,15 +63,23 @@ final class Shop extends BaseController
     {
         $product = $this->catalogue()->findPublishedBySlug($slug) ?? throw PageNotFoundException::forPageNotFound();
         $stock = $this->stock();
+        $cart = $this->cart();
         $canManageStock = $stock !== null && $this->canManageStock();
+        $cartEnabled = $cart !== null && $stock !== null;
+        $variantIds = array_column($product['variants'], 'id');
+        $levels = ($canManageStock || $cartEnabled) && $stock !== null ? $stock->levels($variantIds) : [];
 
         return service('mcmsThemes')->render('catalogue.product', [
             'product' => $product,
             'metaTitle' => $product['title'] . ' · ' . setting('Core.siteName'),
             'metaDescription' => $product['summary'],
             'canManageStock' => $canManageStock,
-            'stockLevels' => $canManageStock ? $stock->levels(array_column($product['variants'], 'id')) : [],
+            'stockLevels' => $canManageStock ? $levels : [],
             'stockReturn' => $this->returnPath(),
+            'cartEnabled' => $cartEnabled,
+            'cartCount' => $cartEnabled ? $cart->count() : 0,
+            'cartStockLevels' => $cartEnabled ? $levels : [],
+            'cartReturn' => $this->returnPath(),
         ], 'MCMS\\Modules\\Catalogue\\Views\\public_product');
     }
 
@@ -108,6 +124,13 @@ final class Shop extends BaseController
             ->setHeader('X-Content-Type-Options', 'nosniff')
             ->setHeader('Cache-Control', 'no-cache')
             ->setBody(file_get_contents($path));
+    }
+
+    private function cart(): ?object
+    {
+        $services = service('mcmsModuleServices');
+
+        return $services->has('cart.cart') ? $services->get('cart.cart') : null;
     }
 
     private function stock(): ?object

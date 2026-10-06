@@ -1,7 +1,7 @@
 {
   "id": "mcms-focus",
   "name": "@Focus.name",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Themes\\Focus",
   "description": "@Focus.description",
   "author": "mCMS",
@@ -17,7 +17,8 @@
     "galleries.embed": "galleries/embed",
     "search.index": "search/index",
     "catalogue.index": "catalogue/index",
-    "catalogue.product": "catalogue/product"
+    "catalogue.product": "catalogue/product",
+    "cart.index": "cart/index"
   },
   "menu_locations": {
     "header.primary": {

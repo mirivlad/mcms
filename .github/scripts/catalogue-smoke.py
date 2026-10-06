@@ -46,6 +46,18 @@ def post(path, fields, form_path):
     return request(path, urllib.parse.urlencode(pairs).encode())[0].decode()
 
 
+def post_json(path, fields, form_path):
+    pairs = list(fields.items()) if isinstance(fields, dict) else list(fields)
+    pairs.append(('csrf_test_name', token(page(form_path))))
+    payload = json.loads(request(
+        path,
+        urllib.parse.urlencode(pairs).encode(),
+        {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'},
+    )[0])
+    assert payload['success'], payload
+    return payload
+
+
 def module(name, action='enable'):
     post('/admin/modules/' + name + '/' + action, {}, '/admin/modules')
 
@@ -214,17 +226,117 @@ manager_product = page('/shop/workshop-coffee')
 assert f'/stock/variant/{first_variant_id}' in manager_product and 'value="17"' in manager_product
 anonymous_product = request('/shop/workshop-coffee', anonymous=True)[0].decode()
 assert '/stock/variant/' not in anonymous_product
-manager_product = post(
+stock_ajax = post_json(
     f'/stock/variant/{first_variant_id}',
     {'quantity': 15, 'return': '/shop/workshop-coffee'},
     '/shop/workshop-coffee',
 )
+assert stock_ajax['stock']['on_hand'] == 15 and stock_ajax['stock']['available'] == 15
+manager_product = page('/shop/workshop-coffee')
 assert 'value="15"' in manager_product
 module('stock', 'disable')
 assert 'Workshop coffee' in request('/shop/workshop-coffee', anonymous=True)[0].decode()
 assert '/stock/variant/' not in page('/shop/workshop-coffee')
 module('stock')
 assert 'value="15"' in page('/admin/stock')
+
+# Cart is public and session-scoped, but deliberately does NOT reserve Stock.
+post(
+    f'/admin/stock/variant/{second_variant_id}',
+    {'quantity': 7, 'note': 'cart smoke stock', 'return': '/admin/stock'},
+    '/admin/stock',
+)
+module('cart')
+assert '/cart/add' in request('/shop/workshop-coffee', anonymous=True)[0].decode()
+assert '/cart' in request('/shop', anonymous=True)[0].decode()
+
+guest_jar = http.cookiejar.CookieJar()
+guest = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(guest_jar))
+
+def guest_request(path, data=None, headers=None):
+    response = guest.open(urllib.request.Request(base + path, data=data, headers=headers or {}), timeout=60)
+    return response.read(), response.url
+
+
+def guest_page(path):
+    return guest_request(path)[0].decode()
+
+
+def guest_post_json(path, fields, form_path):
+    body = {**fields, 'csrf_test_name': token(guest_page(form_path))}
+    payload = json.loads(guest_request(
+        path,
+        urllib.parse.urlencode(body).encode(),
+        {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'},
+    )[0])
+    assert payload['success'], payload
+    return payload
+
+
+def guest_post(path, fields, form_path):
+    body = {**fields, 'csrf_test_name': token(guest_page(form_path))}
+    return guest_request(path, urllib.parse.urlencode(body).encode())[0].decode()
+
+cart_add = guest_post_json('/cart/add', {'variant_id': first_variant_id, 'quantity': 2, 'return': '/cart'}, '/shop/workshop-coffee')
+assert cart_add['quantity'] == 2 and cart_add['total_items'] == 2 and not cart_add['adjusted']
+guest_cart = html.unescape(guest_page('/cart'))
+assert 'Workshop coffee' in guest_cart and 'value="2"' in guest_cart and '2 500,10 ₽' in guest_cart
+assert 'items in the cart are not reserved until the order is placed' in guest_cart
+# Merely putting two units into the cart must not reduce public availability.
+assert 'data-available="15"' in guest_page('/shop/workshop-coffee')
+cart_update = guest_post_json('/cart/update', {'variant_id': first_variant_id, 'quantity': 99, 'return': '/cart'}, '/cart')
+assert cart_update['adjusted'] and cart_update['quantity'] == 15
+assert cart_update['subtotal_display'] == '18 750,75 ₽'
+cart_update = guest_post_json('/cart/update', {'variant_id': first_variant_id, 'quantity': 2, 'return': '/cart'}, '/cart')
+assert not cart_update['adjusted'] and cart_update['quantity'] == 2
+
+# Orders is the first point that reserves stock.
+module('orders')
+guest_cart = html.unescape(guest_page('/cart'))
+assert '/order/checkout' in guest_cart and 'Stock is reserved only after the order is successfully placed.' in guest_cart
+checkout = guest_post('/order/checkout', {
+    'name': 'Smoke Customer', 'phone': '+1 555 0100',
+    'email': 'smoke@example.test', 'comment': 'First order',
+}, '/cart')
+match = re.search(r'Order #(\d+) was created', checkout)
+assert match, checkout[:1000]
+first_order_id = int(match[1])
+assert 'Your cart is empty.' in checkout
+first_order = page(f'/admin/orders/{first_order_id}')
+assert 'Smoke Customer' in first_order and 'ORDER' not in first_order
+assert 'Workshop coffee' in first_order and 'New' in first_order
+stock_after_order = page('/admin/stock')
+assert 'Reserved: 2' in stock_after_order and 'Available: 13' in stock_after_order
+
+# Active status changes retain the reservation; cancellation releases it without write-off.
+post(f'/admin/orders/{first_order_id}/status', {'status': 'processing', 'note': 'Accepted'}, f'/admin/orders/{first_order_id}')
+assert 'Processing' in page(f'/admin/orders/{first_order_id}')
+assert 'Reserved: 2' in page('/admin/stock')
+post(f'/admin/orders/{first_order_id}/status', {'status': 'cancelled', 'note': 'Cancelled in smoke'}, f'/admin/orders/{first_order_id}')
+assert 'Cancelled' in page(f'/admin/orders/{first_order_id}')
+stock_after_cancel = page('/admin/stock')
+assert 'value="15"' in stock_after_cancel and 'Reserved: 0' in stock_after_cancel and 'Available: 15' in stock_after_cancel
+
+# A completed order consumes the reservation and writes the physical stock off.
+guest_post_json('/cart/add', {'variant_id': first_variant_id, 'quantity': 3, 'return': '/cart'}, '/shop/workshop-coffee')
+checkout = guest_post('/order/checkout', {
+    'name': 'Smoke Customer 2', 'phone': '+1 555 0200', 'email': '', 'comment': '',
+}, '/cart')
+second_order_id = int(re.search(r'Order #(\d+) was created', checkout)[1])
+post(f'/admin/orders/{second_order_id}/status', {'status': 'completed', 'note': 'Collected'}, f'/admin/orders/{second_order_id}')
+assert 'Completed' in page(f'/admin/orders/{second_order_id}')
+stock_after_complete = page('/admin/stock')
+assert 'value="12"' in stock_after_complete and 'Reserved: 0' in stock_after_complete and 'Available: 12' in stock_after_complete
+assert 'Smoke Customer' in page('/admin/orders') and 'Smoke Customer 2' in page('/admin/orders')
+
+# Cart state itself survives module disable/re-enable and still reserves nothing.
+guest_post_json('/cart/add', {'variant_id': second_variant_id, 'quantity': 2, 'return': '/cart'}, '/shop/workshop-coffee')
+module('orders', 'disable')
+module('cart', 'disable')
+not_public('/cart')
+module('cart')
+module('orders')
+assert 'Workshop coffee' in guest_page('/cart') and 'value="2"' in guest_page('/cart')
 
 root_page = html.unescape(request('/shop/category/drinks', anonymous=True)[0].decode())
 assert 'Workshop coffee' in root_page and 'ti-cup' in root_page and '#e24c27' in root_page
@@ -281,16 +393,22 @@ for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     assert f'data-theme="{theme}"' in rendered and 'data-product-gallery' in rendered
     assert 'Workshop coffee' in request('/shop', anonymous=True)[0].decode()
     assert 'Workshop coffee' in request('/shop/category/drinks', anonymous=True)[0].decode()
+    cart_rendered = guest_page('/cart')
+    assert f'data-theme="{theme}"' in cart_rendered and 'mcms-cart-page' in cart_rendered
     public_saved[theme] = rendered
-# Stock depends on Catalogue, so disable the dependent module before exercising
-# Catalogue's own disable/re-enable lifecycle.
+# Orders -> Cart -> Stock -> Catalogue is the commerce dependency chain.
+module('orders', 'disable')
+module('cart', 'disable')
 module('stock', 'disable')
 module('catalogue', 'disable')
 not_public('/shop')
 module('catalogue')
 module('stock')
+module('cart')
+module('orders')
 assert 'Workshop coffee' in request('/shop/artisan-coffee', anonymous=True)[0].decode()
-assert 'value="15"' in page('/admin/stock')
+assert 'value="12"' in page('/admin/stock')
+assert 'Workshop coffee' in guest_page('/cart') and 'value="2"' in guest_page('/cart')
 reopened = page(edit_path)
 for script in re.findall(r'<script\b[^>]*>(.*?)</script>', reopened, re.S):
     if script.strip():
@@ -364,4 +482,4 @@ not_public('/shop/delete-fixture')
 if args.cookies:
     for name in ('media', 'news', 'galleries'):
         module(name)
-print('Catalogue HTTP smoke passed: upload/crop/order/main/replace/remove, variants/prices, Stock corrections/persistence/manager visibility, nested categories/icons/colors/images/guards/redirects, draft privacy, SEO/search, Media independence, four themes, disable/re-enable and deletion.')
+print('Commerce HTTP smoke passed: Catalogue, Stock, non-reserving guest Cart, order-only reservations, manager status workflow, four themes and dependency lifecycle.')

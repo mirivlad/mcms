@@ -1,7 +1,7 @@
 {
   "id": "mcms-default",
   "name": "@MCMS.themes.defaultName",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "namespace": "MCMS\\Themes\\DefaultTheme",
   "description": "@MCMS.themes.defaultDescription",
   "author": "mCMS",
@@ -16,7 +16,8 @@
     "feedback.form": "feedback/form",
     "search.index": "search/index",
     "catalogue.index": "catalogue/index",
-    "catalogue.product": "catalogue/product"
+    "catalogue.product": "catalogue/product",
+    "cart.index": "cart/index"
   },
   "menu_locations": {
     "header.primary": {

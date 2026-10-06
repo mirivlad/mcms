@@ -1,0 +1,16 @@
+{
+  "id": "cart",
+  "name": "@Cart.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Cart",
+  "provider": "MCMS\\Modules\\Cart\\Module",
+  "mcms": "^0.1.5",
+  "description": "@Cart.description",
+  "requires": [
+    {"id": "catalogue", "version": "^0.2.2"},
+    {"id": "stock", "version": "^0.1"}
+  ],
+  "public_paths": ["cart"],
+  "permissions": {},
+  "grants": {}
+}

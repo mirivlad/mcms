@@ -1,0 +1,21 @@
+{
+  "id": "orders",
+  "name": "@Orders.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Orders",
+  "provider": "MCMS\\Modules\\Orders\\Module",
+  "mcms": "^0.1.5",
+  "description": "@Orders.description",
+  "requires": [
+    {"id": "cart", "version": "^0.1"},
+    {"id": "stock", "version": "^0.1"}
+  ],
+  "public_paths": ["order"],
+  "permissions": {
+    "orders.view": "@Orders.Permissions.view",
+    "orders.manage": "@Orders.Permissions.manage"
+  },
+  "grants": {
+    "admin": ["orders.view", "orders.manage"]
+  }
+}
