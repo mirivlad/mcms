@@ -56,7 +56,7 @@
 - [x] Cart: guest/session cart, live Stock checks without reservation, immutable line snapshots and automatic quantity correction.
 - [x] Orders: checkout snapshots, reserve-on-order, manager statuses, cancel release and completion write-off.
 - [x] Stock: variant-level on-hand/available quantities, reservations, audited corrections and manager quick controls.
-- [ ] Delivery.
+- [x] Delivery: fixed-price delivery and pickup methods, admin ordering/enabled state and immutable order snapshots.
 - [ ] Export/report adapters.
 
 ## Stage 3 — ecosystem

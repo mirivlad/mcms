@@ -44,7 +44,7 @@
                         <?php if ($order['email'] !== null): ?><div class="text-muted small"><?= esc($order['email']) ?></div><?php endif ?>
                     </td>
                     <td><span class="badge bg-secondary-lt"><?= esc($order['status_label']) ?></span></td>
-                    <td class="text-end fw-semibold"><?= esc($order['subtotal_display']) ?></td>
+                    <td class="text-end fw-semibold"><?= esc($order['total_display']) ?></td>
                 </tr>
             <?php endforeach ?>
             <?php if ($orders === []): ?><tr><td colspan="6" class="text-muted py-4"><?= esc(lang('Orders.notFound')) ?></td></tr><?php endif ?>

@@ -16,10 +16,16 @@ final class Cart extends BaseController
     public function index(): string
     {
         $services = service('mcmsModuleServices');
+        $ordersEnabled = $services->has('orders.orders');
+        $deliveryEnabled = $services->has('delivery.methods');
+        $deliveryMethods = $deliveryEnabled ? $services->get('delivery.methods')->selectable() : [];
 
         return service('mcmsThemes')->render('cart.index', [
             'cart' => $this->cart()->snapshot(),
-            'checkoutEnabled' => $services->has('orders.orders'),
+            'checkoutEnabled' => $ordersEnabled && (! $deliveryEnabled || $deliveryMethods !== []),
+            'checkoutBlockedByDelivery' => $ordersEnabled && $deliveryEnabled && $deliveryMethods === [],
+            'deliveryEnabled' => $deliveryEnabled,
+            'deliveryMethods' => $deliveryMethods,
             'metaTitle' => lang('Cart.title') . ' · ' . setting('Core.siteName'),
         ], 'MCMS\\Modules\\Cart\\Views\\public_index');
     }

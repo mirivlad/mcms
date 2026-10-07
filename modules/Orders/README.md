@@ -29,3 +29,11 @@ Supported states are `new`, `processing`, `ready`, `completed` and
 
 Administration provides search, status filtering, order details, status history and
 manager notes. The module service is `orders.orders`.
+
+## Delivery snapshot
+
+Orders 0.2 accepts an optional fulfillment snapshot. When the Delivery module is
+enabled, checkout resolves the submitted method ID on the server and copies its ID,
+type, name and integer price into the order. Order totals are stored as item subtotal,
+delivery/pickup charge and grand total. Historical orders do not depend on later
+Delivery edits or deletion.

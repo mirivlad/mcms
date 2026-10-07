@@ -29,7 +29,13 @@
                         </tr>
                     <?php endforeach ?>
                     </tbody>
-                    <tfoot><tr><th colspan="4"><?= esc(lang('Orders.sum')) ?></th><th class="text-end"><?= esc($order['subtotal_display']) ?></th></tr></tfoot>
+                    <tfoot>
+                        <tr><th colspan="4"><?= esc(lang('Orders.itemsSubtotal')) ?></th><th class="text-end"><?= esc($order['subtotal_display']) ?></th></tr>
+                        <?php if ($order['fulfillment_name'] !== null): ?>
+                            <tr><th colspan="4"><?= esc(lang('Orders.deliveryCost')) ?></th><th class="text-end"><?= esc($order['delivery_display']) ?></th></tr>
+                        <?php endif ?>
+                        <tr><th colspan="4"><?= esc(lang('Orders.total')) ?></th><th class="text-end"><?= esc($order['total_display']) ?></th></tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -69,6 +75,20 @@
                 </dl>
             </div>
         </div>
+
+        <?php if ($order['fulfillment_name'] !== null): ?>
+        <div class="card mb-4">
+            <div class="card-header"><h2 class="card-title"><?= esc(lang('Orders.fulfillment')) ?></h2></div>
+            <div class="card-body">
+                <strong><?= esc($order['fulfillment_name']) ?></strong>
+                <div class="text-muted small mt-1"><?= esc($order['fulfillment_type_label']) ?></div>
+                <div class="mt-3 d-flex justify-content-between gap-3">
+                    <span><?= esc(lang('Orders.deliveryCost')) ?></span>
+                    <strong><?= esc($order['delivery_display']) ?></strong>
+                </div>
+            </div>
+        </div>
+        <?php endif ?>
 
         <?php if ($canManage && $order['allowed_statuses'] !== []): ?>
         <div class="card">

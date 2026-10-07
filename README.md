@@ -34,7 +34,7 @@ maintenance. Content and business features are installed as modules.
 ## Modules
 
 News, Galleries, Shop, Orders, Delivery and other domain features are not part
-of Core. Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue, Stock, Cart and Orders are provided as reusable first-party modules.
+of Core. Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue, Stock, Cart, Orders and Delivery are provided as reusable first-party modules.
 
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
@@ -44,7 +44,7 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 ## Development status
 
 The 2026-10-06 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
-Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue, Stock, Cart and Orders are implemented as reusable modules and covered by
+Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue, Stock, Cart, Orders and Delivery are implemented as reusable modules and covered by
 module/integration checks.
 
 Theme API, four first-party themes and Menus ↔ theme-location assignment are implemented.
@@ -65,10 +65,10 @@ originals, main selection, drag-and-drop order, variants and RUB prices. `/shop`
 renders the storefront in all four themes. Media and Galleries are independent.
 Photo edits save immediately; product/variant fields save with the product form.
 
-Stock provides variant-level on-hand/reserved/available quantities. Cart checks live availability but never reserves stock; Orders creates the reservation only after checkout succeeds. The next stages are Delivery and export/report adapters.
+Stock provides variant-level on-hand/reserved/available quantities. Cart checks live availability but never reserves stock; Orders creates the reservation only after checkout succeeds. Delivery adds fixed-price delivery and pickup methods whose name/type/price are snapshotted into each order. The next stages are export/report adapters.
 
 See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
-and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md), [Cart](modules/Cart/README.md) and [Orders](modules/Orders/README.md). Back up the dedicated
+and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md), [Cart](modules/Cart/README.md), [Orders](modules/Orders/README.md) and [Delivery](modules/Delivery/README.md). Back up the dedicated
 `product_images_data` volume together with the database.
 
 For your own test instance, optional one-time demo content can be enabled with

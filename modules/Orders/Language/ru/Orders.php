@@ -48,8 +48,17 @@ return [
     'email' => 'E-mail',
     'optional' => 'необязательно',
     'reserveAtCheckout' => 'Товар резервируется только после успешного оформления заказа.',
+    'invalidFulfillment' => 'Некорректный способ получения заказа.',
+    'fulfillment' => 'Способ получения',
+    'deliveryCost' => 'Доставка / самовывоз',
+    'itemsSubtotal' => 'Товары',
+    'total' => 'Итого',
     'previous' => 'Назад',
     'next' => 'Далее',
+    'fulfillmentType' => [
+        'delivery' => 'Доставка',
+        'pickup' => 'Самовывоз',
+    ],
     'status' => [
         'new' => 'Новый',
         'processing' => 'В работе',

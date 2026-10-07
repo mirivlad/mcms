@@ -38,3 +38,8 @@ silently reduced.
 
 `cart.cart` implements `CartInterface` and exposes the immutable line snapshots used
 by Orders.
+
+When the optional Delivery module is enabled, the checkout section lists its enabled
+delivery/pickup methods and shows the item subtotal, fulfillment charge and live grand
+total. If Delivery is enabled but has no selectable methods, checkout is blocked until
+an administrator configures one.

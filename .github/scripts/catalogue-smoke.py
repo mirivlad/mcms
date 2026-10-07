@@ -290,21 +290,45 @@ assert cart_update['subtotal_display'] == '18 750,75 ₽'
 cart_update = guest_post_json('/cart/update', {'variant_id': first_variant_id, 'quantity': 2, 'return': '/cart'}, '/cart')
 assert not cart_update['adjusted'] and cart_update['quantity'] == 2
 
-# Orders is the first point that reserves stock.
+# Orders is the first point that reserves stock. Delivery is optional, but once
+# enabled it requires one configured delivery/pickup method at checkout.
 module('orders')
+module('delivery')
+blocked_cart = html.unescape(guest_page('/cart'))
+assert 'there are no enabled delivery or pickup methods' in blocked_cart
+assert '/order/checkout' not in blocked_cart
+
+post('/admin/delivery/create', {
+    'name': 'Farm pickup', 'type': 'pickup', 'price': '0', 'position': 10, 'enabled': 1,
+}, '/admin/delivery/create')
+post('/admin/delivery/create', {
+    'name': 'City courier', 'type': 'delivery', 'price': '500', 'position': 20, 'enabled': 1,
+}, '/admin/delivery/create')
+delivery_page = html.unescape(page('/admin/delivery'))
+assert 'Farm pickup' in delivery_page and 'City courier' in delivery_page
+pickup_row = next(row for row in re.findall(r'<tr\b.*?</tr>', delivery_page, re.S) if 'Farm pickup' in row)
+courier_row = next(row for row in re.findall(r'<tr\b.*?</tr>', delivery_page, re.S) if 'City courier' in row)
+pickup_id = int(re.search(r'/admin/delivery/(\d+)', pickup_row)[1])
+courier_id = int(re.search(r'/admin/delivery/(\d+)', courier_row)[1])
+
 guest_cart = html.unescape(guest_page('/cart'))
 assert '/order/checkout' in guest_cart and 'Stock is reserved only after the order is successfully placed.' in guest_cart
+assert 'Farm pickup' in guest_cart and 'City courier' in guest_cart
+assert f'value="{pickup_id}"' in guest_cart and f'value="{courier_id}"' in guest_cart
 checkout = guest_post('/order/checkout', {
     'name': 'Smoke Customer', 'phone': '+1 555 0100',
     'email': 'smoke@example.test', 'comment': 'First order',
+    'delivery_method_id': pickup_id,
 }, '/cart')
 match = re.search(r'Order #(\d+) was created', checkout)
 assert match, checkout[:1000]
 first_order_id = int(match[1])
 assert 'Your cart is empty.' in checkout
-first_order = page(f'/admin/orders/{first_order_id}')
+first_order = html.unescape(page(f'/admin/orders/{first_order_id}'))
 assert 'Smoke Customer' in first_order and 'ORDER' not in first_order
 assert 'Workshop coffee' in first_order and 'New' in first_order
+assert 'Farm pickup' in first_order and 'Pickup' in first_order and '0,00 ₽' in first_order
+assert '2 500,10 ₽' in first_order
 stock_after_order = page('/admin/stock')
 assert 'Reserved: 2' in stock_after_order and 'Available: 13' in stock_after_order
 
@@ -317,26 +341,40 @@ assert 'Cancelled' in page(f'/admin/orders/{first_order_id}')
 stock_after_cancel = page('/admin/stock')
 assert 'value="15"' in stock_after_cancel and 'Reserved: 0' in stock_after_cancel and 'Available: 15' in stock_after_cancel
 
-# A completed order consumes the reservation and writes the physical stock off.
+# A completed courier order consumes the reservation and writes the physical stock off.
 guest_post_json('/cart/add', {'variant_id': first_variant_id, 'quantity': 3, 'return': '/cart'}, '/shop/workshop-coffee')
 checkout = guest_post('/order/checkout', {
     'name': 'Smoke Customer 2', 'phone': '+1 555 0200', 'email': '', 'comment': '',
+    'delivery_method_id': courier_id,
 }, '/cart')
 second_order_id = int(re.search(r'Order #(\d+) was created', checkout)[1])
+second_order = html.unescape(page(f'/admin/orders/{second_order_id}'))
+assert 'City courier' in second_order and 'Delivery' in second_order
+assert '3 750,15 ₽' in second_order and '500,00 ₽' in second_order and '4 250,15 ₽' in second_order
+# Delivery edits do not rewrite the immutable snapshot already stored on the order.
+post(f'/admin/delivery/{courier_id}', {
+    'name': 'Courier renamed', 'type': 'delivery', 'price': '700', 'position': 20, 'enabled': 1,
+}, f'/admin/delivery/{courier_id}')
+second_order = html.unescape(page(f'/admin/orders/{second_order_id}'))
+assert 'City courier' in second_order and 'Courier renamed' not in second_order and '500,00 ₽' in second_order
 post(f'/admin/orders/{second_order_id}/status', {'status': 'completed', 'note': 'Collected'}, f'/admin/orders/{second_order_id}')
 assert 'Completed' in page(f'/admin/orders/{second_order_id}')
 stock_after_complete = page('/admin/stock')
 assert 'value="12"' in stock_after_complete and 'Reserved: 0' in stock_after_complete and 'Available: 12' in stock_after_complete
 assert 'Smoke Customer' in page('/admin/orders') and 'Smoke Customer 2' in page('/admin/orders')
 
-# Cart state itself survives module disable/re-enable and still reserves nothing.
+# Cart and Delivery data survive module disable/re-enable. Delivery must be disabled
+# before Orders because it declares the dependency explicitly.
 guest_post_json('/cart/add', {'variant_id': second_variant_id, 'quantity': 2, 'return': '/cart'}, '/shop/workshop-coffee')
+module('delivery', 'disable')
 module('orders', 'disable')
 module('cart', 'disable')
 not_public('/cart')
 module('cart')
 module('orders')
+module('delivery')
 assert 'Workshop coffee' in guest_page('/cart') and 'value="2"' in guest_page('/cart')
+assert 'Farm pickup' in page('/admin/delivery') and 'Courier renamed' in page('/admin/delivery')
 
 root_page = html.unescape(request('/shop/category/drinks', anonymous=True)[0].decode())
 assert 'Workshop coffee' in root_page and 'ti-cup' in root_page and '#e24c27' in root_page
@@ -396,7 +434,8 @@ for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
     cart_rendered = guest_page('/cart')
     assert f'data-theme="{theme}"' in cart_rendered and 'mcms-cart-page' in cart_rendered
     public_saved[theme] = rendered
-# Orders -> Cart -> Stock -> Catalogue is the commerce dependency chain.
+# Delivery -> Orders -> Cart -> Stock -> Catalogue is the commerce dependency chain.
+module('delivery', 'disable')
 module('orders', 'disable')
 module('cart', 'disable')
 module('stock', 'disable')
@@ -406,9 +445,11 @@ module('catalogue')
 module('stock')
 module('cart')
 module('orders')
+module('delivery')
 assert 'Workshop coffee' in request('/shop/artisan-coffee', anonymous=True)[0].decode()
 assert 'value="12"' in page('/admin/stock')
 assert 'Workshop coffee' in guest_page('/cart') and 'value="2"' in guest_page('/cart')
+assert 'Courier renamed' in page('/admin/delivery')
 reopened = page(edit_path)
 for script in re.findall(r'<script\b[^>]*>(.*?)</script>', reopened, re.S):
     if script.strip():
@@ -482,4 +523,4 @@ not_public('/shop/delete-fixture')
 if args.cookies:
     for name in ('media', 'news', 'galleries'):
         module(name)
-print('Commerce HTTP smoke passed: Catalogue, Stock, non-reserving guest Cart, order-only reservations, manager status workflow, four themes and dependency lifecycle.')
+print('Commerce HTTP smoke passed: Catalogue, Stock, non-reserving Cart, Orders, delivery/pickup pricing snapshots, four themes and dependency lifecycle.')

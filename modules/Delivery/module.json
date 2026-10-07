@@ -1,0 +1,20 @@
+{
+  "id": "delivery",
+  "name": "@Delivery.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Delivery",
+  "provider": "MCMS\\Modules\\Delivery\\Module",
+  "mcms": "^0.1.5",
+  "description": "@Delivery.description",
+  "requires": [
+    {"id": "orders", "version": "^0.2"}
+  ],
+  "public_paths": [],
+  "permissions": {
+    "delivery.view": "@Delivery.Permissions.view",
+    "delivery.manage": "@Delivery.Permissions.manage"
+  },
+  "grants": {
+    "admin": ["delivery.view", "delivery.manage"]
+  }
+}

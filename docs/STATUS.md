@@ -121,7 +121,7 @@ This document records the current known-good mCMS implementation checkpoint.
   existing product editors and authenticated public storefront cards/product pages.
 - Deleting a Catalogue variant cascades live stock and reservations while retaining movement history.
 
-### Cart 0.1.0
+### Cart 0.1.1
 
 - Separate module depending on Catalogue and Stock; no commerce state is added to Core.
 - Guest and authenticated carts are session-scoped and deliberately do not reserve stock.
@@ -131,8 +131,9 @@ This document records the current known-good mCMS implementation checkpoint.
 - The public cart saves quantity changes automatically without an Update button; overstock requests are clamped and highlighted.
 - The cart explicitly warns that items are not reserved until an order is placed.
 - All four bundled themes provide the logical cart.index template.
+- Cart 0.1.1 integrates optional Delivery methods into checkout and shows item, fulfillment and grand totals; if Delivery is enabled with no active methods, checkout is blocked.
 
-### Orders 0.1.0
+### Orders 0.2.0
 
 - Checkout creates immutable order/item snapshots from the current Cart.
 - Stock is reserved only after the order is successfully created; Cart itself never reserves inventory.
@@ -141,6 +142,16 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cancelling releases the reservation without changing physical stock; completing consumes the reservation and writes stock off.
 - Administration supports order search, filtering, details and status changes.
 - Active orders hold a database-level variant lock; terminal orders release it while keeping immutable order snapshots.
+- Orders 0.2 accepts a server-resolved fulfillment snapshot and stores method ID/type/name, fulfillment charge and grand total independently of later Delivery edits.
+
+### Delivery 0.1.0
+
+- Separate module depending on Orders 0.2; Orders remains usable when Delivery is disabled.
+- Supports ordered fixed-price `delivery` and `pickup` methods with an enabled flag.
+- Administration provides create/edit/delete and explicit display ordering under Commerce → Delivery & pickup.
+- Prices are integer minor units; checkout submits only a method ID and the server resolves the current name/type/price.
+- When enabled, Delivery requires one active method for checkout; an empty enabled Delivery configuration blocks checkout with a clear message.
+- Orders snapshot the selected method, so editing or deleting a method never rewrites historical orders.
 
 ## Themes
 
@@ -265,12 +276,16 @@ reservations cannot exceed availability, expired reservations are released lazil
 physical stock cannot be corrected below the reserved quantity. Public storefront
 corrections now submit through AJAX and update the displayed availability without a page reload.
 
-Cart 0.1.0 checks live availability but never reserves inventory. It keeps immutable
-line-price snapshots, clamps stale quantities and saves quantity edits automatically.
-Orders 0.1.0 is the reservation boundary: successful checkout reserves Stock, cancellation
-releases it and completion consumes it. Catalogue 0.2.2 remains usable without Cart.
+Cart 0.1.1 checks live availability but never reserves inventory. It keeps immutable
+line-price snapshots, clamps stale quantities, saves quantity edits automatically and
+shows optional Delivery selection/totals at checkout. Orders 0.2.0 is the reservation
+boundary and stores immutable fulfillment snapshots plus item/delivery/grand totals.
 
-Next: Delivery, then export/report adapters.
+Delivery 0.1.0 provides ordered fixed-price delivery and pickup methods. The browser
+submits only the selected method ID; its current price and type are resolved server-side
+before Orders snapshots them. Orders remains usable with Delivery disabled.
+
+Next: export/report adapters.
 See [commerce contracts](COMMERCE.md) and the modules' README files.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,

@@ -102,12 +102,51 @@
             </form>
         </div>
 
+        <?php if ($checkoutBlockedByDelivery ?? false): ?>
+            <div class="alert alert-warning mt-4" role="alert"><?= esc(lang('Delivery.noSelectable')) ?></div>
+        <?php endif ?>
+
         <?php if ($checkoutEnabled ?? false): ?>
+            <?php
+            $selectedDeliveryId = (int) old('delivery_method_id');
+            if (($deliveryEnabled ?? false) && $deliveryMethods !== []) {
+                $knownDeliveryIds = array_map(static fn (array $method): int => (int) $method['id'], $deliveryMethods);
+                if (! in_array($selectedDeliveryId, $knownDeliveryIds, true)) {
+                    $selectedDeliveryId = (int) $deliveryMethods[0]['id'];
+                }
+            }
+            ?>
             <section class="mcms-cart-checkout">
                 <h2><?= esc(lang('Orders.checkoutTitle')) ?></h2>
                 <p class="mcms-cart-checkout-note"><?= esc(lang('Orders.reserveAtCheckout')) ?></p>
-                <form method="post" action="<?= site_url('order/checkout') ?>">
+                <form method="post" action="<?= site_url('order/checkout') ?>" data-checkout-form>
                     <?= csrf_field() ?>
+
+                    <?php if ($deliveryEnabled ?? false): ?>
+                        <fieldset class="mcms-delivery-methods" data-delivery-methods>
+                            <legend><?= esc(lang('Delivery.choose')) ?></legend>
+                            <?php foreach ($deliveryMethods as $method): ?>
+                                <label class="mcms-delivery-option">
+                                    <input
+                                        type="radio"
+                                        name="delivery_method_id"
+                                        value="<?= (int) $method['id'] ?>"
+                                        data-delivery-price-minor="<?= (int) $method['price_minor'] ?>"
+                                        <?= $selectedDeliveryId === (int) $method['id'] ? 'checked' : '' ?>
+                                        required
+                                    >
+                                    <span class="mcms-delivery-option-body">
+                                        <span>
+                                            <strong><?= esc($method['name']) ?></strong>
+                                            <small><?= esc($method['type_label']) ?></small>
+                                        </span>
+                                        <strong><?= esc($method['price_minor'] === 0 ? lang('Delivery.free') : $method['price_display']) ?></strong>
+                                    </span>
+                                </label>
+                            <?php endforeach ?>
+                        </fieldset>
+                    <?php endif ?>
+
                     <div class="mcms-cart-checkout-grid">
                         <label>
                             <span><?= esc(lang('Orders.name')) ?></span>
@@ -126,6 +165,15 @@
                             <textarea class="form-control" name="comment" rows="3" maxlength="5000"><?= esc((string) old('comment')) ?></textarea>
                         </label>
                     </div>
+
+                    <?php if ($deliveryEnabled ?? false): ?>
+                        <dl class="mcms-checkout-totals" data-checkout-totals data-subtotal-minor="<?= (int) $cart['subtotal_minor'] ?>">
+                            <div><dt><?= esc(lang('Delivery.itemsSubtotal')) ?></dt><dd><?= esc($cart['subtotal_display']) ?></dd></div>
+                            <div><dt><?= esc(lang('Delivery.deliveryCost')) ?></dt><dd data-checkout-delivery>—</dd></div>
+                            <div class="mcms-checkout-total"><dt><?= esc(lang('Delivery.total')) ?></dt><dd data-checkout-total><?= esc($cart['subtotal_display']) ?></dd></div>
+                        </dl>
+                    <?php endif ?>
+
                     <button class="btn btn-primary mt-3" type="submit"><?= esc(lang('Orders.checkout')) ?></button>
                 </form>
             </section>

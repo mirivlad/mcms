@@ -1,7 +1,7 @@
 {
   "id": "cart",
   "name": "@Cart.title",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Modules\\Cart",
   "provider": "MCMS\\Modules\\Cart\\Module",
   "mcms": "^0.1.5",

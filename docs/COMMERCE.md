@@ -1,6 +1,6 @@
 # Commerce requirements and next implementation stage
 
-Status: Catalogue, ProductImages, Stock and Cart implemented; Orders/Delivery remain later stages.
+Status: Catalogue, ProductImages, Stock, Cart, Orders and Delivery implemented; export/report adapters remain later stages.
 
 ## First-stage data contracts
 
@@ -41,6 +41,13 @@ Status: Catalogue, ProductImages, Stock and Cart implemented; Orders/Delivery re
   with an `order:<id>` Stock key. Cancellation releases reservations; completion
   consumes them and writes physical stock off. Active orders hold variant locks so a
   Catalogue edit cannot delete a variant that is still reserved by an order.
+- Delivery owns a small ordered catalogue of fulfillment methods: name, type
+  (`delivery` or `pickup`), enabled flag and integer fixed price. When Delivery is
+  enabled, checkout must select one enabled method; the submitted ID is resolved on
+  the server, never trusted with a client-supplied price.
+- Orders 0.2 snapshots fulfillment method ID/type/name/price and stores item subtotal,
+  fulfillment charge and grand total. Editing or deleting a Delivery method therefore
+  cannot rewrite historical orders. Orders remains usable when Delivery is disabled.
 - `product-images.library` is the public API. ProductImages owns opaque image-set
   IDs, image IDs, originals, derivative revisions, crop recipes, order and main
   image. Catalogue stores only the unique image-set ID and consumes the API.
@@ -152,10 +159,12 @@ Catalogue embeds the ProductImages editor; Ferma database/controllers are not co
    without reservation and automatic quantity updates.
 6. Implement Orders. Successful checkout is the first point that reserves Stock;
    cancellation releases it and completion consumes it.
-7. Continue with Delivery and export/report adapters.
+7. Implement Delivery as ordered fixed-price delivery/pickup methods and snapshot the
+   selected server-resolved method into Orders.
+8. Continue with export/report adapters.
 
-The first-stage contracts now cover product images, variants/prices, Stock, Cart and
-Orders. Delivery remains a separate implementation stage.
+The commerce contracts now cover product images, variants/prices, Stock, Cart, Orders
+and Delivery. Export/report adapters remain separate implementation stages.
 
 ## Verification targets for implementation
 

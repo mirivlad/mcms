@@ -24,7 +24,7 @@ final class Orders implements OrdersInterface
     ) {
     }
 
-    public function createFromCart(array $customer): array
+    public function createFromCart(array $customer, ?array $fulfillment = null): array
     {
         $cart = $this->cart->snapshot();
         if ($cart['items'] === []) {
@@ -58,6 +58,10 @@ final class Orders implements OrdersInterface
             }
         }
 
+        $fulfillment = $this->fulfillmentSnapshot($fulfillment);
+        $deliveryMinor = $fulfillment['price_minor'];
+        $totalMinor = (int) $cart['subtotal_minor'] + $deliveryMinor;
+
         $this->db->transBegin();
         $orderId = 0;
         $reservationKey = '';
@@ -69,7 +73,12 @@ final class Orders implements OrdersInterface
                 'phone' => $phone,
                 'email' => $email === '' ? null : $email,
                 'comment' => $comment === '' ? null : $comment,
+                'fulfillment_method_id' => $fulfillment['id'],
+                'fulfillment_type' => $fulfillment['type'],
+                'fulfillment_name' => $fulfillment['name'],
                 'subtotal_minor' => (int) $cart['subtotal_minor'],
+                'delivery_minor' => $deliveryMinor,
+                'total_minor' => $totalMinor,
                 'currency' => $currency,
                 'reservation_key' => 'pending:' . bin2hex(random_bytes(16)),
                 'customer_user_id' => auth()->id() === null ? null : (int) auth()->id(),
@@ -304,15 +313,53 @@ final class Orders implements OrdersInterface
 
     private function presentOrder(array $row): array
     {
-        foreach (['id', 'subtotal_minor'] as $field) {
-            $row[$field] = (int) $row[$field];
+        foreach (['id', 'subtotal_minor', 'delivery_minor', 'total_minor'] as $field) {
+            $row[$field] = (int) ($row[$field] ?? 0);
+        }
+        if ($row['total_minor'] === 0 && $row['subtotal_minor'] > 0) {
+            $row['total_minor'] = $row['subtotal_minor'] + $row['delivery_minor'];
         }
         $row['customer_user_id'] = $row['customer_user_id'] === null ? null : (int) $row['customer_user_id'];
         $row['manager_user_id'] = $row['manager_user_id'] === null ? null : (int) $row['manager_user_id'];
-        $row['subtotal_display'] = $this->money((int) $row['subtotal_minor']);
+        $row['fulfillment_method_id'] = ($row['fulfillment_method_id'] ?? null) === null
+            ? null
+            : (int) $row['fulfillment_method_id'];
+        $row['subtotal_display'] = $this->money($row['subtotal_minor']);
+        $row['delivery_display'] = $this->money($row['delivery_minor']);
+        $row['total_display'] = $this->money($row['total_minor']);
+        $row['fulfillment_type_label'] = ($row['fulfillment_type'] ?? null) === null
+            ? null
+            : lang('Orders.fulfillmentType.' . $row['fulfillment_type']);
         $row['status_label'] = lang('Orders.status.' . $row['status']);
 
         return $row;
+    }
+
+    /**
+     * @return array{id:?int,type:?string,name:?string,price_minor:int}
+     */
+    private function fulfillmentSnapshot(?array $fulfillment): array
+    {
+        if ($fulfillment === null) {
+            return ['id' => null, 'type' => null, 'name' => null, 'price_minor' => 0];
+        }
+
+        $id = filter_var($fulfillment['id'] ?? null, FILTER_VALIDATE_INT);
+        $type = trim((string) ($fulfillment['type'] ?? ''));
+        $name = trim((string) ($fulfillment['name'] ?? ''));
+        $priceMinor = filter_var($fulfillment['price_minor'] ?? null, FILTER_VALIDATE_INT);
+
+        if ($id === false || $id < 1 || ! in_array($type, ['delivery', 'pickup'], true)
+            || $name === '' || mb_strlen($name) > 190 || $priceMinor === false || $priceMinor < 0) {
+            throw new InvalidArgumentException(lang('Orders.invalidFulfillment'));
+        }
+
+        return [
+            'id' => $id,
+            'type' => $type,
+            'name' => $name,
+            'price_minor' => $priceMinor,
+        ];
     }
 
     private function money(int $minor): string

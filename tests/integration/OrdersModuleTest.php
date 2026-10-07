@@ -125,6 +125,33 @@ final class OrdersModuleTest extends CIUnitTestCase
         self::assertSame('new', $order['history'][0]['to_status']);
     }
 
+    public function testFulfillmentSnapshotAddsDeliveryPriceAndSurvivesCatalogueChanges(): void
+    {
+        $this->cart->add($this->firstVariant, 2);
+        $order = $this->orders->createFromCart([
+            'name' => 'Pickup Buyer',
+            'phone' => '321',
+        ], [
+            'id' => 77,
+            'type' => 'pickup',
+            'name' => 'Pickup point A',
+            'price_minor' => 2500,
+        ]);
+
+        self::assertSame(30000, $order['subtotal_minor']);
+        self::assertSame(2500, $order['delivery_minor']);
+        self::assertSame(32500, $order['total_minor']);
+        self::assertSame('325,00 ₽', $order['total_display']);
+        self::assertSame(77, $order['fulfillment_method_id']);
+        self::assertSame('pickup', $order['fulfillment_type']);
+        self::assertSame('Pickup point A', $order['fulfillment_name']);
+        self::assertSame('Pickup', $order['fulfillment_type_label']);
+
+        $saved = $this->db->table('orders')->where('id', $order['id'])->get()->getRowArray();
+        self::assertSame('Pickup point A', $saved['fulfillment_name']);
+        self::assertSame(2500, (int) $saved['delivery_minor']);
+    }
+
     public function testChangedAvailabilityDoesNotSilentlyCreateReducedOrder(): void
     {
         $this->stock->setOnHand($this->firstVariant, 5, 1);

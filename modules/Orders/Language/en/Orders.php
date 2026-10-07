@@ -48,8 +48,17 @@ return [
     'email' => 'Email',
     'optional' => 'optional',
     'reserveAtCheckout' => 'Stock is reserved only after the order is successfully placed.',
+    'invalidFulfillment' => 'Invalid fulfillment method.',
+    'fulfillment' => 'Fulfillment method',
+    'deliveryCost' => 'Delivery / pickup',
+    'itemsSubtotal' => 'Items',
+    'total' => 'Total',
     'previous' => 'Previous',
     'next' => 'Next',
+    'fulfillmentType' => [
+        'delivery' => 'Delivery',
+        'pickup' => 'Pickup',
+    ],
     'status' => [
         'new' => 'New',
         'processing' => 'Processing',

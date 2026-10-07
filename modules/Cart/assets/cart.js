@@ -20,6 +20,22 @@ if (!response.ok || payload.success === false) throw Object.assign(new Error(pay
 return payload;
 };
 const enqueue = task => { queue = queue.catch(() => {}).then(task); return queue; };
+const formatMoney = minor => {
+const whole = Math.floor(Math.max(0, Number(minor) || 0) / 100);
+const cents = String(Math.max(0, Number(minor) || 0) % 100).padStart(2, '0');
+return String(whole).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ',' + cents + ' ₽';
+};
+const syncCheckoutTotals = () => {
+const totals = document.querySelector('[data-checkout-totals]');
+if (!totals) return;
+const selected = document.querySelector('input[name="delivery_method_id"]:checked');
+const delivery = Number(selected?.dataset.deliveryPriceMinor || 0);
+const subtotal = Number(totals.dataset.subtotalMinor || 0);
+const deliveryNode = totals.querySelector('[data-checkout-delivery]');
+const totalNode = totals.querySelector('[data-checkout-total]');
+if (deliveryNode) deliveryNode.textContent = formatMoney(delivery);
+if (totalNode) totalNode.textContent = formatMoney(subtotal + delivery);
+};
 const pulse = row => {
 if (!row) return;
 row.classList.remove('mcms-cart-stock-adjusted');
@@ -59,10 +75,15 @@ syncAddForm(form);
 });
 });
 document.addEventListener('change', event => {
+if (event.target.matches('input[name="delivery_method_id"]')) {
+syncCheckoutTotals();
+return;
+}
 if (!event.target.matches('[data-variant-select],[data-cart-variant-select]')) return;
 const root = event.target.closest('[data-product-gallery],[data-cart-product-card]');
 root?.querySelectorAll('[data-cart-add]').forEach(syncAddForm);
 });
+syncCheckoutTotals();
 document.addEventListener('submit', event => {
 const form = event.target.closest('[data-cart-add]');
 if (!form) return;
@@ -125,6 +146,11 @@ const itemSubtotal = row?.querySelector('[data-cart-item-subtotal]');
 if (itemSubtotal) itemSubtotal.textContent = payload.item?.subtotal_display || '0,00 ₽';
 const subtotal = document.querySelector('[data-cart-subtotal]');
 if (subtotal) subtotal.textContent = payload.subtotal_display;
+const checkoutTotals = document.querySelector('[data-checkout-totals]');
+if (checkoutTotals) {
+checkoutTotals.dataset.subtotalMinor = String(payload.subtotal_minor || 0);
+syncCheckoutTotals();
+}
 const message = row?.querySelector('[data-cart-stock-message]');
 setMessage(message, payload.adjusted ? payload.message : '', payload.adjusted ? 'adjusted' : '');
 if (payload.adjusted) pulse(row);
@@ -150,6 +176,11 @@ if (form.matches('[data-cart-clear]')) { window.location.reload(); return; }
 form.closest('[data-cart-row]')?.remove();
 const subtotal = document.querySelector('[data-cart-subtotal]');
 if (subtotal) subtotal.textContent = payload.subtotal_display;
+const checkoutTotals = document.querySelector('[data-checkout-totals]');
+if (checkoutTotals) {
+checkoutTotals.dataset.subtotalMinor = String(payload.subtotal_minor || 0);
+syncCheckoutTotals();
+}
 if (payload.empty || !document.querySelector('[data-cart-row]')) window.location.reload();
 } catch (error) { window.alert(error.message); }
 });
