@@ -204,7 +204,7 @@ copies of the rendered shell were inspected at desktop and 390px widths for
 disclosure clicks/keyboard controls, mobile toggling and scrolling without
 horizontal overflow; no authenticated browser session was used.
 
-Fresh verification for this checkpoint includes 105 tests / 1009 assertions,
+Fresh verification for this checkpoint includes 111 tests / 1046 assertions,
 PHP lint, Docker builds and the standalone HTTP form smoke in
 `.github/scripts/site-smoke.py`. Public Signature Home, Galleries, embedded albums and Feedback were inspected in
 the in-app browser, including a 390px mobile viewport, native menu toggling and
