@@ -69,5 +69,23 @@ return [
     'Permissions' => [
         'view' => 'View orders',
         'manage' => 'Process orders and change statuses',
+        'export' => 'Export order and customer data',
+    ],
+    'Reports' => [
+        'title' => 'Order report',
+        'from' => 'Created from',
+        'to' => 'Created through',
+        'apply' => 'Show report',
+        'count' => 'Orders',
+        'currency' => 'Currency',
+        'exportOrders' => 'Orders CSV',
+        'exportItems' => 'Order items CSV',
+        'dateHint' => 'Select order creation dates, inclusive, in the site time zone. Leave a date blank for an open-ended range.',
+        'totalsHint' => 'Amounts use saved order prices and the current status. Cancelled orders are shown separately; these totals do not confirm payment. Currencies are never combined.',
+        'csvHint' => 'CSV: UTF-8, semicolon separator, amounts in integer minor units. Exports include every matching order, not just one page.',
+        'empty' => 'No orders match this period and status.',
+        'invalidDates' => 'Enter valid dates in YYYY-MM-DD format, with the start no later than the end.',
+        'invalidFormat' => 'Choose orders or items for CSV export.',
+        'exportFailed' => 'Could not generate the order export.',
     ],
 ];

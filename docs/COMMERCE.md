@@ -1,6 +1,6 @@
 # Commerce requirements and next implementation stage
 
-Status: Catalogue, ProductImages, Stock, Cart, Orders and Delivery implemented; export/report adapters remain later stages.
+Status: Catalogue, ProductImages, Stock, Cart, Orders and Delivery implemented, including order reports and orders/items CSV export.
 
 ## First-stage data contracts
 
@@ -161,10 +161,13 @@ Catalogue embeds the ProductImages editor; Ferma database/controllers are not co
    cancellation releases it and completion consumes it.
 7. Implement Delivery as ordered fixed-price delivery/pickup methods and snapshot the
    selected server-resolved method into Orders.
-8. Continue with export/report adapters.
+8. Provide order reports and CSV adapters for saved orders and order items.
 
 The commerce contracts now cover product images, variants/prices, Stock, Cart, Orders
-and Delivery. Export/report adapters remain separate implementation stages.
+and Delivery. Orders 0.3 adds a read-only reporting service and CSV adapters; see
+[Orders](../modules/Orders/README.md#reports-and-csv-030) for filters, exact minor-unit
+amounts, snapshot ownership and export permissions. External accounting, catalogue
+feeds and other integrations require their own contracts.
 
 ## Verification targets for implementation
 

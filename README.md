@@ -65,7 +65,7 @@ originals, main selection, drag-and-drop order, variants and RUB prices. `/shop`
 renders the storefront in all four themes. Media and Galleries are independent.
 Photo edits save immediately; product/variant fields save with the product form.
 
-Stock provides variant-level on-hand/reserved/available quantities. Cart checks live availability but never reserves stock; Orders creates the reservation only after checkout succeeds. Delivery adds fixed-price delivery and pickup methods whose name/type/price are snapshotted into each order. The next stages are export/report adapters.
+Stock provides variant-level on-hand/reserved/available quantities. Cart checks live availability but never reserves stock; Orders creates the reservation only after checkout succeeds. Delivery adds fixed-price delivery and pickup methods whose name/type/price are snapshotted into each order. Orders → Order report provides date/status totals and CSV exports of historical orders and their items, with a separate export permission. See [Orders](modules/Orders/README.md).
 
 See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
 and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md), [Cart](modules/Cart/README.md), [Orders](modules/Orders/README.md) and [Delivery](modules/Delivery/README.md). Back up the dedicated

@@ -57,7 +57,7 @@
 - [x] Orders: checkout snapshots, reserve-on-order, manager statuses, cancel release and completion write-off.
 - [x] Stock: variant-level on-hand/available quantities, reservations, audited corrections and manager quick controls.
 - [x] Delivery: fixed-price delivery and pickup methods, admin ordering/enabled state and immutable order snapshots.
-- [ ] Export/report adapters.
+- [x] Export/report adapters: order totals by creation date/status/currency and full orders/items CSV from saved snapshots.
 
 ## Stage 3 — ecosystem
 

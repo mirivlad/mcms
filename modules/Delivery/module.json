@@ -7,7 +7,7 @@
   "mcms": "^0.1.5",
   "description": "@Delivery.description",
   "requires": [
-    {"id": "orders", "version": "^0.2"}
+    {"id": "orders", "version": "^0.2 || ^0.3"}
   ],
   "public_paths": [],
   "permissions": {

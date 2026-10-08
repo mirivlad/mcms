@@ -5,6 +5,7 @@
         <h1 class="page-title"><?= esc(lang('Orders.title')) ?></h1>
         <span class="text-muted"><?= esc(lang('Orders.title')) ?>: <?= $count ?></span>
     </div>
+    <a class="btn btn-outline-secondary" href="<?= site_url('admin/orders/reports') ?>"><i class="ti ti-report-analytics me-1" aria-hidden="true"></i><?= esc(lang('Orders.Reports.title')) ?></a>
 </div>
 
 <form class="row g-2 mb-4" method="get">

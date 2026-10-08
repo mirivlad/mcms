@@ -136,7 +136,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - All four bundled themes provide the logical cart.index template.
 - Cart 0.1.1 integrates optional Delivery methods into checkout and shows item, fulfillment and grand totals; if Delivery is enabled with no active methods, checkout is blocked.
 
-### Orders 0.2.0
+### Orders 0.3.0
 
 - Checkout creates immutable order/item snapshots from the current Cart.
 - Stock is reserved only after the order is successfully created; Cart itself never reserves inventory.
@@ -146,10 +146,16 @@ This document records the current known-good mCMS implementation checkpoint.
 - Administration supports order search, filtering, details and status changes.
 - Active orders hold a database-level variant lock; terminal orders release it while keeping immutable order snapshots.
 - Orders 0.2 accepts a server-resolved fulfillment snapshot and stores method ID/type/name, fulfillment charge and grand total independently of later Delivery edits.
+- Read-only order reports with inclusive creation-date/current-status filters and
+  counts/item/delivery/grand totals grouped by status and currency.
+- Full orders/items CSV exports from historical snapshots, exact integer minor-unit
+  amounts, formula-safe text, 500-row query batches and private temporary downloads.
+- Separate `orders.export` permission in addition to `orders.view`; reports and
+  exports do not modify orders, inventory, reservations or the cart.
 
 ### Delivery 0.1.0
 
-- Separate module depending on Orders 0.2; Orders remains usable when Delivery is disabled.
+- Separate module compatible with Orders 0.2 and 0.3; Orders remains usable when Delivery is disabled.
 - Supports ordered fixed-price `delivery` and `pickup` methods with an enabled flag.
 - Administration provides create/edit/delete and explicit display ordering under Commerce → Delivery & pickup.
 - Prices are integer minor units; checkout submits only a method ID and the server resolves the current name/type/price.
@@ -208,6 +214,20 @@ Browser checks covered hover/focus tooltips, Escape, edit/delete dialogs and Med
 copy feedback. Pages, category, Delivery and access screens were checked at 320px,
 390px and desktop widths without page overflow; wide tables retain internal scrolling.
 The category header now wraps its buttons on narrow screens.
+
+Orders reporting verification includes 116 PHPUnit tests / 1097 assertions, PHP
+lint and Composer validation. A fresh MariaDB Docker installation passed the
+site and commerce HTTP smoke plus `orders-reports-smoke.py`: inclusive dates,
+status filters, historical fulfillment/line prices, exact totals, CSV headers,
+invalid inputs, separate view/export grants and module disable/re-enable.
+Focused tests cover mixed currencies, 502-row exports across query batches,
+empty results, missing live product references, multiline/quoted text and
+spreadsheet formula markers. The real browser workflow covered report discovery
+from Orders, filtering, invalid/empty states and a successfully downloaded CSV
+whose saved integer totals were checked. Russian/English report layouts were
+inspected at desktop, 390px and 320px widths without page overflow.
+The administration UI commit `4a6ec71` passed both GitHub workflows. No live-server
+deployment is recorded for these changes.
 
 The sidebar checkpoint covers automatic group expansion on nested routes,
 subdirectory-aware public links, legacy module contributions, module disablement
@@ -291,14 +311,16 @@ corrections now submit through AJAX and update the displayed availability withou
 
 Cart 0.1.1 checks live availability but never reserves inventory. It keeps immutable
 line-price snapshots, clamps stale quantities, saves quantity edits automatically and
-shows optional Delivery selection/totals at checkout. Orders 0.2.0 is the reservation
+shows optional Delivery selection/totals at checkout. Orders 0.3.0 is the reservation
 boundary and stores immutable fulfillment snapshots plus item/delivery/grand totals.
 
 Delivery 0.1.0 provides ordered fixed-price delivery and pickup methods. The browser
 submits only the selected method ID; its current price and type are resolved server-side
 before Orders snapshots them. Orders remains usable with Delivery disabled.
 
-Next: export/report adapters.
+Order reports and CSV adapters are implemented for saved order/line snapshots.
+The next roadmap stage is ecosystem packaging and safe installation/update flows;
+external commerce integrations require their own format and ownership contracts.
 See [commerce contracts](COMMERCE.md) and the modules' README files.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,
