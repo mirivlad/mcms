@@ -36,9 +36,7 @@
                     <td><?= esc(implode(', ', $entry->getPermissions() ?? []) ?: '—') ?></td>
                     <?php if ($canAccess): ?>
                         <td>
-                            <a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/users/' . $entry->id . '/access') ?>">
-                                <?= esc(lang('MCMS.users.access')) ?>
-                            </a>
+                            <a class="btn btn-outline-primary btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/users/' . $entry->id . '/access') ?>" aria-label="<?= esc(lang('MCMS.users.access'), 'attr') ?>" title="<?= esc(lang('MCMS.users.access'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-user-shield" aria-hidden="true"></i></a>
                         </td>
                     <?php endif ?>
                 </tr>

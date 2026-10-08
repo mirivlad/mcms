@@ -33,13 +33,13 @@
                 </div>
                 <?php if ($canManage): ?>
                     <div class="d-flex gap-1 ms-2">
-                        <a class="btn btn-icon btn-ghost-secondary btn-sm" href="<?= site_url('admin/menus/' . $menuId . '/edit?item=' . $item['id']) ?>#menu-item-form" title="<?= esc(lang('Menus.Admin.editAction'), 'attr') ?>">
-                            <i class="ti ti-pencil"></i>
+                        <a class="btn btn-icon btn-ghost-secondary btn-sm admin-icon-action" href="<?= site_url('admin/menus/' . $menuId . '/edit?item=' . $item['id']) ?>#menu-item-form" title="<?= esc(lang('Menus.Admin.editAction'), 'attr') ?>" aria-label="<?= esc(lang('Menus.Admin.editAction'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body">
+                            <i aria-hidden="true" class="ti ti-pencil"></i>
                         </a>
                         <form method="post" action="<?= site_url('admin/menus/' . $menuId . '/items/' . $item['id'] . '/delete') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Menus.Admin.deleteItemConfirm')), 'attr') ?>)">
                             <?= csrf_field() ?>
-                            <button class="btn btn-icon btn-ghost-danger btn-sm" type="submit" title="<?= esc(lang('Menus.Admin.deleteAction'), 'attr') ?>">
-                                <i class="ti ti-trash"></i>
+                            <button class="btn btn-icon btn-ghost-danger btn-sm admin-icon-action" type="submit" title="<?= esc(lang('Menus.Admin.deleteAction'), 'attr') ?>" aria-label="<?= esc(lang('Menus.Admin.deleteAction'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body">
+                                <i aria-hidden="true" class="ti ti-trash"></i>
                             </button>
                         </form>
                     </div>

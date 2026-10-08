@@ -98,5 +98,18 @@
     </div>
 </div>
 <script src="<?= site_url('assets/vendor/tabler/tabler.min.js') ?>"></script>
+<script>
+document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+        document.querySelectorAll('.admin-icon-action').forEach(element => {
+            tabler.Tooltip.getInstance(element)?.hide();
+        });
+    }
+});
+document.addEventListener('click', event => {
+    const action = event.target.closest('.admin-icon-action');
+    if (action) tabler.Tooltip.getInstance(action)?.hide();
+});
+</script>
 </body>
 </html>

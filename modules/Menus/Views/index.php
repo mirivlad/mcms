@@ -63,8 +63,8 @@
                             <?php if ($canManage): ?>
                                 <form method="post" action="<?= site_url('admin/menus/' . $menu['id'] . '/delete') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Menus.Admin.deleteMenuConfirm')), 'attr') ?>)">
                                     <?= csrf_field() ?>
-                                    <button class="btn btn-icon btn-ghost-danger" type="submit" title="<?= esc(lang('Menus.Admin.deleteMenu'), 'attr') ?>">
-                                        <i class="ti ti-trash"></i>
+                                    <button class="btn btn-icon btn-ghost-danger admin-icon-action" type="submit" title="<?= esc(lang('Menus.Admin.deleteMenu'), 'attr') ?>" aria-label="<?= esc(lang('Menus.Admin.deleteMenu'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body">
+                                        <i aria-hidden="true" class="ti ti-trash"></i>
                                     </button>
                                 </form>
                             <?php endif ?>

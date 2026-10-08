@@ -71,8 +71,8 @@
                         <td data-label="<?= esc(lang('MCMS.users.title'), 'attr') ?>"><?= $group['members'] ?></td>
                         <td data-label="<?= esc(lang('MCMS.access.actions'), 'attr') ?>">
                             <div class="d-flex gap-2 flex-wrap">
-                                <button class="btn btn-outline-primary btn-sm" type="button" data-edit-group="<?= esc($id, 'attr') ?>" aria-label="<?= esc(lang('MCMS.access.editGroup') . ': ' . $group['label'], 'attr') ?>"><?= esc(lang('MCMS.access.editGroup')) ?></button>
-                                <button class="btn btn-outline-danger btn-sm" type="button" data-delete-group="<?= esc($id, 'attr') ?>" aria-label="<?= esc(lang('MCMS.common.delete') . ': ' . $group['label'], 'attr') ?>" <?= $group['protected'] ? 'disabled' : '' ?>><?= esc(lang('MCMS.common.delete')) ?></button>
+                                <button class="btn btn-outline-primary btn-sm btn-icon admin-icon-action" type="button" data-edit-group="<?= esc($id, 'attr') ?>" aria-label="<?= esc(lang('MCMS.access.editGroup') . ': ' . $group['label'], 'attr') ?>" title="<?= esc(lang('MCMS.access.editGroup'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></button>
+                                <button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="button" data-delete-group="<?= esc($id, 'attr') ?>" aria-label="<?= esc(lang('MCMS.common.delete') . ': ' . $group['label'], 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body" <?= $group['protected'] ? 'disabled' : '' ?>><i class="ti ti-trash" aria-hidden="true"></i></button>
                             </div>
                         </td>
                     </tr>

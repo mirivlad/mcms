@@ -113,14 +113,10 @@ $pageUrl = static function (int $targetPage) use ($query, $status): string {
                     <td>
                         <div class="btn-list flex-nowrap">
                             <?php if ($page['status'] === 'published'): ?>
-                                <a class="btn btn-outline-secondary btn-sm" href="<?= esc(site_url(ltrim($page['url'], '/'))) ?>" target="_blank" rel="noopener">
-                                    <i class="ti ti-external-link me-1"></i><?= esc(lang('Pages.Admin.viewPublic')) ?>
-                                </a>
+                                <a class="btn btn-outline-secondary btn-sm btn-icon admin-icon-action" href="<?= esc(site_url(ltrim($page['url'], '/'))) ?>" target="_blank" rel="noopener" title="<?= esc(lang('Pages.Admin.viewPublic'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.viewPublic'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-external-link" aria-hidden="true"></i></a>
                             <?php endif ?>
                             <?php if ($canEdit): ?>
-                                <a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/pages/' . $page['id'] . '/edit') ?>">
-                                    <i class="ti ti-pencil me-1"></i><?= esc(lang('Pages.Admin.edit')) ?>
-                                </a>
+                                <a class="btn btn-outline-primary btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/pages/' . $page['id'] . '/edit') ?>" aria-label="<?= esc(lang('Pages.Admin.edit'), 'attr') ?>" title="<?= esc(lang('Pages.Admin.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a>
                             <?php endif ?>
                             <?php if ($canDelete): ?>
                                 <form
@@ -129,7 +125,7 @@ $pageUrl = static function (int $targetPage) use ($query, $status): string {
                                     onsubmit="return confirm(<?= esc(json_encode(lang('Pages.Admin.deleteConfirm')), 'attr') ?>);"
                                 >
                                     <?= csrf_field() ?>
-                                    <button class="btn btn-outline-danger btn-sm" type="submit"><i class="ti ti-trash me-1"></i><?= esc(lang('MCMS.common.delete')) ?></button>
+                                    <button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="submit" aria-label="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
                                 </form>
                             <?php endif ?>
                         </div>

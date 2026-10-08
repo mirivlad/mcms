@@ -58,12 +58,12 @@
                         <?php if ($enabled): ?>
                             <form method="post" action="<?= site_url('admin/modules/' . rawurlencode($id) . '/disable') ?>">
                                 <?= csrf_field() ?>
-                                <button class="btn btn-outline-secondary btn-sm" type="submit"><?= esc(lang('MCMS.common.disable')) ?></button>
+                                <button class="btn btn-outline-secondary btn-sm btn-icon admin-icon-action" type="submit" aria-label="<?= esc(lang('MCMS.common.disable'), 'attr') ?>" title="<?= esc(lang('MCMS.common.disable'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-player-pause" aria-hidden="true"></i></button>
                             </form>
                         <?php else: ?>
                             <form method="post" action="<?= site_url('admin/modules/' . rawurlencode($id) . '/enable') ?>">
                                 <?= csrf_field() ?>
-                                <button class="btn btn-primary btn-sm" type="submit"><?= esc(lang('MCMS.common.enable')) ?></button>
+                                <button class="btn btn-primary btn-sm btn-icon admin-icon-action" type="submit" aria-label="<?= esc(lang('MCMS.common.enable'), 'attr') ?>" title="<?= esc(lang('MCMS.common.enable'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-player-play" aria-hidden="true"></i></button>
                             </form>
                         <?php endif ?>
                     </td>

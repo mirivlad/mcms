@@ -91,3 +91,23 @@
         margin-top: auto;
     }
 }
+/* Repeated list actions stay compact, with larger touch targets on small screens. */
+.admin-icon-action {
+    width: 2.25rem;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+}
+
+.admin-icon-action .ti {
+    font-size: 1.25rem;
+    margin: 0;
+}
+
+@media (pointer: coarse), (max-width: 575.98px) {
+    .admin-icon-action {
+        width: 2.75rem;
+        min-width: 2.75rem;
+        height: 2.75rem;
+    }
+}

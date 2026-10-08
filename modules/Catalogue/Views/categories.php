@@ -1,7 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <?= view('MCMS\\Modules\\Catalogue\\Views\\category_assets') ?>
-<div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-4"><h1 class="page-title"><?= esc(lang('Catalogue.categories')) ?></h1><div class="d-flex gap-2"><a class="btn" href="<?= site_url('admin/catalogue') ?>"><?= esc(lang('Catalogue.backStore')) ?></a><?php if ($canCreate): ?><a class="btn btn-primary" href="<?= site_url('admin/catalogue/categories/create') ?>"><?= esc(lang('Catalogue.createCategory')) ?></a><?php endif ?></div></div>
+<div class="d-flex justify-content-between align-items-center gap-2 flex-wrap mb-4"><h1 class="page-title"><?= esc(lang('Catalogue.categories')) ?></h1><div class="d-flex gap-2 flex-wrap"><a class="btn" href="<?= site_url('admin/catalogue') ?>"><?= esc(lang('Catalogue.backStore')) ?></a><?php if ($canCreate): ?><a class="btn btn-primary" href="<?= site_url('admin/catalogue/categories/create') ?>"><?= esc(lang('Catalogue.createCategory')) ?></a><?php endif ?></div></div>
 <p class="text-muted"><?= esc(lang('Catalogue.categoryTreeHint')) ?></p>
 <div class="card"><div class="list-group list-group-flush">
 <?php foreach ($categories as $category): ?>
@@ -10,9 +10,9 @@
             <?= view('MCMS\\Modules\\Catalogue\\Views\\category_icon', ['category' => $category]) ?>
             <div><strong><?= esc($category['name']) ?></strong><div class="text-muted small"><?= esc($category['path']) ?></div><a class="small" href="<?= site_url(ltrim($category['url'], '/')) ?>" target="_blank" rel="noopener"><?= esc($category['url']) ?></a></div>
         </div>
-        <?php if ($canCreate): ?><a class="btn btn-sm" href="<?= site_url('admin/catalogue/categories/create') ?>?parent=<?= $category['id'] ?>"><?= esc(lang('Catalogue.addSubcategory')) ?></a><?php endif ?>
-        <?php if ($canEdit): ?><a class="btn btn-sm" href="<?= site_url('admin/catalogue/categories/' . $category['id'] . '/edit') ?>"><?= esc(lang('Catalogue.editCategory')) ?></a><?php endif ?>
-        <?php if ($canDelete): ?><button class="btn btn-sm btn-outline-danger" type="button" data-delete-category="<?= site_url('admin/catalogue/categories/' . $category['id'] . '/delete') ?>" data-title="<?= esc($category['name'], 'attr') ?>"><?= esc(lang('Catalogue.deleteCategory')) ?></button><?php endif ?>
+        <?php if ($canCreate): ?><a class="btn btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/catalogue/categories/create') ?>?parent=<?= $category['id'] ?>" aria-label="<?= esc(lang('Catalogue.addSubcategory'), 'attr') ?>" title="<?= esc(lang('Catalogue.addSubcategory'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-folder-plus" aria-hidden="true"></i></a><?php endif ?>
+        <?php if ($canEdit): ?><a class="btn btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/catalogue/categories/' . $category['id'] . '/edit') ?>" aria-label="<?= esc(lang('Catalogue.editCategory'), 'attr') ?>" title="<?= esc(lang('Catalogue.editCategory'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a><?php endif ?>
+        <?php if ($canDelete): ?><button class="btn btn-sm btn-outline-danger btn-icon admin-icon-action" type="button" data-delete-category="<?= site_url('admin/catalogue/categories/' . $category['id'] . '/delete') ?>" data-title="<?= esc($category['name'], 'attr') ?>" aria-label="<?= esc(lang('Catalogue.deleteCategory'), 'attr') ?>" title="<?= esc(lang('Catalogue.deleteCategory'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button><?php endif ?>
     </div>
 <?php endforeach ?>
 <?php if ($categories === []): ?><div class="card-body text-muted"><?= esc(lang('Catalogue.noCategories')) ?></div><?php endif ?>

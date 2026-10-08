@@ -1,4 +1,4 @@
-# Current baseline — 2026-10-06
+# Current baseline — 2026-10-08
 
 This document records the current known-good mCMS implementation checkpoint.
 
@@ -17,6 +17,9 @@ This document records the current known-good mCMS implementation checkpoint.
 - English/Russian localization.
 - Tabler 1.6.1 administration shell with responsive navigation, a public-site link
   and permission-filtered collapsible Content, Appearance, Shop and Administration groups.
+- Repeated list actions use compact Tabler icons with localized accessible names
+  and hover/focus tooltips. Escape and activation dismiss the tooltip. Primary
+  creation/save/confirmation actions retain text; mobile icon targets are 44px.
 - HTTPS reverse-proxy support and standard CodeIgniter error views.
 - Theme discovery, manifest validation, activation and logical template rendering.
 - Per-theme menu-location assignments through the Core navigation source contract.
@@ -195,6 +198,16 @@ This document records the current known-good mCMS implementation checkpoint.
 - Disabling Menus does not remove assignments or break the public theme; assigned navigation becomes empty until Menus is enabled again. Signature, Depth and Focus fall back to automatic public navigation.
 
 ## Verification
+
+The 2026-10-08 administration presentation checkpoint passed PHP lint and focused
+navigation/localization/manifest checks (10 tests / 30 assertions), following the
+fresh baseline suite (111 tests / 1046 assertions). The real disposable admin was
+inspected in Russian and English: Pages, News/categories, Galleries, Media,
+Catalogue/categories, SEO, users/groups, modules, themes, Delivery and Menus.
+Browser checks covered hover/focus tooltips, Escape, edit/delete dialogs and Media
+copy feedback. Pages, category, Delivery and access screens were checked at 320px,
+390px and desktop widths without page overflow; wide tables retain internal scrolling.
+The category header now wraps its buttons on narrow screens.
 
 The sidebar checkpoint covers automatic group expansion on nested routes,
 subdirectory-aware public links, legacy module contributions, module disablement

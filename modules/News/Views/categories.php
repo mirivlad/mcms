@@ -10,8 +10,8 @@
     <tbody><?php if ($categories === []): ?><tr><td colspan="3"><?= esc(lang('News.Admin.noCategories')) ?></td></tr><?php endif ?>
     <?php foreach ($categories as $category): ?>
     <tr><td><?= esc($category['name']) ?></td><td><code><?= esc($category['slug']) ?></code></td><td><div class="btn-list flex-nowrap">
-        <button class="btn btn-outline-primary btn-sm" type="button" data-category-edit="<?= esc(json_encode($category, JSON_UNESCAPED_UNICODE), 'attr') ?>"><?= esc(lang('MCMS.common.edit')) ?></button>
-        <button class="btn btn-outline-danger btn-sm" type="button" data-category-delete="<?= (int) $category['id'] ?>" data-category-name="<?= esc($category['name'], 'attr') ?>"><?= esc(lang('MCMS.common.delete')) ?></button>
+        <button class="btn btn-outline-primary btn-sm btn-icon admin-icon-action" type="button" data-category-edit="<?= esc(json_encode($category, JSON_UNESCAPED_UNICODE), 'attr') ?>" aria-label="<?= esc(lang('MCMS.common.edit'), 'attr') ?>" title="<?= esc(lang('MCMS.common.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></button>
+        <button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="button" data-category-delete="<?= (int) $category['id'] ?>" data-category-name="<?= esc($category['name'], 'attr') ?>" aria-label="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
     </div></td></tr>
     <?php endforeach ?></tbody>
 </table></div></div>

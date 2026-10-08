@@ -91,9 +91,7 @@
                                         <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.active')) ?>
                                     </button>
                                 <?php endif ?>
-                                <a class="btn btn-outline-secondary" href="<?= site_url('admin/themes/' . $theme->id) ?>">
-                                    <i class="ti ti-adjustments me-1"></i><?= esc(lang('MCMS.themes.configure')) ?>
-                                </a>
+                                <a class="btn btn-outline-secondary btn-icon admin-icon-action" href="<?= site_url('admin/themes/' . $theme->id) ?>" aria-label="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" title="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-adjustments" aria-hidden="true"></i></a>
                             </div>
                         </div>
                     </div>

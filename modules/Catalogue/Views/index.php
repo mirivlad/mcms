@@ -9,8 +9,8 @@
 <div class="list-group-item">
     <div class="d-flex align-items-center gap-3 flex-wrap">
         <div class="flex-fill"><strong><?= esc($product['title']) ?></strong><div class="text-muted small"><?= esc($product['category']) ?> · <?= esc(lang('Catalogue.' . $product['status'])) ?> · <?= esc($product['from_price']) ?></div></div>
-        <?php if ($canEdit): ?><a class="btn btn-sm" href="<?= site_url('admin/catalogue/' . $product['id'] . '/edit') ?>"><?= esc(lang('Catalogue.edit')) ?></a><?php endif ?>
-        <?php if ($canDelete): ?><button class="btn btn-sm btn-outline-danger" type="button" data-delete-product="<?= $product['id'] ?>" data-title="<?= esc($product['title'], 'attr') ?>"><?= esc(lang('Catalogue.deleteButton')) ?></button><?php endif ?>
+        <?php if ($canEdit): ?><a class="btn btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/catalogue/' . $product['id'] . '/edit') ?>" aria-label="<?= esc(lang('Catalogue.edit'), 'attr') ?>" title="<?= esc(lang('Catalogue.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a><?php endif ?>
+        <?php if ($canDelete): ?><button class="btn btn-sm btn-outline-danger btn-icon admin-icon-action" type="button" data-delete-product="<?= $product['id'] ?>" data-title="<?= esc($product['title'], 'attr') ?>" aria-label="<?= esc(lang('Catalogue.deleteButton'), 'attr') ?>" title="<?= esc(lang('Catalogue.deleteButton'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button><?php endif ?>
     </div>
     <?php if ($canManageStock ?? false): ?>
         <div class="border-top mt-3 pt-3 d-flex flex-column gap-2">

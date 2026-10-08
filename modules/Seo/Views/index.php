@@ -25,9 +25,9 @@
     <?php if ($redirects === []): ?><tr><td colspan="3"><?= esc(lang('Seo.Admin.empty')) ?></td></tr><?php endif ?>
     <?php foreach ($redirects as $redirect): ?>
         <tr><td><code><?= esc($redirect['source_path']) ?></code></td><td><?= esc($repository->destination($redirect) ?? lang('Seo.Admin.unavailable')) ?></td>
-            <td><div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/seo') . '?edit=' . rawurlencode($redirect['source_path']) ?>#redirect-form"><?= esc(lang('MCMS.common.edit')) ?></a>
+            <td><div class="d-flex gap-2 flex-wrap"><a class="btn btn-outline-primary btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/seo') . '?edit=' . rawurlencode($redirect['source_path']) ?>#redirect-form" aria-label="<?= esc(lang('MCMS.common.edit'), 'attr') ?>" title="<?= esc(lang('MCMS.common.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a>
             <form method="post" action="<?= site_url('admin/seo/delete') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Seo.Admin.deleteConfirm')), 'attr') ?>);">
-                <?= csrf_field() ?><input type="hidden" name="source" value="<?= esc($redirect['source_path'], 'attr') ?>"><button class="btn btn-outline-danger btn-sm"><?= esc(lang('MCMS.common.delete')) ?></button>
+                <?= csrf_field() ?><input type="hidden" name="source" value="<?= esc($redirect['source_path'], 'attr') ?>"><button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" aria-label="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
             </form></div></td>
         </tr>
     <?php endforeach ?>

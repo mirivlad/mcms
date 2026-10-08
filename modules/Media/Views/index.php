@@ -190,7 +190,7 @@ $pageUrl = static function (int $targetPage) use ($query): string {
                                 aria-label="URL"
                             >
                             <button
-                                class="btn btn-outline-secondary"
+                                class="btn btn-outline-secondary btn-icon admin-icon-action" data-bs-toggle="tooltip" data-bs-container="body"
                                 type="button"
                                 data-copy-url="<?= esc($item['url'], 'attr') ?>"
                                 data-copy-label="<?= esc(lang('MCMS.media.copyUrl'), 'attr') ?>"
@@ -198,17 +198,17 @@ $pageUrl = static function (int $targetPage) use ($query): string {
                                 title="<?= esc(lang('MCMS.media.copyUrl'), 'attr') ?>"
                                 aria-label="<?= esc(lang('MCMS.media.copyUrl'), 'attr') ?>"
                             >
-                                <i class="ti ti-copy"></i>
+                                <i class="ti ti-copy" aria-hidden="true"></i>
                             </button>
                             <a
-                                class="btn btn-outline-secondary"
+                                class="btn btn-outline-secondary btn-icon admin-icon-action" data-bs-toggle="tooltip" data-bs-container="body"
                                 href="<?= esc($item['url']) ?>"
                                 target="_blank"
                                 rel="noopener"
                                 title="<?= esc(lang('MCMS.common.open'), 'attr') ?>"
                                 aria-label="<?= esc(lang('MCMS.common.open'), 'attr') ?>"
                             >
-                                <i class="ti ti-external-link"></i>
+                                <i class="ti ti-external-link" aria-hidden="true"></i>
                             </a>
                         </div>
 
@@ -258,9 +258,7 @@ $pageUrl = static function (int $targetPage) use ($query): string {
                                 onsubmit="return confirm(<?= esc(json_encode(lang('MCMS.media.deleteConfirm')), 'attr') ?>);"
                             >
                                 <?= csrf_field() ?>
-                                <button class="btn btn-outline-danger btn-sm" type="submit">
-                                    <i class="ti ti-trash me-1"></i><?= esc(lang('MCMS.common.delete')) ?>
-                                </button>
+                                <button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="submit" aria-label="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
                             </form>
                         </div>
                     <?php endif ?>
@@ -303,11 +301,13 @@ $pageUrl = static function (int $targetPage) use ($query): string {
                 await navigator.clipboard.writeText(value);
                 button.title = copiedLabel;
                 button.setAttribute('aria-label', copiedLabel);
+                tabler.Tooltip.getInstance(button)?.setContent({'.tooltip-inner': copiedLabel});
                 icon.className = 'ti ti-check';
 
                 window.setTimeout(() => {
                     button.title = copyLabel;
                     button.setAttribute('aria-label', copyLabel);
+                    tabler.Tooltip.getInstance(button)?.setContent({'.tooltip-inner': copyLabel});
                     icon.className = 'ti ti-copy';
                 }, 1500);
             } catch (_) {

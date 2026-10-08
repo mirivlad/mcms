@@ -20,10 +20,10 @@
         <td><strong><?= esc($album['title']) ?></strong><div class="text-secondary"><code><?= esc($album['slug']) ?></code></div></td>
         <td><?= esc(lang('Galleries.Admin.' . $album['status'])) ?></td><td><?= count($album['images']) ?></td>
         <td><div class="btn-list flex-nowrap">
-            <?php if ($album['is_live']): ?><a class="btn btn-sm btn-outline-secondary" href="<?= esc(site_url(ltrim($album['url'], '/')), 'attr') ?>" target="_blank" rel="noopener"><?= esc(lang('MCMS.common.open')) ?></a><?php endif ?>
-            <?php if ($canEdit): ?><a class="btn btn-sm btn-outline-primary" href="<?= site_url('admin/galleries/' . $album['id'] . '/edit') ?>"><?= esc(lang('Galleries.Admin.edit')) ?></a><?php endif ?>
+            <?php if ($album['is_live']): ?><a class="btn btn-sm btn-outline-secondary btn-icon admin-icon-action" href="<?= esc(site_url(ltrim($album['url'], '/')), 'attr') ?>" target="_blank" rel="noopener" aria-label="<?= esc(lang('MCMS.common.open'), 'attr') ?>" title="<?= esc(lang('MCMS.common.open'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-external-link" aria-hidden="true"></i></a><?php endif ?>
+            <?php if ($canEdit): ?><a class="btn btn-sm btn-outline-primary btn-icon admin-icon-action" href="<?= site_url('admin/galleries/' . $album['id'] . '/edit') ?>" aria-label="<?= esc(lang('Galleries.Admin.edit'), 'attr') ?>" title="<?= esc(lang('Galleries.Admin.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a><?php endif ?>
             <?php if ($canDelete): ?><form method="post" action="<?= site_url('admin/galleries/' . $album['id'] . '/delete') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Galleries.Admin.deleteConfirm')), 'attr') ?>);">
-                <?= csrf_field() ?><button class="btn btn-sm btn-outline-danger"><?= esc(lang('MCMS.common.delete')) ?></button>
+                <?= csrf_field() ?><button class="btn btn-sm btn-outline-danger btn-icon admin-icon-action" aria-label="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
             </form><?php endif ?>
         </div></td>
     </tr><?php endforeach ?>

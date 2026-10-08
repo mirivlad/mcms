@@ -66,14 +66,10 @@
                             </td>
                             <td class="text-end text-nowrap">
                                 <?php if ($canManage): ?>
-                                    <a class="btn btn-sm btn-outline-primary" href="<?= site_url('admin/delivery/' . $method['id']) ?>">
-                                        <?= esc(lang('Delivery.edit')) ?>
-                                    </a>
-                                    <button class="btn btn-sm btn-outline-danger" type="submit"
+                                    <a class="btn btn-sm btn-outline-primary btn-icon admin-icon-action" href="<?= site_url('admin/delivery/' . $method['id']) ?>" aria-label="<?= esc(lang('Delivery.edit'), 'attr') ?>" title="<?= esc(lang('Delivery.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a>
+                                    <button class="btn btn-sm btn-outline-danger btn-icon admin-icon-action" type="submit"
                                             form="delete-delivery-<?= (int) $method['id'] ?>"
-                                            onclick="return confirm(<?= esc(json_encode(lang('Delivery.confirmDelete'), JSON_UNESCAPED_UNICODE), 'attr') ?>)">
-                                        <?= esc(lang('Delivery.delete')) ?>
-                                    </button>
+                                            onclick="return confirm(<?= esc(json_encode(lang('Delivery.confirmDelete'), JSON_UNESCAPED_UNICODE), 'attr') ?>)" aria-label="<?= esc(lang('Delivery.delete'), 'attr') ?>" title="<?= esc(lang('Delivery.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
                                 <?php endif ?>
                             </td>
                         </tr>
