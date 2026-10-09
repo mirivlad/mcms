@@ -14,7 +14,7 @@
             <span class="badge bg-secondary-lt"><?= esc(lang('MCMS.modules.updateStatus.' . $state['status'])) ?></span>
             <a class="btn btn-outline-secondary btn-sm" href="<?= site_url('admin/modules/' . rawurlencode($id) . '/update/snapshot') ?>"><i class="ti ti-download me-2" aria-hidden="true"></i><?= esc(lang('MCMS.modules.previousCode')) ?></a>
         </div>
-        <?php if ($state['error'] !== null): ?><div class="alert alert-danger text-break"><?= esc($state['error']) ?></div><?php endif ?>
+        <?php if ($state['error'] !== null && $state['error'] !== session()->getFlashdata('error')): ?><div class="alert alert-danger text-break"><?= esc($state['error']) ?></div><?php endif ?>
         <?php if ($state['status'] === 'queued' && $maintenance === null): ?>
         <p><?= esc(lang('MCMS.modules.backupHint')) ?></p>
         <form method="post" action="<?= site_url('admin/modules/' . rawurlencode($id) . '/update/apply') ?>">

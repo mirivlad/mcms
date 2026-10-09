@@ -546,6 +546,9 @@ jobs:
             http://127.0.0.1:8080/login -o /tmp/package-persist-admin.html
           python3 .github/scripts/module-packages-smoke.py --cookies /tmp/package-persist.cookies --phase persist
 
+      - name: Verify module updates and recovery after failed MariaDB DDL
+        run: python3 .github/scripts/module-updates-smoke.py --cookies /tmp/package-persist.cookies
+
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 

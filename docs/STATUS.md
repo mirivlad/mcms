@@ -40,8 +40,19 @@ This document records the current known-good mCMS implementation checkpoint.
   and namespace-scoped migrations. A provider with an invalid interface or
   required constructor arguments is refused before migration/activation; disabling
   preserves its data.
-- First-party ids/namespaces and existing external modules cannot be replaced.
-  Safe updates and remote repository retrieval remain separate future work.
+- The installation form refuses existing ids/namespaces. A refresh action on
+  external modules provides ZIP updates with unchanged identity/provider, newer
+  versions, forward/reverse compatibility and retained historical migrations.
+- Preparation preserves installed code/DB, saves a downloadable code snapshot and
+  can be cancelled. Apply requires an external full database backup confirmation;
+  it drains normal requests, runs a fresh target-only migration worker in persistent
+  maintenance and keeps the module disabled after success.
+- Failure/interruption keeps public/business requests at HTTP 503. Core recovery
+  survives app recreation; startup migrations/demo writes are skipped. After an
+  operator restores the full database backup, Core checks registry/migration history
+  and restores the previous code without down migrations. Code snapshots do not
+  back up/restore the database. The workflow supports the single-app Docker stack.
+- Remote repository retrieval remains future work.
 - Opted-in demo initialization discovers enabled external packages as well as
   first-party modules; its one-time content marker and existing package state are preserved.
 - Docker and Portainer persist external code in `module_packages_data`; back up
@@ -227,6 +238,19 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
+The 2026-10-09 update checkpoint passed 171 PHPUnit tests / 1190 assertions and
+PHP lint. Focused tests cover trusted-code staging without execution, cancellation,
+version/identity constraints, dependent modules, stale source/candidate checks,
+historical migration preservation, runtime reader draining, interrupted receipts
+and failed-update recovery with database baseline checks. Production Docker/MariaDB
+HTTP verification covers permissions, confirmation, code snapshot download,
+successful scoped migrations with preserved records and refreshed PHP code,
+failed DDL, persistent HTTP 503, startup migration suppression, app/web recreation,
+full database restore and code recovery. Real browser forms were exercised in
+English/Russian at 320/390/1440 px without horizontal overflow, including successful
+apply, separate re-enable and recovery after a real failed DDL migration. The
+update/recovery smoke is part of clean-install CI.
+
 The 2026-10-09 package checkpoint passed 152 PHPUnit tests / 1151 assertions,
 PHP lint and Compose validation. Focused package tests cover malformed/unsafe ZIPs,
 compatibility/dependency cycles, stale concurrent previews, checksums, expiry and
@@ -355,7 +379,8 @@ submits only the selected method ID; its current price and type are resolved ser
 before Orders snapshots them. Orders remains usable with Delivery disabled.
 
 Order reports and CSV adapters are implemented for saved order/line snapshots.
-The next roadmap stage is ecosystem packaging and safe installation/update flows;
+Module packaging, installation and the external module update workflow are now
+implemented. The next ecosystem task is third-party theme packaging/installation;
 external commerce integrations require their own format and ownership contracts.
 See [commerce contracts](COMMERCE.md) and the modules' README files.
 

@@ -195,6 +195,68 @@ create a registry row, run a migration, boot a provider or enable dependencies;
 explicit enablement first checks that the provider implements the Core contract
 and can be constructed without arguments, then uses the existing lifecycle and
 public-content conflict check. Invalid providers cannot set the enabled flag.
-Existing module ids/directories are refused: code replacement, migration rollback
-and safe updates are a separate workflow. Packages are executable trusted code,
-not a sandbox; administrators must review their source before installation.
+The installation form refuses existing ids/directories; use the dedicated update
+workflow below. Packages are executable trusted code, not a sandbox;
+administrators must review their source before installation or update.
+
+## Updating an installed ZIP module
+
+In Administration → Modules, use the refresh icon on an external module. This
+workflow only replaces installed ZIP packages under `writable/modules/installed`.
+Built-in modules continue to ship with the application image.
+
+1. Disable the target module and every enabled module depending on it. The target
+   must already have a registry row with matching code/schema versions.
+2. Upload a newer ZIP with exactly the same id, namespace and provider. Preview
+   checks Core and forward/reverse dependency constraints, including disabled
+   dependents, namespace/public-path conflicts and the existing ZIP safety limits.
+   Existing migration PHP files must be retained byte-for-byte; add new migrations
+   instead of editing/removing old ones. This is checked again when preparing.
+3. Confirm that you trust the source. Preparation extracts a private candidate,
+   fingerprints both trees and saves a downloadable `previous.zip`. It does not
+   execute package PHP or change installed code/database state. The prepared
+   update can be cancelled; enabling the target is blocked until it is resolved.
+4. Make a **full database backup after preparation**, keep it outside the app
+   volume, and confirm that it exists. Enable any required dependencies first;
+   take the backup after doing so. Apply rechecks code, schema, checksums and
+   dependency compatibility before entering persistent maintenance.
+5. The runtime lock drains normal requests before code replacement. A fresh PHP
+   CLI worker publishes the candidate and runs only the target namespace's new
+   migrations and permission registration. The target remains disabled. FPM
+   invalidates affected PHP cache entries before normal traffic resumes. Review
+   the result, then enable the module separately.
+
+The supported Compose/Portainer deployment has a single application instance and
+local filesystem locking. Multiple independent app instances/rolling updates are
+not covered by this workflow. PHP CLI and `proc_open` must be available to FPM;
+if a worker cannot launch or is interrupted, maintenance stays active.
+
+### Recovery after an error or interruption
+
+MariaDB DDL is not a transaction-wide rollback. Restoring PHP cannot undo schema
+or data changes, and mCMS does **not** create/restore a database backup or run down
+migrations. A failed update keeps public/business requests at HTTP 503; Core
+login, health and module recovery pages remain reachable. The maintenance page
+links to module recovery, which requires `core.modules`. Startup updater and demo
+initialization skip writes during recovery, so recreating the app container does
+not apply more migrations or prevent FPM from starting.
+
+Wait for any running worker to finish before touching the database. Restore the
+**full pre-update database backup outside mCMS**, then confirm restoration on the
+module recovery page and choose Restore previous code. Core requires the target
+to be disabled and checks its registry version and migration history against the
+saved baseline. These checks cannot verify all restored data; the operator must
+verify the full backup restoration. Recovery restores the previous ZIP without
+loading the target module or migrating down, then clears maintenance after FPM
+cache invalidation. The module remains disabled for inspection.
+
+Receipts, candidates, logs, previous code and the maintenance marker are private
+under `writable/modules` on `module_packages_data`. A new update retains the prior
+completed receipt/snapshot under `history/`; include this volume in backups and
+manage retained history as part of normal storage maintenance. Previous-code ZIP
+downloads require `core.modules`. A successfully applied update has no one-click
+code rollback against the migrated database.
+
+`mcms:module:update <id> <operation-token> apply|restore` is the internal fresh
+worker command. It requires an existing matching receipt and maintenance owner;
+it cannot start an arbitrary unprepared module update.
