@@ -1,10 +1,10 @@
 {
   "id": "api",
   "name": "@Api.title",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Modules\\Api",
   "provider": "MCMS\\Modules\\Api\\Module",
-  "mcms": "^0.1.5",
+  "mcms": "^0.1.6",
   "description": "@Api.description",
   "requires": [
     {"id": "stock", "version": ">=0.1.1 <0.2"},

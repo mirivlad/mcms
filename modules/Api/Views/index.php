@@ -15,7 +15,7 @@
 <div class="card mb-3">
     <div class="card-header"><h3 class="card-title"><?= esc(lang('Api.create')) ?></h3></div>
     <div class="card-body">
-        <form method="post" action="<?= site_url('admin/api/keys') ?>">
+        <form method="post" action="<?= $settingsUrl('admin/api/keys') ?>">
             <?= csrf_field() ?>
             <div class="row g-3 mb-3">
                 <div class="col-md-8"><label class="form-label" for="api-name"><?= esc(lang('Api.name')) ?></label><input class="form-control" id="api-name" name="name" maxlength="190" required value="<?= esc(old('name'), 'attr') ?>" placeholder="<?= esc(lang('Api.nameExample'), 'attr') ?>"></div>
@@ -44,7 +44,7 @@
                 <td><?php foreach ($key['scopes'] as $scope): ?><div class="small"><?= esc(lang('Api.scopes.' . str_replace('.', '_', $scope))) ?></div><?php endforeach ?></td>
                 <td><span class="badge <?= $active ? 'bg-green-lt' : 'bg-secondary-lt' ?>"><?= esc(lang($active ? 'Api.active' : 'Api.inactive')) ?></span><div class="text-secondary small"><?= esc($key['expires_at'] ?? lang('Api.noExpiry')) ?></div></td>
                 <td class="small"><?= esc($key['last_used_at'] ?? '—') ?></td>
-                <td class="text-end"><?php if ($key['revoked_at'] === null): ?><form method="post" action="<?= site_url('admin/api/keys/' . $key['id'] . '/revoke') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Api.revokeConfirm'), JSON_HEX_APOS | JSON_HEX_QUOT), 'attr') ?>)"><?= csrf_field() ?><button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="submit" aria-label="<?= esc(lang('Api.revoke'), 'attr') ?>" title="<?= esc(lang('Api.revoke'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-key-off" aria-hidden="true"></i></button></form><?php endif ?></td>
+                <td class="text-end"><?php if ($key['revoked_at'] === null): ?><form method="post" action="<?= $settingsUrl('admin/api/keys/' . $key['id'] . '/revoke') ?>" onsubmit="return confirm(<?= esc(json_encode(lang('Api.revokeConfirm'), JSON_HEX_APOS | JSON_HEX_QUOT), 'attr') ?>)"><?= csrf_field() ?><button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="submit" aria-label="<?= esc(lang('Api.revoke'), 'attr') ?>" title="<?= esc(lang('Api.revoke'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-key-off" aria-hidden="true"></i></button></form><?php endif ?></td>
             </tr>
         <?php endforeach ?>
         <?php if ($keys === []): ?><tr><td colspan="5" class="text-secondary"><?= esc(lang('Api.noKeys')) ?></td></tr><?php endif ?>

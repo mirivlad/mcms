@@ -17,6 +17,7 @@ final class AdminRegistry
 
     private array $menu = [];
     private array $widgets = [];
+    private array $settings = [];
 
     public function addMenu(
         string $id,
@@ -28,6 +29,35 @@ final class AdminRegistry
         string $group = 'extensions',
     ): void {
         $this->menu[$id] = compact('id', 'label', 'url', 'icon', 'permission', 'order', 'group');
+    }
+
+    /** Module-owned forms keep their original route and add a central route. */
+    public function addSettings(string $id, string $label, string $url, string $icon, string $permission, string $group): void
+    {
+        if (preg_match('/^[a-z][a-z0-9-]*$/D', $id) !== 1 || ! str_starts_with($url, '/admin/')) {
+            throw new \InvalidArgumentException('Invalid settings section.');
+        }
+        $centralUrl = $id === 'general' ? '/admin/settings' : '/admin/settings/' . $id;
+        $this->settings[$id] = compact('id', 'label', 'url', 'centralUrl', 'icon', 'permission', 'group');
+    }
+
+    public function settings(): array
+    {
+        return array_values($this->settings);
+    }
+
+    /** Preserve central navigation for form actions and post-save redirects. */
+    public function settingsPath(string $path, string $requestPath): string
+    {
+        $requestPath = '/' . trim($requestPath, '/');
+        foreach ($this->settings as $section) {
+            if ($section['id'] !== 'general' && ($requestPath === $section['centralUrl'] || str_starts_with($requestPath, $section['centralUrl'] . '/'))
+                && ($path === $section['url'] || str_starts_with($path, $section['url'] . '/')
+                    || str_starts_with($path, $section['url'] . '?') || str_starts_with($path, $section['url'] . '#'))) {
+                return $section['centralUrl'] . substr($path, strlen($section['url']));
+            }
+        }
+        return $path;
     }
 
     public function addWidget(

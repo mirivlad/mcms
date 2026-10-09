@@ -92,6 +92,9 @@
                     <div class="alert alert-danger"><?= esc(session()->getFlashdata('error')) ?></div>
                 <?php endif ?>
 
+                <?php if (preg_match('#^/admin/settings(?:/|$)#', '/' . trim(service('request')->getUri()->getPath(), '/')) === 1): ?>
+                    <?= view('admin/settings/navigation') ?>
+                <?php endif ?>
                 <?= $this->renderSection('content') ?>
             </div>
         </div>

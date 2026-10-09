@@ -53,6 +53,9 @@ class Services extends BaseService
         $registry->addMenu('settings', '@MCMS.nav.settings', '/admin/settings', 'ti ti-settings', 'core.settings', 70, group: 'administration');
         $registry->addMenu('system', '@MCMS.nav.system', '/admin/system', 'ti ti-activity', 'core.system', 90, group: 'administration');
 
+        $registry->addSettings('general', '@Settings.general', '/admin/settings', 'ti ti-settings', 'core.settings', 'general');
+        $registry->addSettings('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 'appearance');
+
         return $registry;
     }
 

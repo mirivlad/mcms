@@ -7,7 +7,7 @@
         <div class="text-muted"><?= esc(lang('Delivery.snapshotNotice')) ?></div>
     </div>
     <?php if ($canManage): ?>
-        <a class="btn btn-primary" href="<?= site_url('admin/delivery/create') ?>">
+        <a class="btn btn-primary" href="<?= $settingsUrl('admin/delivery/create') ?>">
             <i class="ti ti-plus"></i>
             <?= esc(lang('Delivery.create')) ?>
         </a>
@@ -24,7 +24,7 @@
 <?php if ($methods === []): ?>
     <div class="card"><div class="card-body text-muted"><?= esc(lang('Delivery.noMethods')) ?></div></div>
 <?php else: ?>
-    <form method="post" action="<?= site_url('admin/delivery/order') ?>">
+    <form method="post" action="<?= $settingsUrl('admin/delivery/order') ?>">
         <?= csrf_field() ?>
         <div class="card">
             <div class="table-responsive">
@@ -66,7 +66,7 @@
                             </td>
                             <td class="text-end text-nowrap">
                                 <?php if ($canManage): ?>
-                                    <a class="btn btn-sm btn-outline-primary btn-icon admin-icon-action" href="<?= site_url('admin/delivery/' . $method['id']) ?>" aria-label="<?= esc(lang('Delivery.edit'), 'attr') ?>" title="<?= esc(lang('Delivery.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a>
+                                    <a class="btn btn-sm btn-outline-primary btn-icon admin-icon-action" href="<?= $settingsUrl('admin/delivery/' . $method['id']) ?>" aria-label="<?= esc(lang('Delivery.edit'), 'attr') ?>" title="<?= esc(lang('Delivery.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></a>
                                     <button class="btn btn-sm btn-outline-danger btn-icon admin-icon-action" type="submit"
                                             form="delete-delivery-<?= (int) $method['id'] ?>"
                                             onclick="return confirm(<?= esc(json_encode(lang('Delivery.confirmDelete'), JSON_UNESCAPED_UNICODE), 'attr') ?>)" aria-label="<?= esc(lang('Delivery.delete'), 'attr') ?>" title="<?= esc(lang('Delivery.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
@@ -88,7 +88,7 @@
     <?php if ($canManage): ?>
         <?php foreach ($methods as $method): ?>
             <form id="delete-delivery-<?= (int) $method['id'] ?>" method="post"
-                  action="<?= site_url('admin/delivery/' . $method['id'] . '/delete') ?>">
+                  action="<?= $settingsUrl('admin/delivery/' . $method['id'] . '/delete') ?>">
                 <?= csrf_field() ?>
             </form>
         <?php endforeach ?>

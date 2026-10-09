@@ -5,7 +5,7 @@
     <div class="row g-2 align-items-center">
         <div class="col">
             <div class="page-pretitle">
-                <a href="<?= site_url('admin/themes') ?>" class="text-secondary text-decoration-none">
+                <a href="<?= $settingsUrl('admin/themes') ?>" class="text-secondary text-decoration-none">
                     <?= esc(lang('MCMS.themes.title')) ?>
                 </a>
             </div>
@@ -118,7 +118,7 @@
 
             <?php if ($menusAvailable && $theme->menuLocations !== []): ?>
                 <div class="card-footer d-flex justify-content-between align-items-center">
-                    <a class="btn btn-link px-0" href="<?= site_url('admin/themes') ?>">
+                    <a class="btn btn-link px-0" href="<?= $settingsUrl('admin/themes') ?>">
                         <?= esc(lang('MCMS.common.back')) ?>
                     </a>
                     <button class="btn btn-primary" type="submit">

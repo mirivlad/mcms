@@ -1,4 +1,4 @@
-<form method="post" action="<?= site_url('admin/themes/' . $theme->id . '/appearance') ?>" class="card mb-4" id="theme-appearance-form">
+<form method="post" action="<?= $settingsUrl('admin/themes/' . $theme->id . '/appearance') ?>" class="card mb-4" id="theme-appearance-form">
     <?= csrf_field() ?>
     <div class="card-header"><h3 class="card-title"><?= esc(lang('MCMS.themes.appearance')) ?></h3></div>
     <div class="card-body">
@@ -69,7 +69,7 @@
         more.disabled = true;
         status.textContent = <?= json_encode(lang('MCMS.themes.loadingImages')) ?>;
         try {
-            const response = await fetch(<?= json_encode(site_url('admin/themes/images')) ?> + '?q=' + encodeURIComponent(search.elements.q.value) + '&offset=' + offset, {credentials:'same-origin',cache:'no-store'});
+            const response = await fetch(<?= json_encode($settingsUrl('admin/themes/images')) ?> + '?q=' + encodeURIComponent(search.elements.q.value) + '&offset=' + offset, {credentials:'same-origin',cache:'no-store'});
             const data = await response.json();
             if (current !== requestId || !dialog.open) return;
             if (!response.ok) throw new Error(data.error);

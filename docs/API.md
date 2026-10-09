@@ -1,6 +1,6 @@
 # Integration API v1
 
-Api 0.1.0 provides HTTP/JSON exchange for an external accounting system, including
+Api 0.1.1 provides HTTP/JSON exchange for an external accounting system, including
 an integration written for 1C. It requires Catalogue 0.2.3, Stock 0.1.1 and Orders
 0.3.1 or compatible later versions. Delivery is optional. Enable **Api** in
 Administration → Modules; dependencies are enabled automatically. Then open

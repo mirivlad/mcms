@@ -150,7 +150,7 @@ final class Admin extends BaseAdminController
             $settings->set('media.max_image_megapixels', $maxMegapixels);
             $settings->set('media.allowed_mime_types', $allowed);
 
-            return redirect()->to('/admin/media/settings')->with('message', lang('MCMS.messages.mediaSettingsSaved'));
+            return redirect()->to($this->settingsPath('/admin/media/settings'))->with('message', lang('MCMS.messages.mediaSettingsSaved'));
         }
 
         return view('MCMS\Modules\Media\Views\settings', [

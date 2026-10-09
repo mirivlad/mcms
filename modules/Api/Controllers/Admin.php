@@ -39,9 +39,9 @@ final class Admin extends BaseAdminController
                 throw new \InvalidArgumentException(lang('Api.invalidKey'));
             }
             $key = $this->keys()->create($name, $scopes, (int) auth()->id(), $expires);
-            return redirect()->to('/admin/api')->with('api_new_key', $key['token'])->with('message', lang('Api.created'));
+            return redirect()->to($this->settingsPath('/admin/api'))->with('api_new_key', $key['token'])->with('message', lang('Api.created'));
         } catch (Throwable $e) {
-            return redirect()->to('/admin/api')->with('error', $e->getMessage())->withInput();
+            return redirect()->to($this->settingsPath('/admin/api'))->with('error', $e->getMessage())->withInput();
         }
     }
 
@@ -51,7 +51,7 @@ final class Admin extends BaseAdminController
             return $denied;
         }
         $this->keys()->revoke($id);
-        return redirect()->to('/admin/api')->with('message', lang('Api.revoked'));
+        return redirect()->to($this->settingsPath('/admin/api'))->with('message', lang('Api.revoked'));
     }
 
     private function keys(): Keys

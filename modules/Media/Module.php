@@ -34,10 +34,12 @@ final class Module implements ModuleProviderInterface
             60,
             group: 'content',
         );
+        $context->admin->addSettings('media', '@MCMS.nav.media', '/admin/media/settings', 'ti ti-photo', 'media.settings', 'content');
     }
 
     public function routes(RouteCollection $routes): void
     {
+        $routes->match(['get', 'post'], 'admin/settings/media', '\\MCMS\\Modules\\Media\\Controllers\\Admin::settings', ['filter' => 'session']);
         $routes->group('admin/media', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\Media\\Controllers\\Admin::index');
             $routes->post('upload', '\\MCMS\\Modules\\Media\\Controllers\\Admin::upload');

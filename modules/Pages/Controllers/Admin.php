@@ -140,7 +140,7 @@ final class Admin extends BaseAdminController
             $settings->set('pages.default_status', $defaultStatus);
             $settings->set('pages.home_page_id', $homeId);
 
-            return redirect()->to('/admin/pages/settings')
+            return redirect()->to($this->settingsPath('/admin/pages/settings'))
                 ->with('message', lang('Pages.Messages.settingsSaved'));
         }
 

@@ -1,4 +1,4 @@
-<form method="post" action="<?= site_url('admin/themes/' . $theme->id . '/home') ?>" class="card mb-4" id="theme-home-form">
+<form method="post" action="<?= $settingsUrl('admin/themes/' . $theme->id . '/home') ?>" class="card mb-4" id="theme-home-form">
     <?= csrf_field() ?>
     <div class="card-header"><h3 class="card-title"><?= esc(lang('MCMS.themes.homeContent')) ?></h3></div>
     <div class="card-body">

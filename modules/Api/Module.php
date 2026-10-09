@@ -18,6 +18,7 @@ final class Module implements ModuleProviderInterface
         $context->services->register('api.keys', $keys);
         $context->services->register('api.exchange', new Exchange(db_connect(), $context->services, $keys));
         $context->admin->addMenu('api', '@Api.title', '/admin/api', 'ti ti-plug-connected', 'api.manage', 85, group: 'administration');
+        $context->admin->addSettings('api', '@Api.title', '/admin/api', 'ti ti-plug-connected', 'api.manage', 'integrations');
     }
 
     public function routes(RouteCollection $routes): void
@@ -31,10 +32,12 @@ final class Module implements ModuleProviderInterface
             $routes->get('orders/(:num)', $controller . 'order/$1');
             $routes->get('delivery-methods', $controller . 'delivery');
         });
-        $routes->group('admin/api', ['filter' => 'session'], static function (RouteCollection $routes): void {
-            $routes->get('/', '\\MCMS\\Modules\\Api\\Controllers\\Admin::index');
-            $routes->post('keys', '\\MCMS\\Modules\\Api\\Controllers\\Admin::create');
-            $routes->post('keys/(:num)/revoke', '\\MCMS\\Modules\\Api\\Controllers\\Admin::revoke/$1');
+        foreach (['admin/api', 'admin/settings/api'] as $prefix) {
+            $routes->group($prefix, ['filter' => 'session'], static function (RouteCollection $routes): void {
+                $routes->get('/', '\\MCMS\\Modules\\Api\\Controllers\\Admin::index');
+                $routes->post('keys', '\\MCMS\\Modules\\Api\\Controllers\\Admin::create');
+                $routes->post('keys/(:num)/revoke', '\\MCMS\\Modules\\Api\\Controllers\\Admin::revoke/$1');
         });
+        }
     }
 }

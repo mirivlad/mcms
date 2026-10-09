@@ -1,4 +1,4 @@
-# Api 0.1.0
+# Api 0.1.1
 
 Optional HTTP/JSON integration module for external accounting (for example 1C).
 Reads stock, order/customer/item/delivery snapshots and current delivery methods;

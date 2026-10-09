@@ -36,10 +36,12 @@ final class Module implements ModuleProviderInterface
             55,
             group: 'content',
         );
+        $context->admin->addSettings('pages', '@Pages.Admin.settings', '/admin/pages/settings', 'ti ti-file-text', 'pages.settings', 'content');
     }
 
     public function routes(RouteCollection $routes): void
     {
+        $routes->match(['get', 'post'], 'admin/settings/pages', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::settings', ['filter' => 'session']);
         $routes->group('admin/pages', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::index');
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\Pages\\Controllers\\Admin::create');

@@ -8,7 +8,7 @@
             <h2 class="page-title"><?= esc(lang('MCMS.themes.title')) ?></h2>
             <div class="text-secondary mt-1"><?= esc(lang('MCMS.themes.intro')) ?></div>
         </div>
-        <div class="col-auto"><a class="btn btn-primary" href="<?= site_url('admin/themes/package') ?>"><i class="ti ti-package-import me-2" aria-hidden="true"></i><?= esc(lang('MCMS.themes.installPackage')) ?></a></div>
+        <div class="col-auto"><a class="btn btn-primary" href="<?= $settingsUrl('admin/themes/package') ?>"><i class="ti ti-package-import me-2" aria-hidden="true"></i><?= esc(lang('MCMS.themes.installPackage')) ?></a></div>
     </div>
 </div>
 
@@ -81,7 +81,7 @@
 
                             <div class="d-flex flex-wrap gap-2">
                                 <?php if (! $isActive): ?>
-                                    <form method="post" action="<?= site_url('admin/themes/' . $theme->id . '/activate') ?>">
+                                    <form method="post" action="<?= $settingsUrl('admin/themes/' . $theme->id . '/activate') ?>">
                                         <?= csrf_field() ?>
                                         <button class="btn btn-primary" type="submit">
                                             <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.activate')) ?>
@@ -92,7 +92,7 @@
                                         <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.active')) ?>
                                     </button>
                                 <?php endif ?>
-                                <a class="btn btn-outline-secondary btn-icon admin-icon-action" href="<?= site_url('admin/themes/' . $theme->id) ?>" aria-label="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" title="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-adjustments" aria-hidden="true"></i></a>
+                                <a class="btn btn-outline-secondary btn-icon admin-icon-action" href="<?= $settingsUrl('admin/themes/' . $theme->id) ?>" aria-label="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" title="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-adjustments" aria-hidden="true"></i></a>
                             </div>
                         </div>
                     </div>

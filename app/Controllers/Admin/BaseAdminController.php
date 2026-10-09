@@ -9,6 +9,17 @@ use CodeIgniter\HTTP\RedirectResponse;
 
 abstract class BaseAdminController extends BaseController
 {
+    public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+        service('renderer')->setData(['settingsUrl' => fn (string $path): string => site_url(ltrim($this->settingsPath('/' . ltrim($path, '/')), '/'))]);
+    }
+
+    protected function settingsPath(string $path): string
+    {
+        return service('mcmsAdmin')->settingsPath($path, $this->request->getUri()->getPath());
+    }
+
     protected function can(string $permission): bool
     {
         $user = auth()->user();

@@ -34,7 +34,7 @@ $pageUrl = static function (int $targetPage) use ($query): string {
                 </button>
             <?php endif ?>
             <?php if ($canSettings): ?>
-                <a class="btn btn-outline-secondary" href="<?= site_url('admin/media/settings') ?>">
+                <a class="btn btn-outline-secondary" href="<?= $settingsUrl('admin/media/settings') ?>">
                     <i class="ti ti-settings me-1"></i>
                     <?= esc(lang('MCMS.media.settings')) ?>
                 </a>

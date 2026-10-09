@@ -14,7 +14,7 @@ $value = static function (string $name, mixed $default = '') use ($method): mixe
 
 <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
     <div>
-        <a href="<?= site_url('admin/delivery') ?>" class="text-muted"><?= esc(lang('Delivery.back')) ?></a>
+        <a href="<?= $settingsUrl('admin/delivery') ?>" class="text-muted"><?= esc(lang('Delivery.back')) ?></a>
         <h1 class="page-title mt-2"><?= esc($title) ?></h1>
     </div>
 </div>
@@ -72,7 +72,7 @@ $value = static function (string $name, mixed $default = '') use ($method): mixe
         </div>
         <div class="card-footer d-flex gap-2">
             <button class="btn btn-primary" type="submit"><?= esc(lang('Delivery.save')) ?></button>
-            <a class="btn" href="<?= site_url('admin/delivery') ?>"><?= esc(lang('Delivery.back')) ?></a>
+            <a class="btn" href="<?= $settingsUrl('admin/delivery') ?>"><?= esc(lang('Delivery.back')) ?></a>
         </div>
     </form>
 </div>

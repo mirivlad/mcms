@@ -23,18 +23,21 @@ final class Module implements ModuleProviderInterface
             68,
             group: 'commerce'
         );
+        $context->admin->addSettings('delivery', '@Delivery.title', '/admin/delivery', 'ti ti-truck-delivery', 'delivery.view', 'commerce');
     }
 
     public function routes(RouteCollection $routes): void
     {
-        $routes->group('admin/delivery', ['filter' => 'session'], static function (RouteCollection $routes): void {
-            $routes->get('/', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::index');
-            $routes->get('create', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::form');
-            $routes->post('create', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::save');
-            $routes->get('(:num)', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::form/$1');
-            $routes->post('(:num)', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::save/$1');
-            $routes->post('(:num)/delete', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::delete/$1');
-            $routes->post('order', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::order');
+        foreach (['admin/delivery', 'admin/settings/delivery'] as $prefix) {
+            $routes->group($prefix, ['filter' => 'session'], static function (RouteCollection $routes): void {
+                $routes->get('/', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::index');
+                $routes->get('create', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::form');
+                $routes->post('create', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::save');
+                $routes->get('(:num)', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::form/$1');
+                $routes->post('(:num)', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::save/$1');
+                $routes->post('(:num)/delete', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::delete/$1');
+                $routes->post('order', '\\MCMS\\Modules\\Delivery\\Controllers\\Admin::order');
         });
+        }
     }
 }

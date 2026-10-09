@@ -3,12 +3,12 @@
 <div class="page-header d-print-none mb-4">
     <div class="row g-2 align-items-center">
         <div class="col"><h2 class="page-title"><?= esc(lang('MCMS.themes.installPackage')) ?></h2></div>
-        <div class="col-auto"><a class="btn btn-outline-secondary" href="<?= site_url('admin/themes') ?>"><?= esc(lang('MCMS.themes.title')) ?></a></div>
+        <div class="col-auto"><a class="btn btn-outline-secondary" href="<?= $settingsUrl('admin/themes') ?>"><?= esc(lang('MCMS.themes.title')) ?></a></div>
     </div>
 </div>
 <div class="card mb-3">
     <div class="card-body">
-        <form method="post" enctype="multipart/form-data" action="<?= site_url('admin/themes/package') ?>">
+        <form method="post" enctype="multipart/form-data" action="<?= $settingsUrl('admin/themes/package') ?>">
             <?= csrf_field() ?>
             <label class="form-label" for="theme-package"><?= esc(lang('MCMS.themes.archive')) ?></label>
             <input class="form-control" id="theme-package" name="package" type="file" accept=".zip,application/zip" required>
@@ -30,7 +30,7 @@
             <dt class="col-sm-4">SHA-256</dt><dd class="col-sm-8"><code class="text-break"><?= esc($preview['sha256']) ?></code></dd>
         </dl>
         <p class="text-secondary"><?= esc(lang('MCMS.themes.activateSeparately')) ?></p>
-        <form method="post" action="<?= site_url('admin/themes/package/install') ?>">
+        <form method="post" action="<?= $settingsUrl('admin/themes/package/install') ?>">
             <?= csrf_field() ?>
             <input type="hidden" name="token" value="<?= esc($preview['token'], 'attr') ?>">
             <label class="form-check mb-3">
@@ -39,7 +39,7 @@
             </label>
             <button class="btn btn-primary" type="submit"><?= esc(lang('MCMS.themes.addPackage')) ?></button>
         </form>
-        <form class="mt-2" method="post" action="<?= site_url('admin/themes/package/cancel') ?>">
+        <form class="mt-2" method="post" action="<?= $settingsUrl('admin/themes/package/cancel') ?>">
             <?= csrf_field() ?>
             <button class="btn btn-outline-secondary" type="submit"><?= esc(lang('MCMS.common.cancel')) ?></button>
         </form>

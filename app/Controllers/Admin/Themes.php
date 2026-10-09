@@ -78,10 +78,10 @@ final class Themes extends BaseAdminController
                 'bytes' => $preview['bytes'],
             ]);
         } catch (Throwable $e) {
-            return redirect()->to('/admin/themes/package')->with('error', $e->getMessage());
+            return redirect()->to($this->settingsPath('/admin/themes/package'))->with('error', $e->getMessage());
         }
 
-        return redirect()->to('/admin/themes/package');
+        return redirect()->to($this->settingsPath('/admin/themes/package'));
     }
 
     public function installPackage(): RedirectResponse
@@ -95,15 +95,15 @@ final class Themes extends BaseAdminController
             || ! is_string($this->request->getPost('token'))
             || ! hash_equals($preview['token'], $this->request->getPost('token'))
             || $this->request->getPost('trusted') !== '1') {
-            return redirect()->to('/admin/themes/package')->with('error', lang('MCMS.themes.confirmRequired'));
+            return redirect()->to($this->settingsPath('/admin/themes/package'))->with('error', lang('MCMS.themes.confirmRequired'));
         }
 
         try {
             $manifest = service('mcmsThemePackages')->install($preview['token'], $preview['sha256']);
             session()->remove('theme_package_preview');
-            return redirect()->to('/admin/themes')->with('message', sprintf(lang('MCMS.themes.packageAdded'), $manifest->id));
+            return redirect()->to($this->settingsPath('/admin/themes'))->with('message', sprintf(lang('MCMS.themes.packageAdded'), $manifest->id));
         } catch (Throwable $e) {
-            return redirect()->to('/admin/themes/package')->with('error', $e->getMessage());
+            return redirect()->to($this->settingsPath('/admin/themes/package'))->with('error', $e->getMessage());
         }
     }
 
@@ -118,7 +118,7 @@ final class Themes extends BaseAdminController
             session()->remove('theme_package_preview');
         }
 
-        return redirect()->to('/admin/themes/package');
+        return redirect()->to($this->settingsPath('/admin/themes/package'));
     }
 
     public function configure(string $id): string|RedirectResponse
@@ -151,12 +151,12 @@ final class Themes extends BaseAdminController
             try {
                 $manager->saveMenuAssignments($theme->id, $assignments);
 
-                return redirect()->to('/admin/themes/' . $theme->id)->with(
+                return redirect()->to($this->settingsPath('/admin/themes/' . $theme->id))->with(
                     'message',
                     lang('MCMS.messages.themeMenusSaved'),
                 );
             } catch (\Throwable $e) {
-                return redirect()->to('/admin/themes/' . $theme->id)->with('error', $e->getMessage());
+                return redirect()->to($this->settingsPath('/admin/themes/' . $theme->id))->with('error', $e->getMessage());
             }
         }
 
@@ -183,7 +183,7 @@ final class Themes extends BaseAdminController
         }
         try {
             service('mcmsThemes')->saveAppearance($id, (array) $this->request->getPost('appearance'));
-            return redirect()->to('/admin/themes/' . $id)->with('message', lang('MCMS.themes.appearanceSaved'));
+            return redirect()->to($this->settingsPath('/admin/themes/' . $id))->with('message', lang('MCMS.themes.appearanceSaved'));
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
@@ -208,7 +208,7 @@ final class Themes extends BaseAdminController
         }
         try {
             service('mcmsThemes')->saveHomeContent($id, (array) $this->request->getPost('home'));
-            return redirect()->to('/admin/themes/' . $id)->with('message', lang('MCMS.themes.homeSaved'));
+            return redirect()->to($this->settingsPath('/admin/themes/' . $id))->with('message', lang('MCMS.themes.homeSaved'));
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
@@ -223,12 +223,12 @@ final class Themes extends BaseAdminController
         try {
             $theme = service('mcmsThemes')->activate($id);
 
-            return redirect()->to('/admin/themes')->with(
+            return redirect()->to($this->settingsPath('/admin/themes'))->with(
                 'message',
                 sprintf(lang('MCMS.messages.themeActivated'), service('mcmsThemes')->displayName($theme)),
             );
         } catch (\Throwable $e) {
-            return redirect()->to('/admin/themes')->with('error', $e->getMessage());
+            return redirect()->to($this->settingsPath('/admin/themes'))->with('error', $e->getMessage());
         }
     }
 }

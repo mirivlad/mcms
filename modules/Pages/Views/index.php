@@ -28,7 +28,7 @@ $pageUrl = static function (int $targetPage) use ($query, $status): string {
         </div>
         <div class="col-12 col-md-auto ms-md-auto d-flex flex-wrap gap-2">
             <?php if ($canSettings): ?>
-                <a class="btn btn-outline-secondary" href="<?= site_url('admin/pages/settings') ?>">
+                <a class="btn btn-outline-secondary" href="<?= $settingsUrl('admin/pages/settings') ?>">
                     <i class="ti ti-settings me-1"></i><?= esc(lang('Pages.Admin.settings')) ?>
                 </a>
             <?php endif ?>

@@ -1,10 +1,10 @@
 {
   "id": "media",
   "name": "@MCMS.media.title",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "namespace": "MCMS\\Modules\\Media",
   "provider": "MCMS\\Modules\\Media\\Module",
-  "mcms": "^0.1.4",
+  "mcms": "^0.1.6",
   "description": "@MCMS.modules.mediaDescription",
   "requires": [],
   "settings": {

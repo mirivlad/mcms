@@ -1,6 +1,6 @@
 <div class="card mb-4">
     <div class="card-header"><h3 class="card-title"><?= esc(lang('Seo.Admin.metadata')) ?></h3></div>
-    <form method="post" action="<?= site_url('admin/seo/settings') ?>">
+    <form method="post" action="<?= $settingsUrl('admin/seo/settings') ?>">
         <?= csrf_field() ?>
         <div class="card-body">
             <p class="text-secondary"><?= esc(lang('Seo.Admin.ruleHint')) ?></p>

@@ -4,7 +4,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
-- Core version 0.1.5 with optional Home, public-resource and path-conflict provider contracts.
+- Core version 0.1.6 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -12,6 +12,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Shared safe rich-text sanitizer used by content modules without introducing module-to-module dependencies.
 - First-run browser installer plus CLI recovery bootstrap.
 - Users, groups, permissions, Core settings and system diagnostics.
+- Grouped settings centre retains original module forms and adds central aliases with shared validation/storage, section permissions and post-save navigation; see [settings](SETTINGS.md).
 - Access groups shown in a responsive table/list with member and permission counts; creation and editing use a shared modal with input recovery after errors.
 - Group deletion requires confirmation, atomically removes group grants and memberships, and preserves accounts, other groups and direct permissions. Core/default registration groups cannot be deleted.
 - English/Russian localization.
@@ -60,7 +61,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## First-party modules
 
-### Media 0.2.1
+### Media 0.2.2
 
 - Persistent media library with upload and metadata editing.
 - Configurable upload/image limits and MIME allow-list.
@@ -68,7 +69,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cached proportional previews, image-only browsing and administration pagination.
 - Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.6.0
+### Pages 0.6.1
 
 - Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
 - Tags and manual keywords; private unsaved preview through the active theme without database writes.
@@ -186,7 +187,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Separate `orders.export` permission in addition to `orders.view`; reports and
   exports do not modify orders, inventory, reservations or the cart.
 
-### Delivery 0.1.0
+### Delivery 0.1.1
 
 - Separate module compatible with Orders 0.2 and 0.3; Orders remains usable when Delivery is disabled.
 - Supports ordered fixed-price `delivery` and `pickup` methods with an enabled flag.
@@ -195,7 +196,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - When enabled, Delivery requires one active method for checkout; an empty enabled Delivery configuration blocks checkout with a clear message.
 - Orders snapshot the selected method, so editing or deleting a method never rewrites historical orders.
 
-### Api 0.1.0
+### Api 0.1.1
 
 - Optional `/api/v1` HTTP/JSON integration for external accounting, including a client written for 1C; see [API contract](API.md).
 - Scoped Bearer keys created/revoked in Administration → Integration API; optional expiry, one-time secret display and hash-only storage. Access tracks the current active owner's permissions.

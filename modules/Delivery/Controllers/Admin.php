@@ -34,7 +34,7 @@ final class Admin extends BaseAdminController
 
         $method = $id === null ? null : $this->delivery()->find($id);
         if ($id !== null && $method === null) {
-            return redirect()->to('/admin/delivery')->with('error', lang('Delivery.notFound'));
+            return redirect()->to($this->settingsPath('/admin/delivery'))->with('error', lang('Delivery.notFound'));
         }
 
         return view('MCMS\\Modules\\Delivery\\Views\\form', [
@@ -60,7 +60,7 @@ final class Admin extends BaseAdminController
                 'position' => $this->request->getPost('position'),
             ]);
 
-            return redirect()->to('/admin/delivery/' . $method['id'])->with('message', lang('Delivery.saved'));
+            return redirect()->to($this->settingsPath('/admin/delivery/' . $method['id']))->with('message', lang('Delivery.saved'));
         } catch (Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
@@ -75,9 +75,9 @@ final class Admin extends BaseAdminController
         try {
             $this->delivery()->delete($id);
 
-            return redirect()->to('/admin/delivery')->with('message', lang('Delivery.deleted'));
+            return redirect()->to($this->settingsPath('/admin/delivery'))->with('message', lang('Delivery.deleted'));
         } catch (Throwable $e) {
-            return redirect()->to('/admin/delivery')->with('error', $e->getMessage());
+            return redirect()->to($this->settingsPath('/admin/delivery'))->with('error', $e->getMessage());
         }
     }
 
@@ -90,9 +90,9 @@ final class Admin extends BaseAdminController
         try {
             $this->delivery()->reorder((array) $this->request->getPost('position'));
 
-            return redirect()->to('/admin/delivery')->with('message', lang('Delivery.orderSaved'));
+            return redirect()->to($this->settingsPath('/admin/delivery'))->with('message', lang('Delivery.orderSaved'));
         } catch (Throwable $e) {
-            return redirect()->to('/admin/delivery')->with('error', $e->getMessage());
+            return redirect()->to($this->settingsPath('/admin/delivery'))->with('error', $e->getMessage());
         }
     }
 

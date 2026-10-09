@@ -1,10 +1,10 @@
 {
   "id": "delivery",
   "name": "@Delivery.title",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Modules\\Delivery",
   "provider": "MCMS\\Modules\\Delivery\\Module",
-  "mcms": "^0.1.5",
+  "mcms": "^0.1.6",
   "description": "@Delivery.description",
   "requires": [
     {"id": "orders", "version": "^0.2 || ^0.3"}

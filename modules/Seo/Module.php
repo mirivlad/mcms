@@ -26,16 +26,19 @@ final class Module implements ModuleProviderInterface
         $filters->aliases['seoRedirects'] = Redirects::class;
         $filters->globals['before'][] = 'seoRedirects';
         $context->admin->addMenu('seo', '@Seo.Admin.title', '/admin/seo', 'ti ti-link', 'seo.manage', 64, group: 'administration');
+        $context->admin->addSettings('seo', '@Seo.Admin.title', '/admin/seo', 'ti ti-link', 'seo.manage', 'content');
     }
 
     public function routes(RouteCollection $routes): void
     {
         $routes->get('sitemap.xml', '\\MCMS\\Modules\\Seo\\Controllers\\Sitemap::index');
-        $routes->group('admin/seo', ['filter' => 'session'], static function (RouteCollection $routes): void {
-            $routes->get('/', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::index');
-            $routes->post('save', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::save');
-            $routes->post('settings', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::settings');
-            $routes->post('delete', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::delete');
+        foreach (['admin/seo', 'admin/settings/seo'] as $prefix) {
+            $routes->group($prefix, ['filter' => 'session'], static function (RouteCollection $routes): void {
+                $routes->get('/', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::index');
+                $routes->post('save', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::save');
+                $routes->post('settings', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::settings');
+                $routes->post('delete', '\\MCMS\\Modules\\Seo\\Controllers\\Admin::delete');
         });
+        }
     }
 }

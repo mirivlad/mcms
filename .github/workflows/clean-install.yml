@@ -591,6 +591,9 @@ jobs:
             http://127.0.0.1:8080/login -o /tmp/api-persist-admin.html
           python3 .github/scripts/api-smoke.py --cookies /tmp/api-persist.cookies --state-file /tmp/api-persist.json --phase persist
 
+      - name: Verify central and original module settings share state
+        run: python3 .github/scripts/settings-smoke.py --cookies /tmp/api-persist.cookies
+
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 

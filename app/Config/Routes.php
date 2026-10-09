@@ -36,16 +36,18 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->post('modules/(:segment)/enable', 'Admin\Modules::enable/$1');
     $routes->post('modules/(:segment)/disable', 'Admin\Modules::disable/$1');
     $routes->match(['get', 'post'], 'settings', 'Admin\Settings::index', ['as' => 'admin.settings']);
-    $routes->get('themes', 'Admin\Themes::index', ['as' => 'admin.themes']);
-    $routes->get('themes/package', 'Admin\Themes::package');
-    $routes->post('themes/package', 'Admin\Themes::uploadPackage');
-    $routes->post('themes/package/install', 'Admin\Themes::installPackage');
-    $routes->post('themes/package/cancel', 'Admin\Themes::cancelPackage');
-    $routes->get('themes/images', 'Admin\Themes::images');
-    $routes->post('themes/(:segment)/appearance', 'Admin\Themes::appearance/$1');
-    $routes->post('themes/(:segment)/home', 'Admin\Themes::home/$1');
-    $routes->match(['get', 'post'], 'themes/(:segment)', 'Admin\Themes::configure/$1');
-    $routes->post('themes/(:segment)/activate', 'Admin\Themes::activate/$1');
+    foreach (['themes', 'settings/themes'] as $themePrefix) {
+        $routes->get($themePrefix, 'Admin\Themes::index', ['as' => $themePrefix === 'themes' ? 'admin.themes' : 'admin.settings.themes']);
+        $routes->get($themePrefix . '/package', 'Admin\Themes::package');
+        $routes->post($themePrefix . '/package', 'Admin\Themes::uploadPackage');
+        $routes->post($themePrefix . '/package/install', 'Admin\Themes::installPackage');
+        $routes->post($themePrefix . '/package/cancel', 'Admin\Themes::cancelPackage');
+        $routes->get($themePrefix . '/images', 'Admin\Themes::images');
+        $routes->post($themePrefix . '/(:segment)/appearance', 'Admin\Themes::appearance/$1');
+        $routes->post($themePrefix . '/(:segment)/home', 'Admin\Themes::home/$1');
+        $routes->match(['get', 'post'], $themePrefix . '/(:segment)', 'Admin\Themes::configure/$1');
+        $routes->post($themePrefix . '/(:segment)/activate', 'Admin\Themes::activate/$1');
+    }
     $routes->get('system', 'Admin\System::index', ['as' => 'admin.system']);
 });
 

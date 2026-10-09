@@ -32,9 +32,9 @@ final class Admin extends BaseAdminController
         try {
             $this->repository()->save((string) $this->request->getPost('source'),
                 (string) $this->request->getPost('target'), $original === '' ? null : $original);
-            return redirect()->to('/admin/seo#redirects')->with('message', lang('Seo.Messages.redirectSaved'));
+            return redirect()->to($this->settingsPath('/admin/seo#redirects'))->with('message', lang('Seo.Messages.redirectSaved'));
         } catch (\Throwable $e) {
-            return redirect()->to('/admin/seo' . ($original === '' ? '' : '?edit=' . rawurlencode($original)) . '#redirect-form')
+            return redirect()->to($this->settingsPath('/admin/seo' . ($original === '' ? '' : '?edit=' . rawurlencode($original))) . '#redirect-form')
                 ->withInput()->with('error', $e->getMessage());
         }
     }
@@ -44,9 +44,9 @@ final class Admin extends BaseAdminController
         if (($redirect = $this->guard('seo.manage')) !== null) return $redirect;
         try {
             service('mcmsModuleServices')->get('seo.metadata')->save((array) $this->request->getPost('rules'));
-            return redirect()->to('/admin/seo')->with('message', lang('Seo.Messages.settingsSaved'));
+            return redirect()->to($this->settingsPath('/admin/seo'))->with('message', lang('Seo.Messages.settingsSaved'));
         } catch (\Throwable $e) {
-            return redirect()->to('/admin/seo')->withInput()->with('error', $e->getMessage());
+            return redirect()->to($this->settingsPath('/admin/seo'))->withInput()->with('error', $e->getMessage());
         }
     }
 
@@ -56,7 +56,7 @@ final class Admin extends BaseAdminController
             return $redirect;
         }
         $this->repository()->delete((string) $this->request->getPost('source'));
-        return redirect()->to('/admin/seo')->with('message', lang('Seo.Messages.deleted'));
+        return redirect()->to($this->settingsPath('/admin/seo'))->with('message', lang('Seo.Messages.deleted'));
     }
 
     private function repository(): RedirectRepository

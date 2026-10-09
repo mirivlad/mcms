@@ -15,6 +15,7 @@
 - [x] Add browser setup wizard, CLI fallback and first superadmin creation.
 - [x] Add Core user/group/permission administration.
 - [x] Add Core settings UI.
+- [x] Grouped central settings with original module entry points retained and shared form handlers.
 - [x] Add diagnostics/system page.
 - [x] Add English/Russian localization and site locale selection.
 - [x] Add local/runtime packaging for Bootstrap and Tabler assets.
