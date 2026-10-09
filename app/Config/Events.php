@@ -30,6 +30,17 @@ Events::on('register', static function ($user): void {
  */
 
 Events::on('pre_system', static function (): void {
+    if (! is_cli() && ENVIRONMENT !== 'testing') {
+        $runtime = service('mcmsModuleRuntime');
+        if ($runtime->maintenance() !== null) {
+            service('mcmsModuleUpdates')->finalize();
+        }
+        if ($runtime->maintenance() === null) {
+            $runtime->readLock();
+        }
+        register_shutdown_function(static fn () => $runtime->release());
+    }
+
     if (ENVIRONMENT !== 'testing') {
         $value = ini_get('zlib.output_compression');
 

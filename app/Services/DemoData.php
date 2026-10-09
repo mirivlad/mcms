@@ -25,11 +25,19 @@ final class DemoData
 
     public function seed(): string
     {
+        $runtime = service('mcmsModuleRuntime');
+        if ($runtime->maintenance() !== null) {
+            return 'module-maintenance';
+        }
         if (getenv('MCMS_DEMO_SEED') !== '1') {
             return 'disabled';
         }
         if (! (new InstallationService($this->db))->isInstalled()) {
             return 'waiting-for-installation';
+        }
+
+        if (! $runtime->isExclusive()) {
+            return $runtime->exclusive(fn () => $this->seed());
         }
 
         // Serialize startup and installer requests in the supported single-app stack.
@@ -46,7 +54,7 @@ final class DemoData
 
             $services = new ModuleServiceRegistry();
             $navigation = new NavigableResourceRegistry();
-            $modules = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules', $navigation, WRITEPATH . 'modules/installed');
+            $modules = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules', $navigation, WRITEPATH . 'modules/installed', $runtime);
             foreach (['pages', 'news', 'catalogue', 'seo'] as $module) {
                 $modules->enable($module);
             }

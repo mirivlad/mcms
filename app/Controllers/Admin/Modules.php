@@ -22,6 +22,7 @@ class Modules extends BaseAdminController
             'modules'   => $manager->catalog(),
             'states'    => $manager->states(),
             'user'      => auth()->user(),
+            'maintenance' => service('mcmsModuleRuntime')->maintenance(),
         ]);
     }
 

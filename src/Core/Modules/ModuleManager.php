@@ -30,6 +30,7 @@ final class ModuleManager
         private readonly string $modulesPath = ROOTPATH . 'modules',
         ?NavigableResourceRegistry $navigation = null,
         private readonly ?string $packagesPath = null,
+        private readonly ?ModuleRuntime $runtime = null,
     ) {
         $this->navigation = $navigation ?? new NavigableResourceRegistry();
     }
@@ -113,11 +114,21 @@ final class ModuleManager
 
     public function enable(string $id): void
     {
+        if ($this->runtime !== null && ! $this->runtime->isExclusive()) {
+            $this->runtime->exclusive(fn () => $this->enable($id));
+            return;
+        }
+        $this->runtime?->assertCanEnable($id);
         $this->enableRecursive($id, []);
     }
 
     public function disable(string $id): void
     {
+        if ($this->runtime !== null && ! $this->runtime->isExclusive()) {
+            $this->runtime->exclusive(fn () => $this->disable($id));
+            return;
+        }
+        $this->runtime?->assertAvailable();
         if (! $this->registryAvailable()) {
             return;
         }
@@ -158,6 +169,11 @@ final class ModuleManager
 
     public function updateEnabled(): void
     {
+        if ($this->runtime !== null && ! $this->runtime->isExclusive()) {
+            $this->runtime->exclusive(fn () => $this->updateEnabled());
+            return;
+        }
+        $this->runtime?->assertAvailable();
         foreach ($this->enabledManifests() as $manifest) {
             Services::migrations()
                 ->setNamespace($manifest->namespace)
@@ -176,7 +192,7 @@ final class ModuleManager
 
     public function bootEnabled(): void
     {
-        if ($this->booted) {
+        if ($this->runtime?->maintenance() !== null || $this->booted) {
             return;
         }
 
@@ -191,6 +207,9 @@ final class ModuleManager
 
     public function registerRoutes(RouteCollection $routes): void
     {
+        if ($this->runtime?->maintenance() !== null) {
+            return;
+        }
         foreach ($this->enabledManifests() as $manifest) {
             $this->provider($manifest)->routes($routes);
         }
@@ -198,6 +217,7 @@ final class ModuleManager
 
     private function enableRecursive(string $id, array $stack): void
     {
+        $this->runtime?->assertCanEnable($id);
         $catalog = $this->catalog();
         $manifest = $catalog[$id] ?? null;
 
@@ -308,6 +328,50 @@ final class ModuleManager
         if ((int) ($state['enabled'] ?? 0) !== 1) {
             Events::trigger(CoreEvents::MODULE_ENABLED, $manifest);
         }
+    }
+
+    /** Only the fresh CLI update worker may migrate a disabled package. */
+    public function migrateDisabled(string $id): void
+    {
+        if ($this->runtime === null) {
+            throw new RuntimeException('Module update runtime is required.');
+        }
+        $this->runtime->assertWorker($id);
+        $this->catalog = [];
+        $manifest = $this->catalog()[$id] ?? null;
+        $state = $this->states()[$id] ?? null;
+        if ($manifest === null || $state === null || (int) $state['enabled'] !== 0) {
+            throw new RuntimeException('An installed, disabled module is required.');
+        }
+        $provider = new \ReflectionClass($manifest->provider);
+        if (! $provider->isSubclassOf(ModuleProviderInterface::class) || ! $provider->isInstantiable()
+            || ($provider->getConstructor()?->getNumberOfRequiredParameters() ?? 0) !== 0) {
+            throw new RuntimeException('Invalid module provider.');
+        }
+        $runner = Services::migrations()->setNamespace($manifest->namespace)->setSilent(false);
+        if (! $runner->latest()) {
+            throw new RuntimeException('Module migrations failed.');
+        }
+        // CI can report success when its migration lock was unavailable.
+        $history = array_map(fn ($row) => $runner->getObjectUid($row), $runner->getHistory());
+        foreach ($runner->findMigrations() as $migration) {
+            if (! in_array($runner->getObjectUid($migration), $history, true)) {
+                throw new RuntimeException('Module migration was not recorded.');
+            }
+        }
+        $this->registerPermissions($manifest, service('settings'));
+        $this->db->table('mcms_modules')->where('module_id', $id)->update([
+            'version' => $manifest->version, 'updated_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public function migrationFingerprint(string $namespace): string
+    {
+        $table = config('Migrations')->table;
+        $rows = $this->db->tableExists($table)
+            ? $this->db->table($table)->where('namespace', $namespace)->orderBy('id')->get()->getResultArray()
+            : [];
+        return hash('sha256', json_encode($rows, JSON_THROW_ON_ERROR));
     }
 
     private function registerPermissions(ModuleManifest $manifest, object $settings): void

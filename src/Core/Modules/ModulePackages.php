@@ -22,7 +22,7 @@ final class ModulePackages
     private const MAX_ENTRIES = 2000;
     private const PREVIEW_TTL = 3600;
 
-    public function __construct(private readonly ModuleManager $modules, private readonly string $root)
+    public function __construct(private readonly ModuleManager $modules, private readonly string $root, private readonly ?ModuleRuntime $runtime = null)
     {
     }
 
@@ -70,8 +70,9 @@ final class ModulePackages
         }
     }
 
-    public function prepare(string $archive): array
+    public function prepare(string $archive, ?string $replaceId = null): array
     {
+        $this->runtime?->assertAvailable();
         $this->directory($this->root . '/pending');
         foreach (glob($this->root . '/pending/*.zip') ?: [] as $expired) {
             if (filemtime($expired) < time() - self::PREVIEW_TTL) {
@@ -86,7 +87,7 @@ final class ModulePackages
         chmod($path, 0600);
         try {
             $preview = self::inspectArchive($path);
-            $this->checkCompatibility($preview['manifest']);
+            $this->checkCompatibility($preview['manifest'], $replaceId);
             return [...$preview, 'token' => $token];
         } catch (Throwable $e) {
             unlink($path);
@@ -104,6 +105,10 @@ final class ModulePackages
 
     public function install(string $token, string $sha256): ModuleManifest
     {
+        if ($this->runtime !== null && ! $this->runtime->isExclusive()) {
+            return $this->runtime->exclusive(fn () => $this->install($token, $sha256));
+        }
+        $this->runtime?->assertAvailable();
         $path = $this->pendingPath($token);
         $this->directory($this->root . '/installed');
         $lock = fopen($this->root . '/install.lock', 'c');
@@ -267,7 +272,7 @@ final class ModulePackages
         }
     }
 
-    private function checkCompatibility(ModuleManifest $manifest): void
+    public function checkCompatibility(ModuleManifest $manifest, ?string $replaceId = null): void
     {
         $catalog = $this->modules->catalog();
         // Re-read package manifests inside the installation lock, even if the
@@ -276,7 +281,19 @@ final class ModulePackages
             $current = ModuleManifest::fromFile($path);
             $catalog[$current->id] = $current;
         }
-        if (isset($catalog[$manifest->id])) {
+        if ($replaceId !== null) {
+            $existing = $catalog[$replaceId] ?? null;
+            if ($existing === null || $replaceId !== $manifest->id
+                || $existing->namespace !== $manifest->namespace || $existing->provider !== $manifest->provider
+                || realpath($existing->path) !== realpath($this->root . '/installed/' . substr($existing->namespace, strlen('MCMS\\Modules\\')))
+                || ! str_starts_with($existing->namespace, 'MCMS\\Modules\\')) {
+                throw new RuntimeException('Only an external package with the same id, namespace and provider can be updated.');
+            }
+            if (! \Composer\Semver\Comparator::greaterThan($manifest->version, $existing->version)) {
+                throw new RuntimeException('Update version must be newer than the current package.');
+            }
+            unset($catalog[$replaceId]);
+        } elseif (isset($catalog[$manifest->id])) {
             throw new RuntimeException('Module id already exists; package updates are not supported here.');
         }
         foreach ($catalog as $current) {
@@ -285,6 +302,15 @@ final class ModulePackages
             }
             if (array_intersect($current->publicPaths, $manifest->publicPaths) !== []) {
                 throw new RuntimeException('Module public paths conflict with ' . $current->id . '.');
+            }
+            if ($replaceId !== null) {
+                foreach ($current->requires as $dependency) {
+                    $id = is_array($dependency) ? $dependency['id'] : $dependency;
+                    $constraint = is_array($dependency) ? ($dependency['version'] ?? '*') : '*';
+                    if ($id === $replaceId && ! Semver::satisfies($manifest->version, $constraint)) {
+                        throw new RuntimeException('Update is incompatible with dependent module ' . $current->id . '.');
+                    }
+                }
             }
         }
         if (array_intersect($manifest->publicPaths, ['admin', 'install', '_health', 'search', 'login', 'logout', 'register', 'auth', 'assets']) !== []) {
@@ -325,6 +351,59 @@ final class ModulePackages
         if (in_array($top, ['config', 'commands', 'vendor', 'node_modules'], true)) {
             throw new RuntimeException('Packages cannot include auto-discovered Config/Commands or bundled dependency directories.');
         }
+    }
+
+    public function pendingArchive(string $token, string $sha256): string
+    {
+        $path = $this->pendingPath($token);
+        if (! is_file($path) || filemtime($path) < time() - self::PREVIEW_TTL
+            || ! hash_equals($sha256, (string) hash_file('sha256', $path))) {
+            throw new RuntimeException('Package preview expired or the archive changed. Upload it again.');
+        }
+        return $path;
+    }
+
+    public static function extractArchive(string $archive, string $destination): ModuleManifest
+    {
+        $preview = self::inspectArchive($archive);
+        if (file_exists($destination) || ! mkdir($destination, 0755, true)) {
+            throw new RuntimeException('Cannot create package extraction directory.');
+        }
+        $zip = new ZipArchive();
+        if ($zip->open($archive, ZipArchive::RDONLY) !== true) {
+            throw new RuntimeException('Cannot open package archive.');
+        }
+        try {
+            foreach ($preview['files'] as $name) {
+                $path = $destination . '/' . $name;
+                if (! is_dir(dirname($path)) && ! mkdir(dirname($path), 0755, true) && ! is_dir(dirname($path))) {
+                    throw new RuntimeException('Cannot create package directory.');
+                }
+                $content = $zip->getFromName($name);
+                if ($content === false || file_put_contents($path, $content) !== strlen($content)) {
+                    throw new RuntimeException('Cannot extract package file.');
+                }
+                chmod($path, 0644);
+            }
+        } finally {
+            $zip->close();
+        }
+        return ModuleManifest::fromFile($destination . '/module.json');
+    }
+
+    public static function fingerprint(string $directory): string
+    {
+        $files = [];
+        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->isLink() || ! $file->isFile()) {
+                throw new RuntimeException('Package source contains a link or special file.');
+            }
+            $name = substr($file->getPathname(), strlen($directory) + 1);
+            self::validatePath($name);
+            $files[$name] = hash_file('sha256', $file->getPathname());
+        }
+        ksort($files);
+        return hash('sha256', json_encode($files, JSON_THROW_ON_ERROR));
     }
 
     private function pendingPath(string $token): string

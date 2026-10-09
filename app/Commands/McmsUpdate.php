@@ -16,6 +16,18 @@ final class McmsUpdate extends BaseCommand
 
     public function run(array $params): void
     {
+        $runtime = service('mcmsModuleRuntime');
+        $runtime->exclusive(function () use ($runtime): void {
+            if ($runtime->maintenance() !== null) {
+                CLI::write('Module recovery pending; startup migrations skipped.', 'yellow');
+                return;
+            }
+            $this->update();
+        });
+    }
+
+    private function update(): void
+    {
         $migrations = Services::migrations();
 
         CLI::write('Updating mCMS Core...', 'yellow');

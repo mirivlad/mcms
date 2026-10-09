@@ -27,10 +27,12 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
         'siteLocale'    => SiteLocale::class,
+        'moduleMaintenance' => \App\Filters\ModuleMaintenance::class,
     ];
 
     public array $required = [
         'before' => [
+            'moduleMaintenance',
             'forcehttps',
             'pagecache',
         ],

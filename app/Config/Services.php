@@ -9,6 +9,8 @@ use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
 use MCMS\Core\Modules\ModulePackages;
+use MCMS\Core\Modules\ModuleRuntime;
+use MCMS\Core\Modules\ModuleUpdates;
 use MCMS\Core\Modules\ModuleServiceRegistry;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Storage\LocalStorage;
@@ -102,6 +104,7 @@ class Services extends BaseService
             ROOTPATH . 'modules',
             static::mcmsNavigation(),
             WRITEPATH . 'modules/installed',
+            static::mcmsModuleRuntime(),
         );
     }
 
@@ -111,7 +114,23 @@ class Services extends BaseService
             return static::getSharedInstance('mcmsModulePackages');
         }
 
-        return new ModulePackages(static::mcmsModules(), WRITEPATH . 'modules');
+        return new ModulePackages(static::mcmsModules(), WRITEPATH . 'modules', static::mcmsModuleRuntime());
+    }
+
+    public static function mcmsModuleRuntime(bool $getShared = true): ModuleRuntime
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsModuleRuntime');
+        }
+        return new ModuleRuntime(WRITEPATH . 'modules');
+    }
+
+    public static function mcmsModuleUpdates(bool $getShared = true): ModuleUpdates
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsModuleUpdates');
+        }
+        return new ModuleUpdates(static::mcmsModules(), static::mcmsModulePackages(), static::mcmsModuleRuntime(), WRITEPATH . 'modules');
     }
 
     public static function mcmsThemes(bool $getShared = true): ThemeManager
