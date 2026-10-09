@@ -1,16 +1,19 @@
 {
   "id": "catalogue",
   "name": "@Catalogue.name",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "namespace": "MCMS\\Modules\\Catalogue",
   "provider": "MCMS\\Modules\\Catalogue\\Module",
-  "mcms": "^0.1.5",
+  "mcms": "^0.1.6",
   "description": "@Catalogue.description",
   "requires": [{"id": "product-images", "version": "^0.1"}],
   "public_paths": ["shop"],
+  "settings": {"per_page": 24},
   "permissions": {
+    "catalogue.settings": "@CatalogueSettings.permission",
     "catalogue.view": "@Catalogue.view", "catalogue.create": "@Catalogue.create",
     "catalogue.edit": "@Catalogue.edit", "catalogue.delete": "@Catalogue.delete"
   },
-  "grants": {"admin": ["catalogue.view", "catalogue.create", "catalogue.edit", "catalogue.delete"]}
+  "grants": {"admin": [
+      "catalogue.settings","catalogue.view", "catalogue.create", "catalogue.edit", "catalogue.delete"]}
 }

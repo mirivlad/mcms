@@ -17,6 +17,32 @@ final class Admin extends BaseAdminController
 {
     use ContentWorkflowActions;
 
+    public function settings(): string|RedirectResponse
+    {
+        if ($denied = $this->guard('news.settings')) {
+            return $denied;
+        }
+        $settings = service('settings');
+        if ($this->request->getMethod() === 'POST') {
+            $perPage = filter_var($this->request->getPost('per_page'), FILTER_VALIDATE_INT);
+            if ($perPage === false || $perPage < 1 || $perPage > 50) {
+                return redirect()->to($this->settingsPath('/admin/news/settings'))->withInput()->with('error', lang('NewsSettings.invalid'));
+            }
+            $status = $this->request->getPost('default_status');
+            if (! in_array($status, ['draft', 'published'], true)) {
+                return redirect()->to($this->settingsPath('/admin/news/settings'))->withInput()->with('error', lang('NewsSettings.invalid'));
+            }
+            $settings->set('news.per_page', $perPage);
+            $settings->set('news.default_status', $status);
+            return redirect()->to($this->settingsPath('/admin/news/settings'))->with('message', lang('NewsSettings.saved'));
+        }
+        return view('MCMS\\Modules\\News\\Views\\settings', [
+            'adminMenu' => $this->adminMenu(), 'title' => lang('NewsSettings.title'),
+            'perPage' => (int) ($settings->get('news.per_page') ?? 10),
+            'defaultStatus' => (string) ($settings->get('news.default_status') ?? 'draft'),
+        ]);
+    }
+
     public function index(): string|RedirectResponse
     {
         if (($redirect = $this->guard('news.view')) !== null) {

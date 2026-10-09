@@ -80,12 +80,13 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.6.0
+### News 0.6.1
 
 - Draft and published news articles with optional future publication time.
 - Tags and manual keywords; private unsaved preview with featured image and shortcode rendering.
 - Sanitized rich text, excerpt, SEO metadata and optional featured Media image.
 - Public archive at `/news` and articles at `/news/{slug}`.
+- Module and central settings expose public page size and initial status of new article forms; current articles keep their status.
 - Public service: `news.repository`.
 - Generic navigation providers: `news.archive` and `news.article`.
 - Public rendering through logical `news.index` / `news.article` theme templates with module fallbacks.
@@ -131,7 +132,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
 - Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
-### ProductImages 0.1.0 / Catalogue 0.2.3
+### ProductImages 0.1.0 / Catalogue 0.2.4
 
 - Catalogue depends only on ProductImages; Media/Galleries are independent.
 - Private persistent originals and generated WebP revisions, validated uploads,
@@ -145,7 +146,8 @@ This document records the current known-good mCMS implementation checkpoint.
   enlarged gallery with keyboard/swipe controls and variant price/SKU selection.
 - Published navigation/search/sitemap resources and generic slug-move redirects.
 - Module disable/re-enable preserves data; draft images and originals stay private.
-- Catalogue 0.2.3 exposes stable variant lookup/search and optional Cart storefront controls for dependent commerce modules.
+- Public catalogue page size is configurable in Store management and the central settings; the same limit applies to categories/filters.
+- Catalogue 0.2.4 exposes stable variant lookup/search and optional Cart storefront controls for dependent commerce modules.
 
 ### Stock 0.1.1
 
@@ -428,7 +430,7 @@ search and taxonomy links. Verification includes migration up/down, category gua
 filter-preserving pagination, literal wildcard queries, module disable/re-enable,
 real HTTP forms and unauthenticated category dialogs/public mobile search.
 
-Catalogue 0.2.3 includes the 0.2.0 category-tree work: editable slugs, a visual Tabler picker with
+Catalogue 0.2.4 includes the 0.2.0 category-tree work: editable slugs, a visual Tabler picker with
 color selection, and independent category-image uploads. Existing text labels
 migrate into root categories while retaining product assignments. Parent sections
 include descendant products; categories participate in Menus, sitemap and slug

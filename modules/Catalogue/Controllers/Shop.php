@@ -29,9 +29,10 @@ final class Shop extends BaseController
         $query = mb_substr(trim((string) $this->request->getGet('q')), 0, 200);
         $category = $selectedCategory['slug'] ?? mb_substr(trim((string) $this->request->getGet('category')), 0, 190);
         $count = $this->catalogue()->count($query, 'published', $category);
-        $lastPage = max(1, (int) ceil($count / 24));
+        $perPage = max(1, min(100, (int) (setting('catalogue.per_page') ?? 24)));
+        $lastPage = max(1, (int) ceil($count / $perPage));
         $page = min($lastPage, max(1, (int) $this->request->getGet('page')));
-        $products = $this->catalogue()->list($query, 'published', 24, ($page - 1) * 24, $category);
+        $products = $this->catalogue()->list($query, 'published', $perPage, ($page - 1) * $perPage, $category);
         $stock = $this->stock();
         $cart = $this->cart();
         $canManageStock = $stock !== null && $this->canManageStock();

@@ -62,3 +62,8 @@ used by articles cannot be deleted. Category and tag filters combine with archiv
 text search, and public lists omit drafts/future news from filter choices. The
 news.search service implements Core public search and contributes only live articles.
 News owns news_categories, news_drafts and news_revisions in addition to articles.
+
+News 0.6.1 adds module-owned settings at `/admin/news/settings` and the shared
+central alias `/admin/settings/news`: initial status for new editor forms and
+public page size (1–50). Both require `news.settings`; existing articles retain
+their status. The administration listing keeps its existing pagination.

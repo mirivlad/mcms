@@ -11,10 +11,16 @@ contribute sections, and each section is filtered by its own permission. Origina
 module routes retain their permission checks, as do the central aliases. Disabling
 a module hides its section without deleting settings.
 
-First-party sections include General, Themes, Media, Pages, SEO, Delivery and API.
+First-party sections include General, Themes, Media, Pages, News, Catalogue, SEO, Delivery and API.
 Theme appearance/Home/menu forms, delivery editing and key creation/revocation are
-usable through the centre as well as their existing screens. Integration with
-News, Catalogue and Notifications is added in subsequent stages.
+usable through the centre as well as their existing screens. Notifications are added in the next stage.
+
+News settings control the initial status of a new editor form and public page size
+(1–50, default 10). Existing articles are not republished. Catalogue settings control
+public shop/category page size (1–100, default 24). Public filters and page bounds
+use the configured limit; administration pagination is unchanged. Both modules
+retain their settings links in their own management screens and require their
+respective `news.settings` / `catalogue.settings` permissions.
 
 Modules register their entry point during `boot()`:
 

@@ -66,5 +66,44 @@ post('/admin/modules/delivery/disable',{},'/admin/modules')
 assert '/admin/settings/delivery' not in page('/admin/settings')
 post('/admin/modules/delivery/enable',{},'/admin/modules')
 assert name in page('/admin/settings/delivery')
+# Content settings are effective on public lists and new editor forms.
+post('/admin/modules/news/enable',{},'/admin/modules')
+assert '/admin/settings/news' in page('/admin/settings')
+assert '/admin/settings/catalogue' in page('/admin/settings')
+post('/admin/settings/news',{'per_page':'1','default_status':'published'})
+assert re.search(r'value="published"\s+selected',page('/admin/news/create'))
+assert re.search(r'value="published"\s+selected',page('/admin/news/settings'))
+post('/admin/settings/news',{'per_page':'0','default_status':'draft'})
+assert re.search(r'value="published"\s+selected',page('/admin/news/settings')), 'Invalid save changed existing settings'
+post('/admin/settings/catalogue',{'per_page':'1'})
+assert re.search(r'name="per_page"[^>]*value="1"',page('/admin/catalogue/settings'))
+post('/admin/settings/catalogue',{'per_page':'101'})
+assert re.search(r'name="per_page"[^>]*value="1"',page('/admin/catalogue/settings'))
+marker='Settings content '+uuid.uuid4().hex[:8]
+slugs=[]
+for index in range(3):
+    source,url=post('/admin/news/create',{'title':marker+' news '+str(index),'body':'<p>Settings public fixture</p>','status':'published'})
+    assert '/edit' in url, url
+    slugs.append(html.unescape(re.search(r'name="slug"[^>]*value="([^"]+)"',source)[1]))
+query=urllib.parse.urlencode({'q':marker})
+for number in (1,2,3):
+    source=html.unescape(page('/news?'+query+'&page='+str(number)))
+    assert sum('/news/'+slug+'"' in source for slug in slugs)==1, 'News page-size setting is not effective'
+products=[]
+for index in range(3):
+    source=page('/admin/catalogue/create')
+    image_set=re.search(r'name="image_set_id" value="([^"]+)"',source)[1]
+    slug='settings-product-'+uuid.uuid4().hex[:8]
+    fields={'title':marker+' product '+str(index),'slug':slug,'summary':'','body':'','category_id':'','status':'published','image_set_id':image_set,
+            'variants[0][id]':'0','variants[0][sku]':'SETTINGS-'+uuid.uuid4().hex[:8],'variants[0][label]':'Unit','variants[0][price]':'1'}
+    source,url=post('/admin/catalogue/create',fields)
+    assert '/edit' in url, url
+    products.append(slug)
+for number in (1,2,3):
+    source=html.unescape(page('/shop?'+query+'&page='+str(number)))
+    assert sum('/shop/'+slug+'"' in source for slug in products)==1, 'Catalogue page-size setting is not effective'
+post('/admin/news/settings',{'per_page':'10','default_status':'draft'})
+post('/admin/catalogue/settings',{'per_page':'24'})
+assert re.search(r'name="per_page"[^>]*value="24"',page('/admin/settings/catalogue'))
 jar.save(ignore_discard=True,ignore_expires=True)
 print('Central settings share original forms/state, preserve post-save navigation and follow module lifecycle.')

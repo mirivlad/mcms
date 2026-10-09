@@ -28,12 +28,15 @@ final class Module implements ModuleProviderInterface
         $context->navigation->register(new Products($repository));
         $context->navigation->register(new CategoryNavigation($categories));
         $context->admin->addMenu('catalogue', '@Catalogue.manageStore', '/admin/catalogue', 'ti ti-building-store', 'catalogue.view', 65, group: 'commerce');
+        $context->admin->addSettings('catalogue', '@CatalogueSettings.title', '/admin/catalogue/settings', 'ti ti-adjustments', 'catalogue.settings', 'commerce');
     }
 
     public function routes(RouteCollection $routes): void
     {
+        $routes->match(['get', 'post'], 'admin/settings/catalogue', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::settings', ['filter' => 'session']);
         $routes->group('admin/catalogue', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::store');
+            $routes->match(['get', 'post'], 'settings', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::settings');
             $routes->get('products', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::index');
             $routes->get('categories', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::index');
             $routes->match(['get', 'post'], 'categories/create', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::create');

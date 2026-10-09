@@ -26,6 +26,7 @@ $pageUrl = static function (int $targetPage) use ($query, $status, $categoryId, 
             <h2 class="page-title"><?= esc(lang('News.Admin.title')) ?></h2>
             <div class="text-secondary mt-1"><?= esc(sprintf(lang('News.Admin.count'), $count)) ?></div>
         </div>
+        <?php if (auth()->user()?->can('news.settings')): ?><div class="col-auto"><a class="btn btn-outline-secondary" href="<?= site_url('admin/news/settings') ?>"><i class="ti ti-settings me-1" aria-hidden="true"></i><?= esc(lang('NewsSettings.title')) ?></a></div><?php endif ?>
         <?php if ($canEdit): ?><div class="col-auto"><a class="btn btn-outline-secondary" href="<?= site_url('admin/news/categories') ?>"><?= esc(lang('News.Admin.categories')) ?></a></div><?php endif ?>
         <?php if ($canCreate): ?>
             <div class="col-12 col-md-auto ms-md-auto">

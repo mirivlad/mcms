@@ -1,10 +1,10 @@
 {
   "id": "news",
   "name": "@News.Admin.menuLabel",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "namespace": "MCMS\\Modules\\News",
   "provider": "MCMS\\Modules\\News\\Module",
-  "mcms": "^0.1.5",
+  "mcms": "^0.1.6",
   "description": "@News.Admin.description",
   "requires": [
     {
@@ -20,6 +20,7 @@
     "per_page": 10
   },
   "permissions": {
+    "news.settings": "@NewsSettings.permission",
     "news.view": "@News.Permissions.view",
     "news.create": "@News.Permissions.create",
     "news.edit": "@News.Permissions.edit",
@@ -27,6 +28,7 @@
   },
   "grants": {
     "admin": [
+      "news.settings",
       "news.view",
       "news.create",
       "news.edit",

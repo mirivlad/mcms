@@ -1,6 +1,7 @@
 <?= $this->extend('layouts/admin') ?>
 <?= $this->section('content') ?>
 <h1 class="page-title mb-4"><?= esc(lang('Catalogue.manageStore')) ?></h1>
+<?php if (auth()->user()?->can('catalogue.settings')): ?><p><a class="btn btn-outline-secondary" href="<?= site_url('admin/catalogue/settings') ?>"><i class="ti ti-settings me-1" aria-hidden="true"></i><?= esc(lang('CatalogueSettings.title')) ?></a></p><?php endif ?>
 <div class="row g-3">
     <div class="col-md-6">
         <a class="card card-link" href="<?= site_url('admin/catalogue/categories') ?>">

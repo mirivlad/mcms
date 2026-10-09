@@ -26,6 +26,26 @@ final class Admin extends BaseAdminController
         ]);
     }
 
+    public function settings(): string|RedirectResponse
+    {
+        if ($denied = $this->guard('catalogue.settings')) {
+            return $denied;
+        }
+        $settings = service('settings');
+        if ($this->request->getMethod() === 'POST') {
+            $perPage = filter_var($this->request->getPost('per_page'), FILTER_VALIDATE_INT);
+            if ($perPage === false || $perPage < 1 || $perPage > 100) {
+                return redirect()->to($this->settingsPath('/admin/catalogue/settings'))->withInput()->with('error', lang('CatalogueSettings.invalid'));
+            }
+            $settings->set('catalogue.per_page', $perPage);
+            return redirect()->to($this->settingsPath('/admin/catalogue/settings'))->with('message', lang('CatalogueSettings.saved'));
+        }
+        return view('MCMS\\Modules\\Catalogue\\Views\\settings', [
+            'adminMenu' => $this->adminMenu(), 'title' => lang('CatalogueSettings.title'),
+            'perPage' => (int) ($settings->get('catalogue.per_page') ?? 24),
+        ]);
+    }
+
     public function index(): string|RedirectResponse
     {
         if (($redirect = $this->guard('catalogue.view')) !== null) {

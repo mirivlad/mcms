@@ -43,12 +43,15 @@ final class Module implements ModuleProviderInterface
             57,
             group: 'content',
         );
+        $context->admin->addSettings('news', '@NewsSettings.title', '/admin/news/settings', 'ti ti-adjustments', 'news.settings', 'content');
     }
 
     public function routes(RouteCollection $routes): void
     {
+        $routes->match(['get', 'post'], 'admin/settings/news', '\\MCMS\\Modules\\News\\Controllers\\Admin::settings', ['filter' => 'session']);
         $routes->group('admin/news', ['filter' => 'session'], static function (RouteCollection $routes): void {
             $routes->get('/', '\\MCMS\\Modules\\News\\Controllers\\Admin::index');
+            $routes->match(['get', 'post'], 'settings', '\\MCMS\\Modules\\News\\Controllers\\Admin::settings');
             $routes->get('categories', '\\MCMS\\Modules\\News\\Controllers\\Admin::categories');
             $routes->post('categories/save', '\\MCMS\\Modules\\News\\Controllers\\Admin::saveCategory');
             $routes->post('categories/delete', '\\MCMS\\Modules\\News\\Controllers\\Admin::deleteCategory');

@@ -49,3 +49,8 @@ See [commerce contracts](../../docs/COMMERCE.md) for the boundaries and next sta
 variant/SKU identities, including draft products, in ascending permanent-ID pages
 with a fixed `until_id` upper bound. It avoids title/position ordering changes
 while an external accounting system reads inventory.
+
+Catalogue 0.2.4 adds `catalogue.settings`, a Store management settings link and
+central `/admin/settings/catalogue` alias to the same form/handler. Public shop
+and category/filter pages use `catalogue.per_page` (1–100, default 24).
+Administration pagination is unchanged; invalid values are rejected before saving.
