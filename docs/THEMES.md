@@ -72,3 +72,24 @@ External resources are served by Core at `theme-assets/<id>/<version>/<path>`
 with explicit MIME types, nosniff, ETag and immutable caching. PHP, manifests and
 views are never served through this endpoint; SVG responses disable scripts.
 No nginx mount or exposure of the private theme directory is required.
+
+## Example: installable Atelier editorial theme
+
+The repository includes a full third-party example under
+[`examples/themes/mcms-atelier`](../examples/themes/mcms-atelier/README.md),
+with a ready-to-upload archive at
+[`examples/packages/mcms-atelier-1.0.0.zip`](../examples/packages/mcms-atelier-1.0.0.zip).
+
+Atelier illustrates how to support all current public templates, menu
+locations, editable Home content, local assets, bilingual view labels (without
+a forbidden `Language/` directory) and accessible galleries. The archive is
+intentionally **not** located in the first-party `themes/` tree: doing that
+would prevent installing the ZIP due to duplicate identity checks.
+
+To recreate the ZIP from source, run:
+
+```sh
+php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.0.0.zip
+```
+
+The installer requires a separate trust-confirmation and activation step.

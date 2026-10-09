@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 880">
+  <rect width="1400" height="880" fill="#f3eee4"/>
+  <rect x="44" y="38" width="1312" height="800" fill="#faf7f0" stroke="#c7bca8"/>
+  <text x="100" y="122" font-family="Georgia,serif" font-size="86" letter-spacing="-6" fill="#233b35">Atelier<tspan fill="#b85f45">.</tspan></text>
+  <text x="1036" y="88" font-family="sans-serif" font-size="15" fill="#5c655f">JOURNAL / 2026</text>
+  <text x="1036" y="114" font-family="sans-serif" font-size="15" fill="#5c655f">mCMS EDITION — 01</text>
+  <rect x="44" y="158" width="1312" height="62" fill="#233b35"/>
+  <g fill="#f3eee4" font-family="sans-serif" font-size="17" letter-spacing="3">
+    <text x="98" y="197">ГЛАВНАЯ</text><text x="290" y="197">НОВОСТИ</text><text x="468" y="197">ГАЛЕРЕИ</text><text x="660" y="197">КОНТАКТЫ</text>
+  </g>
+  <rect x="96" y="266" width="724" height="442" fill="#d6b794"/>
+  <circle cx="592" cy="423" r="138" fill="#c56c51"/>
+  <path d="M250 708V480c0-121 100-201 198-201s198 80 198 201v228z" fill="#2a4e44"/>
+  <path d="M328 708V482c0-76 51-122 120-122s120 46 120 122v226z" fill="#ebd8ba"/>
+  <path d="M328 708V572l240-88v224z" fill="#b45e4c"/>
+  <text x="864" y="296" font-family="sans-serif" font-size="17" letter-spacing="4" fill="#b45e4c">АТЕЛЬЕ / ЖУРНАЛ</text>
+  <text x="856" y="387" font-family="Georgia,serif" font-size="72" fill="#233b35">Искусство</text>
+  <text x="856" y="466" font-family="Georgia,serif" font-size="72" fill="#233b35">замечать.</text>
+  <rect x="865" y="497" width="76" height="6" fill="#b45e4c"/>
+  <g font-family="sans-serif" font-size="20" fill="#556059">
+    <text x="865" y="557">Истории, формы, люди</text>
+    <text x="865" y="586">и места. Пространство</text>
+    <text x="865" y="615">для новых идей.</text>
+  </g>
+  <rect x="865" y="648" width="363" height="57" fill="#233b35"/>
+  <text x="892" y="685" font-family="sans-serif" font-size="20" fill="#f3eee4">Смотреть материалы  ↗</text>
+  <text x="98" y="768" font-family="Georgia,serif" font-size="34" fill="#233b35">Искусство смотреть иначе</text>
+  <text x="98" y="806" font-family="sans-serif" font-size="15" letter-spacing="2" fill="#b45e4c">ВЫБОР РЕДАКЦИИ</text>
+  <text x="865" y="766" font-family="sans-serif" font-size="15" letter-spacing="3" fill="#556059">ИНТЕРЕСНЫЕ ИСТОРИИ / 01</text>
+</svg>

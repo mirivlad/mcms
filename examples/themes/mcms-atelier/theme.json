@@ -1,0 +1,52 @@
+{
+  "id": "mcms-atelier",
+  "name": "mCMS Atelier — editorial",
+  "version": "1.0.0",
+  "mcms": "^0.1",
+  "namespace": "MCMS\\Themes\\Atelier",
+  "description": "Авторская редакционная тема: тёплая бумага, выразительная антиква, графическая иллюстрация и журнальная сетка.",
+  "author": "mCMS community example",
+  "screenshot": "screenshot.svg",
+  "templates": {
+    "home": "home",
+    "page": "page",
+    "news.index": "news/index",
+    "news.article": "news/article",
+    "galleries.index": "galleries/index",
+    "galleries.album": "galleries/album",
+    "galleries.embed": "galleries/embed",
+    "feedback.form": "feedback/form",
+    "search.index": "search/index",
+    "catalogue.index": "catalogue/index",
+    "catalogue.product": "catalogue/product",
+    "cart.index": "cart/index"
+  },
+  "menu_locations": {
+    "header.primary": {
+      "label": "Основное меню",
+      "description": "Навигация в шапке сайта",
+      "max_depth": 2
+    },
+    "footer.primary": {
+      "label": "Меню в подвале",
+      "description": "Основные ссылки в подвале",
+      "max_depth": 1
+    },
+    "footer.legal": {
+      "label": "Правовая информация",
+      "description": "Служебные ссылки в подвале",
+      "max_depth": 1
+    }
+  },
+  "home_defaults": {
+    "eyebrow": "АТЕЛЬЕ / ЖУРНАЛ",
+    "title": "Искусство\nзамечать.",
+    "description": "Истории, формы, люди и места. Пространство для идей, к которым хочется возвращаться.",
+    "button_label": "Смотреть материалы",
+    "button_url": "#home-content",
+    "intro_title": "Меньше шума.\nБольше смысла.",
+    "intro_text": "Журнал о вещах, которые остаются с нами надолго.",
+    "show_news": true,
+    "show_galleries": true
+  }
+}

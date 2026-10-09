@@ -87,3 +87,10 @@ preserved. See [demo setup](docs/PORTAINER.md#optional-demo-content-for-your-own
 Ferma is used only as a functional reference for features that proved useful in a
 real application. mCMS does not inherit Ferma's Git history, database schema,
 customer data, routes or deployment assumptions.
+
+### Third-party theme example
+
+[Atelier](examples/themes/mcms-atelier/README.md) is a complete independent
+editorial theme, available as a [ready-to-install ZIP](examples/packages/mcms-atelier-1.0.0.zip).
+Install it under Administration → Themes → Install theme ZIP; it remains
+inactive until explicitly activated. See [the package contract](docs/THEMES.md).
