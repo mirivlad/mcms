@@ -46,7 +46,7 @@ final class DemoData
 
             $services = new ModuleServiceRegistry();
             $navigation = new NavigableResourceRegistry();
-            $modules = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules', $navigation);
+            $modules = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules', $navigation, WRITEPATH . 'modules/installed');
             foreach (['pages', 'news', 'catalogue', 'seo'] as $module) {
                 $modules->enable($module);
             }

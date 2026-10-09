@@ -40,7 +40,8 @@ final class Module implements \\MCMS\\Core\\Modules\\ModuleProviderInterface {
 namespace MCMS\\Modules\\PackageProbe\\Controllers;
 final class Probe extends \\App\\Controllers\\BaseController {
     public function index(): string {
-        return 'package-probe:' . db_connect()->table('package_probe_records')->get()->getRowArray()['value'];
+        $rows = db_connect()->table('package_probe_records')->get()->getResultArray();
+        return 'package-probe:' . $rows[0]['value'] . ':' . count($rows);
     }
 }
 ''',
@@ -103,12 +104,12 @@ def absent():
 
 
 if args.phase == 'persist':
-    assert page('/package-probe')[0] == 'package-probe:preserved-record'
+    assert page('/package-probe')[0] == 'package-probe:preserved-record:1'
     assert 'Package probe' in page('/admin/modules')[0]
     post('/admin/modules/package_probe/disable', {}, '/admin/modules')
     absent()
     post('/admin/modules/package_probe/enable', {}, '/admin/modules')
-    assert page('/package-probe')[0] == 'package-probe:preserved-record'
+    assert page('/package-probe')[0] == 'package-probe:preserved-record:1'
     print('Package and migration data survived container recreation and disable/re-enable.')
 else:
     assert '/admin/modules/package' in page('/admin/modules')[0]
@@ -155,11 +156,11 @@ else:
     # A second archive cannot overwrite even an inactive module.
     assert 'already exists' in upload(archive({'version': '2.0.0'}))[0]
     post('/admin/modules/package_probe/enable', {}, '/admin/modules')
-    assert page('/package-probe')[0] == 'package-probe:preserved-record'
+    assert page('/package-probe')[0] == 'package-probe:preserved-record:1'
     post('/admin/modules/package_probe/disable', {}, '/admin/modules')
     absent()
     post('/admin/modules/package_probe/enable', {}, '/admin/modules')
-    assert page('/package-probe')[0] == 'package-probe:preserved-record'
+    assert page('/package-probe')[0] == 'package-probe:preserved-record:1'
     # A malformed provider is rejected on explicit enablement before activation,
     # so it cannot break subsequent requests or run its migration.
     bad = upload(archive({
@@ -172,6 +173,6 @@ else:
     assert 'Module provider must implement' in refused
     bad_row = next(row for row in re.findall(r'<tr\b.*?</tr>', refused, re.S) if 'invalid_probe' in row)
     assert 'Ready to enable' in bad_row
-    assert page('/package-probe')[0] == 'package-probe:preserved-record'
+    assert page('/package-probe')[0] == 'package-probe:preserved-record:1'
     jar.save(ignore_discard=True, ignore_expires=True)
     print('Package validation, CSRF-protected review/confirmation, access, cancellation, install and scoped migrations passed.')

@@ -149,4 +149,42 @@ final class DemoDataTest extends CIUnitTestCase
         self::assertSame(13, $this->db->table('catalogue_products')->countAllResults());
         self::assertNotNull($this->marker());
     }
+
+    public function testSeedRecognizesAndPreservesEnabledExternalPackages(): void
+    {
+        $this->install();
+        $dir = WRITEPATH . 'modules/installed/DemoSeedProbe';
+        self::assertDirectoryDoesNotExist($dir);
+        mkdir($dir, 0755, true);
+        try {
+            file_put_contents($dir . '/module.json', json_encode([
+                'id' => 'demo_seed_probe', 'name' => 'Demo seed probe', 'version' => '1.0.0',
+                'namespace' => 'MCMS\\Modules\\DemoSeedProbe', 'provider' => 'MCMS\\Modules\\DemoSeedProbe\\Module', 'mcms' => '^0.1',
+            ], JSON_THROW_ON_ERROR));
+            file_put_contents($dir . '/Module.php', '<?php namespace MCMS\\Modules\\DemoSeedProbe;
+                final class Module implements \\MCMS\\Core\\Modules\\ModuleProviderInterface {
+                    public static int $boots = 0;
+                    public function boot(\\MCMS\\Core\\Modules\\ModuleContext $context): void { self::$boots++; }
+                    public function routes(\\CodeIgniter\\Router\\RouteCollection $routes): void {}
+                }');
+            // The HTTP smoke covers SPL loading in production; other test
+            // fixtures reset the registered loader, so load this fixture type.
+            require $dir . '/Module.php';
+            $this->db->table('mcms_modules')->insert([
+                'module_id' => 'demo_seed_probe', 'version' => '1.0.0', 'enabled' => 1,
+                'installed_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            putenv('MCMS_DEMO_SEED=1');
+            self::assertSame('completed', (new DemoData($this->db))->seed());
+            self::assertSame(1, \MCMS\Modules\DemoSeedProbe\Module::$boots);
+            self::assertSame(1, (int) $this->db->table('mcms_modules')->where('module_id', 'demo_seed_probe')->get()->getRowArray()['enabled']);
+            self::assertSame(12, $this->db->table('catalogue_products')->countAllResults());
+            self::assertSame('already-completed', (new DemoData($this->db))->seed());
+        } finally {
+            unlink($dir . '/Module.php');
+            unlink($dir . '/module.json');
+            rmdir($dir);
+            service('autoloader')->removeNamespace('MCMS\\Modules\\DemoSeedProbe');
+        }
+    }
 }

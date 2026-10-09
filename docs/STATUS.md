@@ -42,6 +42,8 @@ This document records the current known-good mCMS implementation checkpoint.
   preserves its data.
 - First-party ids/namespaces and existing external modules cannot be replaced.
   Safe updates and remote repository retrieval remain separate future work.
+- Opted-in demo initialization discovers enabled external packages as well as
+  first-party modules; its one-time content marker and existing package state are preserved.
 - Docker and Portainer persist external code in `module_packages_data`; back up
   this volume with the database. Package inspection is not a PHP sandbox.
 
@@ -225,7 +227,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-The 2026-10-09 package checkpoint passed 150 PHPUnit tests / 1144 assertions,
+The 2026-10-09 package checkpoint passed 151 PHPUnit tests / 1150 assertions,
 PHP lint and Compose validation. Focused package tests cover malformed/unsafe ZIPs,
 compatibility/dependency cycles, stale concurrent previews, checksums, expiry and
 cancellation, and installation/discovery without provider execution. A fresh
