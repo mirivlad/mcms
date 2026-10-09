@@ -158,3 +158,41 @@ Registering the same service ID twice is an error.
 - Module runtime settings live in the Settings database.
 - Module permissions must use the module ID as their namespace (for example `example.manage`). They are contributed to Shield at install/update time. Superadmins receive every module permission automatically; a module may optionally declare default grants for other existing Core groups. Grants may only reference permissions declared by that module.
 - A module must not patch Core templates or Core source files.
+
+## ZIP package contract
+
+`php spark mcms:module:pack modules/Example /tmp/example-1.0.0.zip` builds an
+archive from a module directory, including a clean local repository checkout.
+The archive contains `module.json` at its root, without an enclosing directory.
+The command refuses to overwrite an existing output. Package metadata and files
+are inspected without loading the provider or running migrations.
+
+Packages use a unique `MCMS\\Modules\\Name` namespace, a provider inside that
+namespace with a matching PHP file, a semantic release version and a non-Core id.
+Only regular files and directories with relative ASCII paths are accepted;
+links, traversal, hidden files, duplicate/case-conflicting paths, encryption and
+ambiguous trailing dots/spaces are rejected. Limits: 20 MiB archive, 50 MiB total
+content, 8 MiB per file, 2000 entries and 64 KiB manifest.
+
+Packages cannot contain top-level `Config`, `Commands`, `vendor` or `node_modules`
+directories. Routes and boot behavior must use the explicit provider lifecycle;
+framework auto-discovery must not activate disabled packages. Dependencies use
+Core's existing APIs; the installer does not run Composer, npm, shell scripts or
+fetch arbitrary repositories. For a repository, export the desired revision and
+package its module directory locally before uploading the ZIP.
+
+External code is stored under `writable/modules/installed/<Name>`, separately
+from first-party `modules/`. `ModuleManager` discovers both roots and registers
+external namespaces with the CodeIgniter autoloader, including when Composer's
+production class map is authoritative. Docker and Portainer preserve this root
+in `module_packages_data`; include it in backups alongside the database. Pending
+archives are private, expire after one hour and are not discoverable modules.
+
+Publishing uses an installation lock and an atomic directory rename on the same
+filesystem. Compatibility, dependency cycles, ids, namespaces and declared public
+paths are checked again immediately before publishing. Adding code does not
+create a registry row, run a migration, boot a provider or enable dependencies;
+explicit enablement uses the existing lifecycle and public-content conflict check.
+Existing module ids/directories are refused: code replacement, migration rollback
+and safe updates are a separate workflow. Packages are executable trusted code,
+not a sandbox; administrators must review their source before installation.

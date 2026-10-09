@@ -40,6 +40,15 @@ final class ModuleManifest
             throw new RuntimeException("Invalid module manifest: {$path}", 0, $e);
         }
 
+        if (! is_array($data)) {
+            throw new InvalidArgumentException('Module manifest must be an object.');
+        }
+
+        return self::fromArray($data, dirname($path));
+    }
+
+    public static function fromArray(array $data, string $path = ''): self
+    {
         foreach (['id', 'name', 'version', 'namespace', 'provider', 'mcms'] as $required) {
             if (! isset($data[$required]) || ! is_string($data[$required]) || trim($data[$required]) === '') {
                 throw new InvalidArgumentException("Missing module manifest field: {$required}");
@@ -111,7 +120,7 @@ final class ModuleManifest
             settings: is_array($data['settings'] ?? null) ? $data['settings'] : [],
             permissions: $permissions,
             grants: $grants,
-            path: dirname($path),
+            path: $path,
             publicPaths: array_values(array_unique($publicPaths)),
             dataProviders: $dataProviders,
         );

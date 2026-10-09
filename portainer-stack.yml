@@ -26,6 +26,7 @@ services:
     volumes:
       - media_data:/var/www/html/public/assets/uploads
       - product_images_data:/var/www/html/writable/product-images
+      - module_packages_data:/var/www/html/writable/modules
 
   web:
     build:
@@ -76,5 +77,6 @@ volumes:
   db_data:
   media_data:
   product_images_data:
+  module_packages_data:
   mail_queue:
   dkim_data:

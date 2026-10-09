@@ -29,6 +29,7 @@ final class ModuleManager
         private readonly ModuleServiceRegistry $services,
         private readonly string $modulesPath = ROOTPATH . 'modules',
         ?NavigableResourceRegistry $navigation = null,
+        private readonly ?string $packagesPath = null,
     ) {
         $this->navigation = $navigation ?? new NavigableResourceRegistry();
     }
@@ -39,10 +40,19 @@ final class ModuleManager
             return $this->catalog;
         }
 
-        foreach (glob($this->modulesPath . '/*/module.json') ?: [] as $manifestPath) {
+        $paths = glob($this->modulesPath . '/*/module.json') ?: [];
+        if ($this->packagesPath !== null) {
+            $paths = [...$paths, ...(glob($this->packagesPath . '/*/module.json') ?: [])];
+        }
+        foreach ($paths as $manifestPath) {
             $manifest = ModuleManifest::fromFile($manifestPath);
             if (isset($this->catalog[$manifest->id])) {
                 throw new RuntimeException("Duplicate module id: {$manifest->id}");
+            }
+            foreach ($this->catalog as $existing) {
+                if (strcasecmp($existing->namespace, $manifest->namespace) === 0) {
+                    throw new RuntimeException("Duplicate module namespace: {$manifest->namespace}");
+                }
             }
 
             // Composer can autoload module classes, but CodeIgniter's

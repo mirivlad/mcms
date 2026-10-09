@@ -8,6 +8,7 @@ use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
+use MCMS\Core\Modules\ModulePackages;
 use MCMS\Core\Modules\ModuleServiceRegistry;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Storage\LocalStorage;
@@ -100,7 +101,17 @@ class Services extends BaseService
             static::mcmsModuleServices(),
             ROOTPATH . 'modules',
             static::mcmsNavigation(),
+            WRITEPATH . 'modules/installed',
         );
+    }
+
+    public static function mcmsModulePackages(bool $getShared = true): ModulePackages
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsModulePackages');
+        }
+
+        return new ModulePackages(static::mcmsModules(), WRITEPATH . 'modules');
     }
 
     public static function mcmsThemes(bool $getShared = true): ThemeManager
