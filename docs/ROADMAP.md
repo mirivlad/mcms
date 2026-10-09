@@ -67,7 +67,8 @@
 - [x] Safe external module update workflow with code snapshots, maintenance and explicit database-backup recovery.
 - [x] Third-party theme ZIP packaging/install, review, separate activation and persistent static resources.
 - [x] Optional API module: scoped Bearer keys, physical stock exchange with safe retries, saved orders/delivery and current delivery methods; see [API contract](API.md).
-- [ ] Optional notification/integration modules.
+- [x] Optional order Notifications: recipient/events/templates, transactional outbox, test email and retry; see [delivery contract](NOTIFICATIONS.md).
+- [ ] Further notification/integration modules as concrete requirements arise.
 
 ## Reference policy
 

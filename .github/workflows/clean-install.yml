@@ -594,6 +594,31 @@ jobs:
       - name: Verify central and original module settings share state
         run: python3 .github/scripts/settings-smoke.py --cookies /tmp/api-persist.cookies
 
+      - name: Verify order notifications with a disposable SMTP receiver
+        run: |
+          cat > /tmp/notifications-compose.yaml <<'YAML'
+          services:
+            app:
+              environment:
+                MCMS_MAIL_HOST: 127.0.0.1
+                MCMS_MAIL_PORT: 2526
+          YAML
+          docker compose -f compose.yaml -f /tmp/notifications-compose.yaml up -d --force-recreate app web
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/_health; then
+              break
+            fi
+            sleep 2
+          done
+          python3 .github/scripts/notifications-smoke.py --cookies /tmp/api-persist.cookies --app-container "$(docker compose ps -q app)"
+          docker compose up -d --force-recreate app web
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/_health; then
+              break
+            fi
+            sleep 2
+          done
+
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 

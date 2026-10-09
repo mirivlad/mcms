@@ -1,0 +1,14 @@
+{
+  "id": "notifications",
+  "name": "@Notifications.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Notifications",
+  "provider": "MCMS\\Modules\\Notifications\\Module",
+  "mcms": "^0.1.6",
+  "description": "@Notifications.description",
+  "requires": [{"id": "orders", "version": ">=0.3.2 <0.4"}],
+  "public_paths": [],
+  "settings": {"enabled": false, "recipient": "", "events": ["new"], "subject": "", "body": ""},
+  "permissions": {"notifications.manage": "@Notifications.permission"},
+  "grants": {"admin": ["notifications.manage"]}
+}

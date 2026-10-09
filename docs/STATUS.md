@@ -172,7 +172,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - All four bundled themes provide the logical cart.index template.
 - Cart 0.1.1 integrates optional Delivery methods into checkout and shows item, fulfillment and grand totals; if Delivery is enabled with no active methods, checkout is blocked.
 
-### Orders 0.3.1
+### Orders 0.3.2
 
 - Checkout creates immutable order/item snapshots from the current Cart.
 - Stock is reserved only after the order is successfully created; Cart itself never reserves inventory.
@@ -188,6 +188,16 @@ This document records the current known-good mCMS implementation checkpoint.
   amounts, formula-safe text, 500-row query batches and private temporary downloads.
 - Separate `orders.export` permission in addition to `orders.view`; reports and
   exports do not modify orders, inventory, reservations or the cart.
+
+### Notifications 0.1.0
+
+- Optional Orders-dependent module; delivery is off by default.
+- One manager recipient, selected order events, plain-text templates and a test email.
+- Own administration and a section in the Settings centre use the same handlers.
+- Transactional outbox keeps committed order/item/delivery snapshots and retries SMTP failures without undoing orders or stock.
+- Atomic sender claims, recent queue states, manual retry and `notifications:send` CLI; at-least-once delivery after crash recovery.
+- Separate `notifications.manage` permission; disable/re-enable preserves preferences and queue.
+- See [notification delivery and operations](NOTIFICATIONS.md).
 
 ### Delivery 0.1.1
 
@@ -388,7 +398,7 @@ corrections now submit through AJAX and update the displayed availability withou
 
 Cart 0.1.1 checks live availability but never reserves inventory. It keeps immutable
 line-price snapshots, clamps stale quantities, saves quantity edits automatically and
-shows optional Delivery selection/totals at checkout. Orders 0.3.1 is the reservation
+shows optional Delivery selection/totals at checkout. Orders 0.3.2 is the reservation
 boundary and stores immutable fulfillment snapshots plus item/delivery/grand totals.
 
 Delivery 0.1.0 provides ordered fixed-price delivery and pickup methods. The browser
@@ -482,3 +492,21 @@ form/navigation checks including a 390px viewport without horizontal overflow.
   viewport and compact revoke controls use localized tooltips and 44px mobile targets.
 - PHP lint and Python syntax checks passed. This checkpoint was not deployed to a
   live server; real 1C-side adaptation has not been exercised.
+
+## Settings and notifications checkpoint — 2026-10-09
+
+- Core 0.1.6 groups settings sections contributed by enabled modules. Original
+  module entry points remain available and share handlers/state with central aliases.
+- News 0.6.1 exposes initial article status and public page size; Catalogue 0.2.4
+  exposes public product page size. HTTP checks create real articles/products and
+  verify pagination, editor defaults, validation and shared settings.
+- Notifications 0.1.0 uses Orders 0.3.2 events and a transactional outbox. Real
+  HTTP/SMTP checks cover saved templates/recipient, selected events, failed SMTP
+  during successful checkout/reservation, retry, no-op transitions, CLI, permissions
+  and module lifecycle. A disposable loopback SMTP receiver never relays mail.
+- Focused PHPUnit checks passed: 24 tests / 185 assertions. The full suite ran
+  222 tests / 1472 assertions with one existing Atelier autoloader test failure
+  introduced by the separate theme-example commit; other tests passed.
+- Actual browser forms were operated in the disposable local stack. EN/RU settings
+  and notifications were checked at 390/1440px without document overflow. Server
+  mail relay configuration and production deployment remain operator tasks.

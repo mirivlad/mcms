@@ -84,3 +84,13 @@ An optional inclusive `updatedSince` (application-local SQL datetime) and status
 filter support repeated synchronization sweeps. Start a new sweep from ID zero to
 find changes to old orders; retain the first request start time as the next lower
 bound and deduplicate by order ID. Details retain item and delivery snapshots.
+
+## Optional notifications (0.3.2)
+
+`Api\OrderEvents::RECORDED(orderId, status, historyId)` runs within the order
+transaction for each actual status-history entry. Listeners may write an outbox
+on the same connection without network I/O. `COMMITTED(orderId)` runs after
+commit, with failures isolated from the saved order. Nested outer transactions
+skip automatic delivery and need the caller to drain notifications after commit.
+The separate Notifications module subscribes to these events; Orders does not
+depend on it. See [delivery contract](../../docs/NOTIFICATIONS.md).

@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace MCMS\Modules\Orders\Services;
 
 use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Events\Events;
 use InvalidArgumentException;
 use MCMS\Modules\Cart\Api\CartInterface;
 use MCMS\Modules\Orders\Api\OrdersInterface;
+use MCMS\Modules\Orders\Api\OrderEvents;
 use MCMS\Modules\Orders\Api\OrderFeedInterface;
 use MCMS\Modules\Stock\Api\StockInterface;
 use RuntimeException;
@@ -133,6 +135,8 @@ final class Orders implements OrdersInterface, OrderFeedInterface
                 'created_at' => $now,
             ]);
 
+            Events::trigger(OrderEvents::RECORDED, $orderId, 'new', (int) $this->db->insertID());
+
             if (! $this->db->transStatus()) {
                 throw new RuntimeException(lang('Orders.createFailed'));
             }
@@ -149,6 +153,7 @@ final class Orders implements OrdersInterface, OrderFeedInterface
         }
 
         $this->cart->clear();
+        $this->notifyCommitted($orderId);
 
         return $this->find($orderId) ?? throw new RuntimeException(lang('Orders.createFailed'));
     }
@@ -286,6 +291,8 @@ final class Orders implements OrdersInterface, OrderFeedInterface
                 'created_at' => $now,
             ]);
 
+            Events::trigger(OrderEvents::RECORDED, $id, $status, (int) $this->db->insertID());
+
             if (! $this->db->transStatus()) {
                 throw new RuntimeException(lang('Orders.saveFailed'));
             }
@@ -295,7 +302,21 @@ final class Orders implements OrdersInterface, OrderFeedInterface
             throw $e;
         }
 
+        $this->notifyCommitted($id);
+
         return $this->find($id) ?? throw new RuntimeException(lang('Orders.notFound'));
+    }
+
+    private function notifyCommitted(int $id): void
+    {
+        if ($this->db->transDepth !== 0) {
+            return;
+        }
+        try {
+            Events::trigger(OrderEvents::COMMITTED, $id);
+        } catch (Throwable $e) {
+            log_message('error', 'Order {id} committed; notification delivery failed: {message}', ['id' => $id, 'message' => $e->getMessage()]);
+        }
     }
 
     public function statuses(): array
