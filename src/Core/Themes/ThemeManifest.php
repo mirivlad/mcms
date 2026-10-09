@@ -6,6 +6,7 @@ namespace MCMS\Core\Themes;
 
 use InvalidArgumentException;
 use JsonException;
+use Composer\Semver\VersionParser;
 
 final class ThemeManifest
 {
@@ -26,10 +27,12 @@ final class ThemeManifest
         public readonly array $menuLocations,
         public readonly array $homeDefaults,
         public readonly string $path,
+        public readonly string $mcms,
+        public readonly bool $external,
     ) {
     }
 
-    public static function fromFile(string $manifestPath): self
+    public static function fromFile(string $manifestPath, bool $external = false): self
     {
         if (! is_file($manifestPath)) {
             throw new InvalidArgumentException("Theme manifest does not exist: {$manifestPath}");
@@ -48,8 +51,14 @@ final class ThemeManifest
             throw new InvalidArgumentException("Theme manifest must contain an object: {$manifestPath}");
         }
 
+        return self::fromArray($data, dirname($manifestPath), $external);
+    }
+
+    public static function fromArray(array $data, string $path = '', bool $external = false): self
+    {
+        $manifestPath = $path . '/theme.json';
         $id = self::requiredString($data, 'id', $manifestPath);
-        if (preg_match('/^[a-z][a-z0-9-]*$/', $id) !== 1) {
+        if (preg_match('/^[a-z][a-z0-9-]*$/D', $id) !== 1) {
             throw new InvalidArgumentException(
                 "Theme id must use lowercase ASCII letters, numbers and hyphens: {$id}"
             );
@@ -57,16 +66,20 @@ final class ThemeManifest
 
         $name = self::requiredString($data, 'name', $manifestPath);
         $version = self::requiredString($data, 'version', $manifestPath);
-        if (preg_match('/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/', $version) !== 1) {
+        if (preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/D', $version) !== 1) {
             throw new InvalidArgumentException("Invalid theme version: {$version}");
         }
+
+        (new VersionParser())->normalize($version);
+        $mcms = self::requiredString($data + ['mcms' => '*'], 'mcms', $manifestPath);
+        (new VersionParser())->parseConstraints($mcms);
 
         $namespace = trim(self::requiredString($data, 'namespace', $manifestPath), '\\');
         if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$/', $namespace) !== 1) {
             throw new InvalidArgumentException("Invalid theme namespace: {$namespace}");
         }
 
-        $description = trim((string) ($data['description'] ?? ''));
+        $description = self::optionalString($data['description'] ?? null) ?? '';
         $author = self::optionalString($data['author'] ?? null);
         $homepage = self::optionalString($data['homepage'] ?? null);
         if ($homepage !== null && filter_var($homepage, FILTER_VALIDATE_URL) === false) {
@@ -89,7 +102,9 @@ final class ThemeManifest
             $templates,
             $menuLocations,
             self::homeDefaults($data['home_defaults'] ?? []),
-            dirname($manifestPath),
+            $path,
+            $mcms,
+            $external,
         );
     }
 
@@ -105,7 +120,9 @@ final class ThemeManifest
 
     public function assetBaseUrl(): string
     {
-        return 'assets/themes/' . rawurlencode($this->id) . '/';
+        return $this->external
+            ? 'theme-assets/' . rawurlencode($this->id) . '/' . rawurlencode($this->version) . '/'
+            : 'assets/themes/' . rawurlencode($this->id) . '/';
     }
 
     private static function homeDefaults(mixed $raw): array

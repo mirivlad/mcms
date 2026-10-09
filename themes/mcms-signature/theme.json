@@ -1,6 +1,7 @@
 {
   "id": "mcms-signature",
   "name": "@Signature.name",
+  "mcms": "^0.1",
   "version": "0.2.1",
   "namespace": "MCMS\\Themes\\Signature",
   "description": "@Signature.description",

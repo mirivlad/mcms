@@ -7,6 +7,7 @@ namespace MCMS\Core\Modules;
 use Composer\Semver\Semver;
 use Composer\Semver\VersionParser;
 use MCMS\Core\Version;
+use MCMS\Core\Packages\ZipPackage;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -16,10 +17,7 @@ use ZipArchive;
 /** Packages contain trusted executable PHP, but inspection never loads it. */
 final class ModulePackages
 {
-    public const MAX_ARCHIVE_BYTES = 20 * 1024 * 1024;
-    private const MAX_CONTENT_BYTES = 50 * 1024 * 1024;
-    private const MAX_FILE_BYTES = 8 * 1024 * 1024;
-    private const MAX_ENTRIES = 2000;
+    public const MAX_ARCHIVE_BYTES = ZipPackage::MAX_ARCHIVE_BYTES;
     private const PREVIEW_TTL = 3600;
 
     public function __construct(private readonly ModuleManager $modules, private readonly string $root, private readonly ?ModuleRuntime $runtime = null)
@@ -28,46 +26,7 @@ final class ModulePackages
 
     public static function pack(string $source, string $output): void
     {
-        $source = realpath($source) ?: '';
-        if ($source === '' || ! is_file($source . '/module.json')) {
-            throw new RuntimeException('Select a module directory containing module.json.');
-        }
-        if (file_exists($output) || is_link($output)) {
-            throw new RuntimeException('Package output already exists.');
-        }
-        $files = [];
-        foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source, \FilesystemIterator::SKIP_DOTS)) as $file) {
-            if ($file->isLink() || ! $file->isFile()) {
-                throw new RuntimeException('Packages must contain only regular files.');
-            }
-            $name = substr($file->getPathname(), strlen($source) + 1);
-            self::validatePath($name);
-            $files[$name] = $file->getPathname();
-        }
-        ksort($files);
-        $zip = new ZipArchive();
-        if ($zip->open($output, ZipArchive::CREATE | ZipArchive::EXCL) !== true) {
-            throw new RuntimeException('Cannot create package archive.');
-        }
-        $open = true;
-        try {
-            foreach ($files as $name => $path) {
-                if (! $zip->addFile($path, $name)) {
-                    throw new RuntimeException('Cannot add file to package.');
-                }
-            }
-            if (! $zip->close()) {
-                throw new RuntimeException('Cannot write package archive.');
-            }
-            $open = false;
-            self::inspectArchive($output);
-        } catch (Throwable $e) {
-            if ($open) {
-                $zip->close();
-            }
-            @unlink($output);
-            throw $e;
-        }
+        ZipPackage::pack($source, $output, 'module.json', self::inspectArchive(...));
     }
 
     public function prepare(string $archive, ?string $replaceId = null): array
@@ -169,107 +128,47 @@ final class ModulePackages
 
     public static function inspectArchive(string $path): array
     {
-        if (! is_file($path) || filesize($path) > self::MAX_ARCHIVE_BYTES) {
-            throw new RuntimeException('Maximum archive size is 20 MiB.');
+        $preview = ZipPackage::inspectArchive($path, 'module.json');
+        foreach ($preview['entries'] as $name) {
+            self::validatePath($name);
         }
-        $zip = new ZipArchive();
-        if ($zip->open($path, ZipArchive::RDONLY | ZipArchive::CHECKCONS) !== true) {
-            throw new RuntimeException('Invalid ZIP archive.');
+        $data = $preview['data'];
+        $files = $preview['files'];
+        foreach (['requires', 'settings', 'permissions', 'grants', 'public_paths', 'data_providers'] as $field) {
+            if (isset($data[$field]) && ! is_array($data[$field])) {
+                throw new RuntimeException('Manifest field must be an array or map: ' . $field);
+            }
         }
-        try {
-            if ($zip->numFiles === 0 || $zip->numFiles > self::MAX_ENTRIES) {
-                throw new RuntimeException('Package must contain 1 to 2000 entries.');
-            }
-            $files = [];
-            $seen = [];
-            $bytes = 0;
-            for ($i = 0; $i < $zip->numFiles; $i++) {
-                $stat = $zip->statIndex($i);
-                if ($stat === false) {
-                    throw new RuntimeException('Invalid ZIP entry.');
-                }
-                $name = $stat['name'];
-                self::validatePath($name);
-                $directory = str_ends_with($name, '/');
-                $key = strtolower(rtrim($name, '/'));
-                if (isset($seen[$key])) {
-                    throw new RuntimeException('Duplicate or case-conflicting archive path.');
-                }
-                $seen[$key] = $directory;
-                $zip->getExternalAttributesIndex($i, $system, $attributes);
-                $type = ($attributes >> 16) & 0170000;
-                if ($system === ZipArchive::OPSYS_UNIX && $type !== 0
-                    && $type !== ($directory ? 0040000 : 0100000)) {
-                    throw new RuntimeException('Archive links and special files are forbidden.');
-                }
-                $bytes += $stat['size'];
-                if ($stat['size'] > self::MAX_FILE_BYTES || $bytes > self::MAX_CONTENT_BYTES
-                    || ($stat['encryption_method'] ?? 0) !== 0 || ($directory && $stat['size'] !== 0)) {
-                    throw new RuntimeException('Package contains encrypted or oversized content.');
-                }
-                if (! $directory) {
-                    $content = $zip->getFromIndex($i);
-                    if ($content === false || strlen($content) !== $stat['size']
-                        || sprintf('%u', crc32($content)) !== sprintf('%u', $stat['crc'])) {
-                        throw new RuntimeException('Package file checksum failed.');
-                    }
-                    $files[] = $name;
-                }
-            }
-            foreach (array_keys($seen) as $name) {
-                $parent = dirname($name);
-                while ($parent !== '.') {
-                    if (isset($seen[$parent]) && ! $seen[$parent]) {
-                        throw new RuntimeException('Archive file conflicts with a directory.');
-                    }
-                    $parent = dirname($parent);
-                }
-            }
-            if (! in_array('module.json', $files, true) || $zip->statName('module.json')['size'] > 65536) {
-                throw new RuntimeException('Package needs module.json at its root (maximum 64 KiB).');
-            }
-            $data = json_decode($zip->getFromName('module.json'), true, 32, JSON_THROW_ON_ERROR);
-            if (! is_array($data)) {
-                throw new RuntimeException('Module manifest must be an object.');
-            }
-            foreach (['requires', 'settings', 'permissions', 'grants', 'public_paths', 'data_providers'] as $field) {
-                if (isset($data[$field]) && ! is_array($data[$field])) {
-                    throw new RuntimeException('Manifest field must be an array or map: ' . $field);
-                }
-            }
-            if (isset($data['description']) && ! is_string($data['description'])) {
-                throw new RuntimeException('Module description must be a string.');
-            }
-            $manifest = ModuleManifest::fromArray($data);
-            if ($manifest->id === 'core' || preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/D', $manifest->version) !== 1) {
-                throw new RuntimeException('Package needs a non-Core id and a semantic release version.');
-            }
-            if (preg_match('/^MCMS\\\\Modules\\\\[A-Z][A-Za-z0-9_]*$/D', $manifest->namespace) !== 1
-                || ! str_starts_with($manifest->provider, $manifest->namespace . '\\')
-                || preg_match('/^[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$/D', $manifest->provider) !== 1) {
-                throw new RuntimeException('Package must use a unique MCMS\\Modules\\Name namespace and its own provider.');
-            }
-            $providerFile = str_replace('\\', '/', substr($manifest->provider, strlen($manifest->namespace) + 1)) . '.php';
-            if (! in_array($providerFile, $files, true)) {
-                throw new RuntimeException('Module provider file is missing.');
-            }
-            (new VersionParser())->normalize($manifest->version);
-            (new VersionParser())->parseConstraints($manifest->mcms);
-            if (! array_is_list($manifest->requires)) {
-                throw new RuntimeException('Module requires must be a list.');
-            }
-            foreach ($manifest->requires as $dependency) {
-                $id = is_array($dependency) ? ($dependency['id'] ?? null) : $dependency;
-                $constraint = is_array($dependency) ? ($dependency['version'] ?? '*') : '*';
-                if (! is_string($id) || preg_match('/^[a-z][a-z0-9_-]*$/D', $id) !== 1 || ! is_string($constraint) || trim($constraint) === '') {
-                    throw new RuntimeException('Invalid package dependency.');
-                }
-                (new VersionParser())->parseConstraints($constraint);
-            }
-            return ['manifest' => $manifest, 'files' => $files, 'bytes' => $bytes, 'sha256' => hash_file('sha256', $path)];
-        } finally {
-            $zip->close();
+        if (isset($data['description']) && ! is_string($data['description'])) {
+            throw new RuntimeException('Module description must be a string.');
         }
+        $manifest = ModuleManifest::fromArray($data);
+        if ($manifest->id === 'core' || preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/D', $manifest->version) !== 1) {
+            throw new RuntimeException('Package needs a non-Core id and a semantic release version.');
+        }
+        if (preg_match('/^MCMS\\\\Modules\\\\[A-Z][A-Za-z0-9_]*$/D', $manifest->namespace) !== 1
+            || ! str_starts_with($manifest->provider, $manifest->namespace . '\\')
+            || preg_match('/^[A-Za-z_][A-Za-z0-9_]*(?:\\\\[A-Za-z_][A-Za-z0-9_]*)*$/D', $manifest->provider) !== 1) {
+            throw new RuntimeException('Package must use a unique MCMS\\Modules\\Name namespace and its own provider.');
+        }
+        $providerFile = str_replace('\\', '/', substr($manifest->provider, strlen($manifest->namespace) + 1)) . '.php';
+        if (! in_array($providerFile, $files, true)) {
+            throw new RuntimeException('Module provider file is missing.');
+        }
+        (new VersionParser())->normalize($manifest->version);
+        (new VersionParser())->parseConstraints($manifest->mcms);
+        if (! array_is_list($manifest->requires)) {
+            throw new RuntimeException('Module requires must be a list.');
+        }
+        foreach ($manifest->requires as $dependency) {
+            $id = is_array($dependency) ? ($dependency['id'] ?? null) : $dependency;
+            $constraint = is_array($dependency) ? ($dependency['version'] ?? '*') : '*';
+            if (! is_string($id) || preg_match('/^[a-z][a-z0-9_-]*$/D', $id) !== 1 || ! is_string($constraint) || trim($constraint) === '') {
+                throw new RuntimeException('Invalid package dependency.');
+            }
+            (new VersionParser())->parseConstraints($constraint);
+        }
+        return ['manifest' => $manifest, 'files' => $files, 'bytes' => $preview['bytes'], 'sha256' => $preview['sha256']];
     }
 
     public function checkCompatibility(ModuleManifest $manifest, ?string $replaceId = null): void
@@ -313,7 +212,7 @@ final class ModulePackages
                 }
             }
         }
-        if (array_intersect($manifest->publicPaths, ['admin', 'install', '_health', 'search', 'login', 'logout', 'register', 'auth', 'assets']) !== []) {
+        if (array_intersect($manifest->publicPaths, ['admin', 'install', '_health', 'search', 'login', 'logout', 'register', 'auth', 'assets', 'theme-assets']) !== []) {
             throw new RuntimeException('Module public paths conflict with Core.');
         }
         $catalog[$manifest->id] = $manifest;
@@ -339,14 +238,7 @@ final class ModulePackages
 
     private static function validatePath(string $name): void
     {
-        if (strlen($name) > 240 || preg_match('~^(?:[A-Za-z0-9_-][A-Za-z0-9_. -]*/)*[A-Za-z0-9_-][A-Za-z0-9_. -]*/?$~D', $name) !== 1) {
-            throw new RuntimeException('Unsafe package path. Use relative paths without dot segments or hidden files.');
-        }
-        foreach (explode('/', rtrim($name, '/')) as $part) {
-            if (str_ends_with($part, '.') || str_ends_with($part, ' ')) {
-                throw new RuntimeException('Ambiguous package path.');
-            }
-        }
+        ZipPackage::validatePath($name);
         $top = strtolower(explode('/', $name)[0]);
         if (in_array($top, ['config', 'commands', 'vendor', 'node_modules'], true)) {
             throw new RuntimeException('Packages cannot include auto-discovered Config/Commands or bundled dependency directories.');
@@ -365,29 +257,7 @@ final class ModulePackages
 
     public static function extractArchive(string $archive, string $destination): ModuleManifest
     {
-        $preview = self::inspectArchive($archive);
-        if (file_exists($destination) || ! mkdir($destination, 0755, true)) {
-            throw new RuntimeException('Cannot create package extraction directory.');
-        }
-        $zip = new ZipArchive();
-        if ($zip->open($archive, ZipArchive::RDONLY) !== true) {
-            throw new RuntimeException('Cannot open package archive.');
-        }
-        try {
-            foreach ($preview['files'] as $name) {
-                $path = $destination . '/' . $name;
-                if (! is_dir(dirname($path)) && ! mkdir(dirname($path), 0755, true) && ! is_dir(dirname($path))) {
-                    throw new RuntimeException('Cannot create package directory.');
-                }
-                $content = $zip->getFromName($name);
-                if ($content === false || file_put_contents($path, $content) !== strlen($content)) {
-                    throw new RuntimeException('Cannot extract package file.');
-                }
-                chmod($path, 0644);
-            }
-        } finally {
-            $zip->close();
-        }
+        ZipPackage::extractArchive($archive, $destination, self::inspectArchive(...));
         return ModuleManifest::fromFile($destination . '/module.json');
     }
 

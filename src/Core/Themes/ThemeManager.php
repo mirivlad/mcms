@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace MCMS\Core\Themes;
 
 use CodeIgniter\Settings\Settings;
+use Composer\Semver\Semver;
+use MCMS\Core\Version;
 use InvalidArgumentException;
 use RuntimeException;
 use Throwable;
@@ -18,6 +20,7 @@ final class ThemeManager
         private readonly Settings $settings,
         private readonly string $themesPath = ROOTPATH . 'themes',
         private readonly ?MenuSourceInterface $injectedMenuSource = null,
+        private readonly ?string $packagesPath = null,
     ) {
     }
 
@@ -30,20 +33,25 @@ final class ThemeManager
             return $this->catalog;
         }
 
-        foreach (glob(rtrim($this->themesPath, DIRECTORY_SEPARATOR) . '/*/theme.json') ?: [] as $manifestPath) {
-            $manifest = ThemeManifest::fromFile($manifestPath);
-
-            if (isset($this->catalog[$manifest->id])) {
+        $paths = glob(rtrim($this->themesPath, DIRECTORY_SEPARATOR) . '/*/theme.json') ?: [];
+        $externalPaths = $this->packagesPath === null ? [] : (glob($this->packagesPath . '/installed/*/theme.json') ?: []);
+        $catalog = [];
+        foreach ([...$paths, ...$externalPaths] as $manifestPath) {
+            $manifest = ThemeManifest::fromFile($manifestPath, in_array($manifestPath, $externalPaths, true));
+            if (isset($catalog[$manifest->id])) {
                 throw new RuntimeException("Duplicate theme id: {$manifest->id}");
             }
-
-            service('autoloader')->addNamespace(
-                $manifest->namespace,
-                $manifest->path,
-            );
-
-            $this->catalog[$manifest->id] = $manifest;
+            foreach ($catalog as $current) {
+                if (strcasecmp($current->namespace, $manifest->namespace) === 0) {
+                    throw new RuntimeException("Duplicate theme namespace: {$manifest->namespace}");
+                }
+            }
+            $catalog[$manifest->id] = $manifest;
         }
+        foreach ($catalog as $manifest) {
+            service('autoloader')->addNamespace($manifest->namespace, $manifest->path);
+        }
+        $this->catalog = $catalog;
 
         ksort($this->catalog);
 
@@ -84,6 +92,9 @@ final class ThemeManager
             throw new RuntimeException(lang('MCMS.errors.themeNotFound'));
         }
 
+        if (! Semver::satisfies(Version::VERSION, $theme->mcms)) {
+            throw new RuntimeException('Theme requires mCMS ' . $theme->mcms . '.');
+        }
         $this->settings->set('Core.theme', $theme->id);
 
         return $theme;

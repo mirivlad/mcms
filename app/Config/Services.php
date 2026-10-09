@@ -16,6 +16,7 @@ use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Storage\LocalStorage;
 use MCMS\Core\Storage\StorageInterface;
 use MCMS\Core\Themes\ThemeManager;
+use MCMS\Core\Themes\ThemePackages;
 use MCMS\Core\Content\ShortcodeRenderer;
 
 class Services extends BaseService
@@ -133,13 +134,21 @@ class Services extends BaseService
         return new ModuleUpdates(static::mcmsModules(), static::mcmsModulePackages(), static::mcmsModuleRuntime(), WRITEPATH . 'modules');
     }
 
+    public static function mcmsThemePackages(bool $getShared = true): ThemePackages
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsThemePackages');
+        }
+        return new ThemePackages(static::mcmsThemes(), WRITEPATH . 'themes', static::mcmsModuleRuntime());
+    }
+
     public static function mcmsThemes(bool $getShared = true): ThemeManager
     {
         if ($getShared) {
             return static::getSharedInstance('mcmsThemes');
         }
 
-        return new ThemeManager(static::settings());
+        return new ThemeManager(static::settings(), ROOTPATH . 'themes', null, WRITEPATH . 'themes');
     }
 
     public static function mcmsStorage(bool $getShared = true): StorageInterface

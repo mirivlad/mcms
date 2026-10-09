@@ -19,7 +19,7 @@ COPY docker/app/start.sh /usr/local/bin/mcms-start
 COPY docker/app/uploads.ini /usr/local/etc/php/conf.d/mcms-uploads.ini
 
 RUN composer dump-autoload --no-dev --classmap-authoritative \
-    && mkdir -p writable/cache writable/logs writable/session writable/product-images writable/modules/installed writable/modules/pending public/assets/uploads \
+    && mkdir -p writable/cache writable/logs writable/session writable/product-images writable/modules/installed writable/modules/pending writable/themes/installed writable/themes/pending public/assets/uploads \
     && chown -R www-data:www-data writable public/assets/uploads \
     && chmod 0755 /usr/local/bin/mcms-start
 

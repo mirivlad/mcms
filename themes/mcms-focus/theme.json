@@ -1,6 +1,7 @@
 {
   "id": "mcms-focus",
   "name": "@Focus.name",
+  "mcms": "^0.1",
   "version": "0.1.1",
   "namespace": "MCMS\\Themes\\Focus",
   "description": "@Focus.description",
