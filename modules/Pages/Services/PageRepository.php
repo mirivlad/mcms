@@ -25,6 +25,7 @@ final class PageRepository implements PageRepositoryInterface
         'login',
         'logout',
         'auth',
+        'theme-assets',
     ];
 
     public function __construct(

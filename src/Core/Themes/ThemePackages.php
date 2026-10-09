@@ -43,6 +43,9 @@ final class ThemePackages
             throw new RuntimeException('Theme package requires an explicit mcms version constraint.');
         }
         $manifest = ThemeManifest::fromArray($data, '', true);
+        if (in_array($manifest->id, ['package', 'images'], true)) {
+            throw new RuntimeException('Theme id conflicts with a Core administration route.');
+        }
         if (preg_match('/^MCMS\\\\Themes\\\\[A-Z][A-Za-z0-9_]*$/D', $manifest->namespace) !== 1) {
             throw new RuntimeException('Theme package must use its own MCMS\\Themes\\Name namespace.');
         }

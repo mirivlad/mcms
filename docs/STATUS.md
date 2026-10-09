@@ -207,7 +207,10 @@ This document records the current known-good mCMS implementation checkpoint.
   - `header.primary` — maximum depth 2;
   - `footer.primary` — maximum depth 1;
   - `footer.legal` — maximum depth 1.
-- Theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
+- First-party theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
+- External ZIP themes live on the private `theme_packages_data` volume. Core serves only validated static asset types, with versioned URLs, MIME/ETag/nosniff and SVG script restrictions.
+- Themes → Install theme ZIP validates archive paths/limits, templates, namespace and Core compatibility without loading views. Trust confirmation installs an inactive theme; activation remains separate. SHA-256, preview expiry and locked collision checks protect the reviewed package.
+- HTTP smoke covers permissions, confirmation/cancellation, duplicate rejection, static/private path separation, activation and settings after application recreation; the ZIP command is `mcms:theme:pack`. Browser review covered English/Russian at 320/390/1440px.
 - If no explicit theme has been selected, the built-in default theme is used when present.
 
 ### mCMS Signature 0.2.1
@@ -380,8 +383,9 @@ before Orders snapshots them. Orders remains usable with Delivery disabled.
 
 Order reports and CSV adapters are implemented for saved order/line snapshots.
 Module packaging, installation and the external module update workflow are now
-implemented. The next ecosystem task is third-party theme packaging/installation;
-external commerce integrations require their own format and ownership contracts.
+implemented. Third-party theme ZIP packaging/installation is also available;
+see [theme packages](THEMES.md). Optional API/notification modules and external
+commerce integrations require their own format and ownership contracts.
 See [commerce contracts](COMMERCE.md) and the modules' README files.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,

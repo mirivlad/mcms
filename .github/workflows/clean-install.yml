@@ -549,6 +549,29 @@ jobs:
       - name: Verify module updates and recovery after failed MariaDB DDL
         run: python3 .github/scripts/module-updates-smoke.py --cookies /tmp/package-persist.cookies
 
+      - name: Verify theme ZIP review, installation, activation and asset isolation
+        run: python3 .github/scripts/theme-packages-smoke.py --cookies /tmp/package-persist.cookies
+
+      - name: Verify themes survive application recreation and CLI packaging
+        run: |
+          docker compose exec -T app php spark mcms:theme:pack writable/themes/installed/theme-probe /tmp/theme-probe.zip
+          docker compose exec -T app test -s /tmp/theme-probe.zip
+          docker compose up -d --force-recreate app web
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/_health; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS -c /tmp/theme-persist.cookies http://127.0.0.1:8080/login -o /tmp/theme-login.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/theme-login.html)"
+          curl -fsS -b /tmp/theme-persist.cookies -c /tmp/theme-persist.cookies -L \
+            --data-urlencode "csrf_test_name=$csrf" \
+            --data-urlencode 'email=admin@example.test' \
+            --data-urlencode 'password=Correct-Horse-Battery-Staple-42!' \
+            http://127.0.0.1:8080/login -o /tmp/theme-persist-admin.html
+          python3 .github/scripts/theme-packages-smoke.py --cookies /tmp/theme-persist.cookies --phase persist
+
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 

@@ -12,6 +12,7 @@ Use a clean source directory (export a repository with `git archive`; do not
 include `.git`, dependencies or build tooling). `theme.json` must be at the ZIP
 root, with a unique lowercase/hyphenated `id`, semantic `version`, unique
 `MCMS\Themes\Name` namespace and explicit Composer-compatible `mcms` constraint.
+The IDs `package` and `images` are reserved for Core administration routes.
 For example:
 
 ```json

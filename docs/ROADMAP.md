@@ -64,7 +64,7 @@
 - [x] Module ZIP packaging/install, including locally exported repository sources.
 - [x] Module compatibility/version constraints at discovery/enablement.
 - [x] Safe external module update workflow with code snapshots, maintenance and explicit database-backup recovery.
-- [ ] Third-party theme packaging/install.
+- [x] Third-party theme ZIP packaging/install, review, separate activation and persistent static resources.
 - [ ] Optional API module.
 - [ ] Optional notification/integration modules.
 

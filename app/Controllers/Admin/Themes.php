@@ -7,6 +7,7 @@ namespace App\Controllers\Admin;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
+use Throwable;
 
 final class Themes extends BaseAdminController
 {
@@ -26,6 +27,98 @@ final class Themes extends BaseAdminController
             'activeId' => $manager->activeId(),
             'manager' => $manager,
         ]);
+    }
+
+    public function package(): string|RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+
+        $preview = session()->get('theme_package_preview');
+        if (! is_array($preview) || ($preview['owner'] ?? null) !== auth()->id()) {
+            $preview = null;
+        }
+
+        return view('admin/themes/package', [
+            'adminMenu' => $this->adminMenu(),
+            'preview' => $preview,
+        ]);
+    }
+
+    public function uploadPackage(): RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+
+        try {
+            $file = $this->request->getFile('package');
+            if ($file === null || ! $file->isValid()) {
+                throw new \RuntimeException(lang('MCMS.themes.uploadInvalid'));
+            }
+            $packages = service('mcmsThemePackages');
+            $preview = $packages->prepare($file->getTempName());
+            $old = session()->get('theme_package_preview');
+            if (is_array($old) && ($old['owner'] ?? null) === auth()->id()) {
+                $packages->cancel($old['token']);
+            }
+            $manifest = $preview['manifest'];
+            session()->set('theme_package_preview', [
+                'owner' => auth()->id(),
+                'token' => $preview['token'],
+                'sha256' => $preview['sha256'],
+                'id' => $manifest->id,
+                'name' => $manifest->name,
+                'version' => $manifest->version,
+                'mcms' => $manifest->mcms,
+                'templates' => count($manifest->templates),
+                'locations' => count($manifest->menuLocations),
+                'files' => count($preview['files']),
+                'bytes' => $preview['bytes'],
+            ]);
+        } catch (Throwable $e) {
+            return redirect()->to('/admin/themes/package')->with('error', $e->getMessage());
+        }
+
+        return redirect()->to('/admin/themes/package');
+    }
+
+    public function installPackage(): RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+
+        $preview = session()->get('theme_package_preview');
+        if (! is_array($preview) || ($preview['owner'] ?? null) !== auth()->id()
+            || ! is_string($this->request->getPost('token'))
+            || ! hash_equals($preview['token'], $this->request->getPost('token'))
+            || $this->request->getPost('trusted') !== '1') {
+            return redirect()->to('/admin/themes/package')->with('error', lang('MCMS.themes.confirmRequired'));
+        }
+
+        try {
+            $manifest = service('mcmsThemePackages')->install($preview['token'], $preview['sha256']);
+            session()->remove('theme_package_preview');
+            return redirect()->to('/admin/themes')->with('message', sprintf(lang('MCMS.themes.packageAdded'), $manifest->id));
+        } catch (Throwable $e) {
+            return redirect()->to('/admin/themes/package')->with('error', $e->getMessage());
+        }
+    }
+
+    public function cancelPackage(): RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+        $preview = session()->get('theme_package_preview');
+        if (is_array($preview) && ($preview['owner'] ?? null) === auth()->id()) {
+            service('mcmsThemePackages')->cancel($preview['token']);
+            session()->remove('theme_package_preview');
+        }
+
+        return redirect()->to('/admin/themes/package');
     }
 
     public function configure(string $id): string|RedirectResponse

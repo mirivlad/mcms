@@ -8,6 +8,7 @@
             <h2 class="page-title"><?= esc(lang('MCMS.themes.title')) ?></h2>
             <div class="text-secondary mt-1"><?= esc(lang('MCMS.themes.intro')) ?></div>
         </div>
+        <div class="col-auto"><a class="btn btn-primary" href="<?= site_url('admin/themes/package') ?>"><i class="ti ti-package-import me-2" aria-hidden="true"></i><?= esc(lang('MCMS.themes.installPackage')) ?></a></div>
     </div>
 </div>
 

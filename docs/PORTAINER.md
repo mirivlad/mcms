@@ -40,10 +40,13 @@ The persistent volumes are:
 
 - `db_data` — MariaDB;
 - `media_data` — public Media uploads shared by the PHP and nginx containers;
+- `theme_packages_data` — private installed themes and pending ZIP previews;
 - `mail_queue`;
 - `dkim_data`.
 
-Redeploying or rebuilding the stack does not remove these volumes.
+Redeploying or rebuilding the stack does not remove these volumes. When upgrading
+an existing stack, add the theme volume/mount from `portainer-stack.yml` before
+installing themes. See [theme packages](THEMES.md) for the ZIP workflow and backups.
 
 ## 2. Reverse proxy
 

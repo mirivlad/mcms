@@ -4,6 +4,8 @@ use CodeIgniter\Router\RouteCollection;
 
 /** @var RouteCollection $routes */
 $routes->setPrioritize();
+$routes->get('theme-assets/(:segment)/(:segment)/(:any)', 'ThemeAssets::show/$1/$2/$3');
+
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']);
 $routes->get('_health', 'Health::index');
@@ -35,6 +37,10 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->post('modules/(:segment)/disable', 'Admin\Modules::disable/$1');
     $routes->match(['get', 'post'], 'settings', 'Admin\Settings::index', ['as' => 'admin.settings']);
     $routes->get('themes', 'Admin\Themes::index', ['as' => 'admin.themes']);
+    $routes->get('themes/package', 'Admin\Themes::package');
+    $routes->post('themes/package', 'Admin\Themes::uploadPackage');
+    $routes->post('themes/package/install', 'Admin\Themes::installPackage');
+    $routes->post('themes/package/cancel', 'Admin\Themes::cancelPackage');
     $routes->get('themes/images', 'Admin\Themes::images');
     $routes->post('themes/(:segment)/appearance', 'Admin\Themes::appearance/$1');
     $routes->post('themes/(:segment)/home', 'Admin\Themes::home/$1');

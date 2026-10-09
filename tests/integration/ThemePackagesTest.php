@@ -113,7 +113,7 @@ final class ThemePackagesTest extends CIUnitTestCase
     public static function invalidPackages(): array
     {
         return [
-            [['mcms' => null], []], [['mcms' => '^999'], []],
+            [['id' => 'package'], []], [['id' => 'images'], []], [['id' => 'alpha'], []], [['mcms' => null], []], [['mcms' => '^999'], []],
             [['namespace' => 'App\\Controllers'], []], [['version' => '1.2'], []],
             [['templates' => []], []], [['templates' => ['home' => 'missing']], []],
             [['screenshot' => 'missing.svg'], []], [['screenshot' => 'style.css'], []],
@@ -147,6 +147,39 @@ final class ThemePackagesTest extends CIUnitTestCase
         }
         self::assertSame($hash, hash_file('sha256', $installed->path . '/theme.json'));
         self::assertDirectoryDoesNotExist($this->dir . '/packages/installed/other-theme');
+    }
+
+    public function testActivationRejectsAnIncompatibleThemeWithoutChangingSelection(): void
+    {
+        $this->manager()->activate('alpha');
+        $preview = $this->packages->prepare($this->archive());
+        $theme = $this->packages->install($preview['token'], $preview['sha256']);
+        $data = json_decode(file_get_contents($theme->path . '/theme.json'), true, 32, JSON_THROW_ON_ERROR);
+        $data['mcms'] = '^999';
+        file_put_contents($theme->path . '/theme.json', json_encode($data, JSON_THROW_ON_ERROR));
+        $fresh = $this->manager();
+        try {
+            $fresh->activate('theme-probe');
+            self::fail('Incompatible theme activated');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('requires mCMS', $e->getMessage());
+        }
+        self::assertSame('alpha', $fresh->activeId());
+    }
+
+    public function testExistingStagingDirectoryIsNeverRemovedOnFailure(): void
+    {
+        $preview = $this->packages->prepare($this->archive());
+        $stage = $this->dir . '/packages/pending/' . $preview['token'];
+        mkdir($stage);
+        file_put_contents($stage . '/marker', 'preserve');
+        try {
+            $this->packages->install($preview['token'], $preview['sha256']);
+            self::fail('Existing staging directory accepted');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('already exists', $e->getMessage());
+        }
+        self::assertSame('preserve', file_get_contents($stage . '/marker'));
     }
 
     public function testChecksumExpirationCancellationAndInvalidTokenCannotChangeFiles(): void

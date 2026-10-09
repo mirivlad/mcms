@@ -154,6 +154,16 @@ final class PagesModuleTest extends CIUnitTestCase
         $services->get('pages.repository')->create(['title' => 'News', 'slug' => 'news', 'body' => '', 'status' => 'published']);
     }
 
+    public function testThemeAssetsPathCannotBeClaimedByAPage(): void
+    {
+        $services = new ModuleServiceRegistry();
+        $manager = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules');
+        $manager->enable('pages');
+        $manager->bootEnabled();
+        $this->expectException(InvalidArgumentException::class);
+        $services->get('pages.repository')->create(['title' => 'Assets', 'slug' => 'theme-assets', 'body' => '', 'status' => 'published']);
+    }
+
     public function testPaginationReachesOlderPagesWithIdenticalTimestamps(): void
     {
         $services = new ModuleServiceRegistry();
