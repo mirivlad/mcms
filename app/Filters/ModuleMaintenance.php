@@ -26,6 +26,10 @@ final class ModuleMaintenance implements FilterInterface
             || ($method === 'POST' && $path === 'admin/modules/' . $id . '/update/restore')) {
             return null;
         }
+        if (str_starts_with($path, 'api/v1/')) {
+            return service('response')->setStatusCode(503)->setHeader('Retry-After', '60')
+                ->setHeader('Cache-Control', 'no-store')->setJSON(['error' => ['code' => 'maintenance', 'message' => 'Module recovery is in progress. Retry later.']]);
+        }
         (new SiteLocale())->before($request);
         return service('response')->setStatusCode(503)->setHeader('Retry-After', '60')
             ->setHeader('Cache-Control', 'no-store')->setBody(view('maintenance'));

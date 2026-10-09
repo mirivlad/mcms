@@ -1,0 +1,17 @@
+{
+  "id": "api",
+  "name": "@Api.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Api",
+  "provider": "MCMS\\Modules\\Api\\Module",
+  "mcms": "^0.1.5",
+  "description": "@Api.description",
+  "requires": [
+    {"id": "stock", "version": ">=0.1.1 <0.2"},
+    {"id": "orders", "version": ">=0.3.1 <0.4"},
+    {"id": "catalogue", "version": ">=0.2.3 <0.3"}
+  ],
+  "public_paths": ["api"],
+  "permissions": {"api.manage": "@Api.manage"},
+  "grants": {"admin": ["api.manage"]}
+}

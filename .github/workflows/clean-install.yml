@@ -572,6 +572,25 @@ jobs:
             http://127.0.0.1:8080/login -o /tmp/theme-persist-admin.html
           python3 .github/scripts/theme-packages-smoke.py --cookies /tmp/theme-persist.cookies --phase persist
 
+      - name: Verify integration API keys, snapshots and concurrent stock exchange
+        run: |
+          python3 .github/scripts/api-smoke.py --cookies /tmp/theme-persist.cookies --state-file /tmp/api-persist.json
+          docker compose up -d --force-recreate app web
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/_health; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS -c /tmp/api-persist.cookies http://127.0.0.1:8080/login -o /tmp/api-login.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/api-login.html)"
+          curl -fsS -b /tmp/api-persist.cookies -c /tmp/api-persist.cookies -L \
+            --data-urlencode "csrf_test_name=$csrf" \
+            --data-urlencode 'email=admin@example.test' \
+            --data-urlencode 'password=Correct-Horse-Battery-Staple-42!' \
+            http://127.0.0.1:8080/login -o /tmp/api-persist-admin.html
+          python3 .github/scripts/api-smoke.py --cookies /tmp/api-persist.cookies --state-file /tmp/api-persist.json --phase persist
+
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 

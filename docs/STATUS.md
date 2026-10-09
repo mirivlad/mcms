@@ -130,7 +130,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
 - Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
-### ProductImages 0.1.0 / Catalogue 0.2.2
+### ProductImages 0.1.0 / Catalogue 0.2.3
 
 - Catalogue depends only on ProductImages; Media/Galleries are independent.
 - Private persistent originals and generated WebP revisions, validated uploads,
@@ -144,9 +144,9 @@ This document records the current known-good mCMS implementation checkpoint.
   enlarged gallery with keyboard/swipe controls and variant price/SKU selection.
 - Published navigation/search/sitemap resources and generic slug-move redirects.
 - Module disable/re-enable preserves data; draft images and originals stay private.
-- Catalogue 0.2.2 exposes stable variant lookup/search and optional Cart storefront controls for dependent commerce modules.
+- Catalogue 0.2.3 exposes stable variant lookup/search and optional Cart storefront controls for dependent commerce modules.
 
-### Stock 0.1.0
+### Stock 0.1.1
 
 - Separate Catalogue-dependent module; Catalogue remains usable with Stock disabled.
 - Physical on-hand, reserved and available quantities are keyed by stable variant ID.
@@ -169,7 +169,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - All four bundled themes provide the logical cart.index template.
 - Cart 0.1.1 integrates optional Delivery methods into checkout and shows item, fulfillment and grand totals; if Delivery is enabled with no active methods, checkout is blocked.
 
-### Orders 0.3.0
+### Orders 0.3.1
 
 - Checkout creates immutable order/item snapshots from the current Cart.
 - Stock is reserved only after the order is successfully created; Cart itself never reserves inventory.
@@ -194,6 +194,17 @@ This document records the current known-good mCMS implementation checkpoint.
 - Prices are integer minor units; checkout submits only a method ID and the server resolves the current name/type/price.
 - When enabled, Delivery requires one active method for checkout; an empty enabled Delivery configuration blocks checkout with a clear message.
 - Orders snapshot the selected method, so editing or deleting a method never rewrites historical orders.
+
+### Api 0.1.0
+
+- Optional `/api/v1` HTTP/JSON integration for external accounting, including a client written for 1C; see [API contract](API.md).
+- Scoped Bearer keys created/revoked in Administration → Integration API; optional expiry, one-time secret display and hash-only storage. Access tracks the current active owner's permissions.
+- Variant inventory reads include physical/reserved/available counts and editable SKU identity. Physical updates compare the expected count under a current row lock and preserve reservations.
+- Successful corrections and per-key idempotency receipts commit together. Retries after order consumption return the original receipt without restoring consumed stock; stale writes and reuse with a different operation return 409.
+- Stable ID pages export saved order/customer/item/delivery snapshots, including deleted catalogue references. Inclusive update filtering supports overlapping polling and full reconciliation; this is not a durable event stream.
+- Current enabled/disabled delivery methods are optional. Disabling Delivery does not hide order delivery snapshots; disabling Api preserves keys/receipts and commerce data.
+- Session cookies do not authorize exchange. Admin forms retain CSRF; only Bearer API routes bypass it. Module recovery returns JSON 503 with Retry-After.
+- HTTP/JSON is the agreed first contract. A ready-made 1C extension, CommerceML exchange, shipment tracking and order writes remain outside this stage.
 
 ## Themes
 
@@ -365,7 +376,7 @@ prices. All four themes render listing/detail pages, enlarged image galleries an
 variant selectors. Published product resources participate in search, navigation,
 sitemap and automatic slug redirects.
 
-Stock 0.1.0 owns variant-level on-hand quantities, reservations and availability.
+Stock 0.1.1 owns variant-level on-hand quantities, reservations and availability.
 Managers can correct stock from the standalone Stock screen, Catalogue product list,
 product editor and the public storefront while authenticated. Corrections are audited,
 reservations cannot exceed availability, expired reservations are released lazily, and
@@ -374,7 +385,7 @@ corrections now submit through AJAX and update the displayed availability withou
 
 Cart 0.1.1 checks live availability but never reserves inventory. It keeps immutable
 line-price snapshots, clamps stale quantities, saves quantity edits automatically and
-shows optional Delivery selection/totals at checkout. Orders 0.3.0 is the reservation
+shows optional Delivery selection/totals at checkout. Orders 0.3.1 is the reservation
 boundary and stores immutable fulfillment snapshots plus item/delivery/grand totals.
 
 Delivery 0.1.0 provides ordered fixed-price delivery and pickup methods. The browser
@@ -384,8 +395,9 @@ before Orders snapshots them. Orders remains usable with Delivery disabled.
 Order reports and CSV adapters are implemented for saved order/line snapshots.
 Module packaging, installation and the external module update workflow are now
 implemented. Third-party theme ZIP packaging/installation is also available;
-see [theme packages](THEMES.md). Optional API/notification modules and external
-commerce integrations require their own format and ownership contracts.
+see [theme packages](THEMES.md). Api now provides the agreed inventory and order/delivery
+HTTP/JSON contract; see [integration API](API.md). Notification modules and concrete
+external accounting clients remain separate stages.
 See [commerce contracts](COMMERCE.md) and the modules' README files.
 
 The editor workflow checkpoint adds private per-user autosave, explicit recovery/discard,
@@ -415,7 +427,7 @@ search and taxonomy links. Verification includes migration up/down, category gua
 filter-preserving pagination, literal wildcard queries, module disable/re-enable,
 real HTTP forms and unauthenticated category dialogs/public mobile search.
 
-Catalogue 0.2.2 includes the 0.2.0 category-tree work: editable slugs, a visual Tabler picker with
+Catalogue 0.2.3 includes the 0.2.0 category-tree work: editable slugs, a visual Tabler picker with
 color selection, and independent category-image uploads. Existing text labels
 migrate into root categories while retaining product assignments. Parent sections
 include descendant products; categories participate in Menus, sitemap and slug
@@ -445,3 +457,25 @@ an icon in the modal selects Tabler appearance. Verification: 91 PHPUnit tests /
 910 assertions, Docker HTTP smoke including uploaded/replaced category images,
 store navigation and product deletion, Russian HTTP views, and anonymous browser
 form/navigation checks including a 390px viewport without horizontal overflow.
+
+
+## Integration API checkpoint — 2026-10-09
+
+- 213 PHPUnit tests / 1328 assertions passed, including hashed/scoped keys, owner
+  permissions, expiry/revocation, inventory reservations, stale updates, receipt
+  rollback, immutable order snapshots and module disable/re-enable.
+- A fresh Docker/MariaDB stack completed real HTTP key creation, cookie/CSRF
+  isolation, body/filter validation, delivery editing/disablement, checkout and
+  consumption. Competing independent writers with the same baseline produced one
+  success and one conflict; parallel retries returned one saved receipt. Case-only
+  operation keys remained distinct under MariaDB collation. An injected MariaDB
+  receipt-insert failure returned JSON 500 and rolled back stock and its audit.
+- App/web recreation preserved the API credential, saved receipt, stock and order;
+  replay with the original expected count succeeded through its retained receipt.
+  Module maintenance returned JSON 503 and Retry-After. The reusable HTTP/recreation
+  check is included in clean-install CI.
+- The key creation/use/one-time display/revoke flow was operated in a real browser.
+  EN/RU layouts were checked at 320/390/1440px; the document remained within the
+  viewport and compact revoke controls use localized tooltips and 44px mobile targets.
+- PHP lint and Python syntax checks passed. This checkpoint was not deployed to a
+  live server; real 1C-side adaptation has not been exercised.

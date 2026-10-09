@@ -46,7 +46,8 @@ class Filters extends BaseFilters
     public array $globals = [
         'before' => [
             'siteLocale',
-            'csrf',
+            // Only Bearer-authenticated integration endpoints are session/CSRF independent.
+            'csrf' => ['except' => ['api/v1/*']],
         ],
         'after' => [
             // 'secureheaders',
