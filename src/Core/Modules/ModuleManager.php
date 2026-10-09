@@ -215,6 +215,17 @@ final class ModuleManager
             throw new RuntimeException('Circular module dependency: ' . implode(' -> ', [...$stack, $id]));
         }
 
+        // Explicit enablement may load trusted package code, but an invalid
+        // provider must fail before migrations or the enabled registry flag.
+        if (! class_exists($manifest->provider)) {
+            throw new RuntimeException("Module provider not found: {$manifest->provider}");
+        }
+        $provider = new \ReflectionClass($manifest->provider);
+        if (! $provider->isSubclassOf(ModuleProviderInterface::class) || ! $provider->isInstantiable()
+            || ($provider->getConstructor()?->getNumberOfRequiredParameters() ?? 0) !== 0) {
+            throw new RuntimeException('Module provider must implement ' . ModuleProviderInterface::class . ' and be constructible without arguments.');
+        }
+
         $states = $this->states();
         foreach ($this->installedDataProviders('core.public_paths') as $owner => $class) {
             if ($owner !== $id && (int) ($states[$owner]['enabled'] ?? 0) !== 1) {

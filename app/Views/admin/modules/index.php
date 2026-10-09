@@ -7,6 +7,9 @@
             <div class="page-pretitle"><?= esc(lang('MCMS.common.system')) ?></div>
             <h2 class="page-title"><?= esc(lang('MCMS.modules.title')) ?></h2>
         </div>
+        <div class="col-auto">
+            <a class="btn btn-primary" href="<?= site_url('admin/modules/package') ?>"><i class="ti ti-upload me-2" aria-hidden="true"></i><?= esc(lang('MCMS.modules.installPackage')) ?></a>
+        </div>
     </div>
 </div>
 
@@ -50,7 +53,9 @@
                         <span class="badge <?= $enabled ? 'bg-success-lt' : 'bg-secondary-lt' ?>">
                             <?= esc($enabled
                                 ? lang('MCMS.modules.enabled')
-                                : (isset($states[$id]) ? lang('MCMS.modules.disabled') : lang('MCMS.modules.notInstalled'))) ?>
+                                : (isset($states[$id]) ? lang('MCMS.modules.disabled')
+                                    : lang(str_starts_with($module->path, WRITEPATH . 'modules/installed/')
+                                        ? 'MCMS.modules.packageReady' : 'MCMS.modules.notInstalled'))) ?>
                         </span>
                     </td>
                     <td><?= esc(implode(', ', array_map(static fn ($d) => is_array($d) ? ($d['id'] ?? '?') : $d, $module->requires)) ?: '—') ?></td>

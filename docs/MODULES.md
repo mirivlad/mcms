@@ -192,7 +192,9 @@ Publishing uses an installation lock and an atomic directory rename on the same
 filesystem. Compatibility, dependency cycles, ids, namespaces and declared public
 paths are checked again immediately before publishing. Adding code does not
 create a registry row, run a migration, boot a provider or enable dependencies;
-explicit enablement uses the existing lifecycle and public-content conflict check.
+explicit enablement first checks that the provider implements the Core contract
+and can be constructed without arguments, then uses the existing lifecycle and
+public-content conflict check. Invalid providers cannot set the enabled flag.
 Existing module ids/directories are refused: code replacement, migration rollback
 and safe updates are a separate workflow. Packages are executable trusted code,
 not a sandbox; administrators must review their source before installation.

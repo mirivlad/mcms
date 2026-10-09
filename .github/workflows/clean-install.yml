@@ -522,6 +522,30 @@ jobs:
       - name: Verify order reports and CSV export permissions
         run: python3 .github/scripts/orders-reports-smoke.py --cookies /tmp/mcms.cookies
 
+      - name: Verify module package review, access and installation
+        run: python3 .github/scripts/module-packages-smoke.py --cookies /tmp/mcms.cookies
+
+      - name: Verify module packages survive application recreation
+        run: |
+          docker compose exec -T app php spark mcms:module:pack modules/Feedback /tmp/feedback.zip
+          docker compose exec -T app test -s /tmp/feedback.zip
+          docker compose up -d --force-recreate app web
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8080/package-probe; then
+              break
+            fi
+            sleep 2
+          done
+          # Sessions are container-local; authenticate again after recreation.
+          curl -fsS -c /tmp/package-persist.cookies http://127.0.0.1:8080/login -o /tmp/package-login.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/package-login.html)"
+          curl -fsS -b /tmp/package-persist.cookies -c /tmp/package-persist.cookies -L \
+            --data-urlencode "csrf_test_name=$csrf" \
+            --data-urlencode 'email=admin@example.test' \
+            --data-urlencode 'password=Correct-Horse-Battery-Staple-42!' \
+            http://127.0.0.1:8080/login -o /tmp/package-persist-admin.html
+          python3 .github/scripts/module-packages-smoke.py --cookies /tmp/package-persist.cookies --phase persist
+
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 

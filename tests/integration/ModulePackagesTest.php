@@ -144,7 +144,7 @@ final class ModulePackagesTest extends CIUnitTestCase
     /** @dataProvider incompatibleManifests */
     public function testRejectsIncompatibleOrConflictingManifest(array $changes): void
     {
-        $this->expectException(Throwable::class);
+        $this->expectException(Exception::class);
         $this->packages->prepare($this->archive($changes));
     }
 
@@ -184,5 +184,31 @@ final class ModulePackagesTest extends CIUnitTestCase
         $preview = $this->packages->prepare($this->archive(['requires' => [['id' => 'media', 'version' => '*']]]));
         $this->packages->install($preview['token'], $preview['sha256']);
         self::assertSame([], $this->manager->states());
+    }
+
+    public function testInvalidProviderCannotActivateOrRunMigrations(): void
+    {
+        $archive = $this->archive([
+            'id' => 'invalid_probe', 'namespace' => 'MCMS\\Modules\\InvalidPackageProbe',
+            'provider' => 'MCMS\\Modules\\InvalidPackageProbe\\Module',
+        ], ['Database/Migrations/2026-10-09-000001_Probe.php' => '<?php throw new RuntimeException("Migration must not run");']);
+        $zip = new ZipArchive();
+        $zip->open($archive);
+        $zip->addFromString('Module.php', '<?php namespace MCMS\\Modules\\InvalidPackageProbe; final class Module {}');
+        $zip->close();
+        $preview = $this->packages->prepare($archive);
+        $installed = $this->packages->install($preview['token'], $preview['sha256']);
+        // Other integration fixtures reset the SPL loader. Load this fixture
+        // type explicitly; Docker smoke verifies actual runtime autoloading.
+        require $installed->path . '/Module.php';
+        $fresh = new ModuleManager($this->db, new AdminRegistry(), new ModuleServiceRegistry(), ROOTPATH . 'modules', packagesPath: $this->dir . '/packages/installed');
+        try {
+            $fresh->enable('invalid_probe');
+            self::fail('Invalid provider activated');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('must implement', $e->getMessage());
+        }
+        self::assertArrayNotHasKey('invalid_probe', $fresh->states());
+        $fresh->bootEnabled();
     }
 }

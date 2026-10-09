@@ -61,7 +61,7 @@
 
 ## Stage 3 — ecosystem
 
-- [ ] Module packaging/install from archive or repository.
+- [x] Module ZIP packaging/install, including locally exported repository sources.
 - [x] Module compatibility/version constraints at discovery/enablement.
 - [ ] Safe module update workflow.
 - [ ] Third-party theme packaging/install.

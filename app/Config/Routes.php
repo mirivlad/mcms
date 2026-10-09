@@ -20,6 +20,10 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->post('access/group', 'Admin\Access::saveGroup');
     $routes->post('access/group/delete', 'Admin\Access::deleteGroup');
     $routes->get('modules', 'Admin\Modules::index', ['as' => 'admin.modules']);
+    $routes->get('modules/package', 'Admin\Modules::package');
+    $routes->post('modules/package', 'Admin\Modules::uploadPackage');
+    $routes->post('modules/package/install', 'Admin\Modules::installPackage');
+    $routes->post('modules/package/cancel', 'Admin\Modules::cancelPackage');
     $routes->post('modules/(:segment)/enable', 'Admin\Modules::enable/$1');
     $routes->post('modules/(:segment)/disable', 'Admin\Modules::disable/$1');
     $routes->match(['get', 'post'], 'settings', 'Admin\Settings::index', ['as' => 'admin.settings']);

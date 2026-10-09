@@ -67,6 +67,14 @@ Photo edits save immediately; product/variant fields save with the product form.
 
 Stock provides variant-level on-hand/reserved/available quantities. Cart checks live availability but never reserves stock; Orders creates the reservation only after checkout succeeds. Delivery adds fixed-price delivery and pickup methods whose name/type/price are snapshotted into each order. Orders → Order report provides date/status totals and CSV exports of historical orders and their items, with a separate export permission. See [Orders](modules/Orders/README.md).
 
+Administration → Modules → **Install from ZIP** accepts a module archive,
+checks its manifest and dependencies, and shows a preview before adding trusted
+code. Enable the added module separately to apply its migrations. Build a package
+with `php spark mcms:module:pack modules/Example /tmp/example.zip`; for a repository,
+export the required revision first. External modules persist in
+`module_packages_data`, which must be backed up with the database. Existing
+modules cannot be replaced through this installer. See the [package contract](docs/MODULES.md#zip-package-contract).
+
 See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
 and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md), [Cart](modules/Cart/README.md), [Orders](modules/Orders/README.md) and [Delivery](modules/Delivery/README.md). Back up the dedicated
 `product_images_data` volume together with the database.

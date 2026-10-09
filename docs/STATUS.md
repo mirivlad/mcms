@@ -1,4 +1,4 @@
-# Current baseline — 2026-10-08
+# Current baseline — 2026-10-09
 
 This document records the current known-good mCMS implementation checkpoint.
 
@@ -24,6 +24,26 @@ This document records the current known-good mCMS implementation checkpoint.
 - Theme discovery, manifest validation, activation and logical template rendering.
 - Per-theme menu-location assignments through the Core navigation source contract.
 - Per-theme built-in Home text, button, cover and section settings for themes declaring `home_defaults`.
+
+## Module packages
+
+- CLI `mcms:module:pack` builds validated ZIPs from a module directory, including
+  locally exported repository revisions, without executing their PHP.
+- Administration → Modules → Install from ZIP checks compatibility and shows
+  identity, version, dependencies, unpacked size and SHA-256 before confirmation.
+- All package endpoints require `core.modules`; preview tokens belong to the
+  authenticated session/user. Adding trusted code requires explicit confirmation.
+- Path traversal, links, special/encrypted files, duplicate/case-conflicting paths,
+  auto-discovered Config/Commands and oversized packages are rejected.
+- Atomic publication into a persistent private package root does not run migrations
+  or boot/enable the module. Explicit enablement uses existing dependency resolution
+  and namespace-scoped migrations. A provider with an invalid interface or
+  required constructor arguments is refused before migration/activation; disabling
+  preserves its data.
+- First-party ids/namespaces and existing external modules cannot be replaced.
+  Safe updates and remote repository retrieval remain separate future work.
+- Docker and Portainer persist external code in `module_packages_data`; back up
+  this volume with the database. Package inspection is not a PHP sandbox.
 
 ## First-party modules
 
@@ -204,6 +224,20 @@ This document records the current known-good mCMS implementation checkpoint.
 - Disabling Menus does not remove assignments or break the public theme; assigned navigation becomes empty until Menus is enabled again. Signature, Depth and Focus fall back to automatic public navigation.
 
 ## Verification
+
+The 2026-10-09 package checkpoint passed 150 PHPUnit tests / 1144 assertions,
+PHP lint and Compose validation. Focused package tests cover malformed/unsafe ZIPs,
+compatibility/dependency cycles, stale concurrent previews, checksums, expiry and
+cancellation, and installation/discovery without provider execution. A fresh
+MariaDB production Docker image (authoritative Composer class map) passed HTTP
+review, confirmation, access denial, cancellation, collision rejection, actual
+external-module enablement and scoped migrations. Rebuilt/recreated app/web
+containers retained its code, enabled state and exactly one migration-created row;
+disable/re-enable preserved that row. The real browser upload/review was checked in English/Russian at
+1440px, 390px and 320px without horizontal overflow; the Russian add/enable
+workflow and native required confirmation were exercised end to end. The package and recreation
+smoke checks are part of the clean-install workflow.
+
 
 The 2026-10-08 administration presentation checkpoint passed PHP lint and focused
 navigation/localization/manifest checks (10 tests / 30 assertions), following the
