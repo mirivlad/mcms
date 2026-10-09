@@ -55,7 +55,7 @@ final class ModuleManifest
             }
         }
 
-        if (! preg_match('/^[a-z][a-z0-9_-]*$/', $data['id'])) {
+        if (! preg_match('/^[a-z][a-z0-9_-]*$/D', $data['id'])) {
             throw new InvalidArgumentException('Module id must use lowercase ASCII letters, numbers, dash or underscore.');
         }
 

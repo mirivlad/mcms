@@ -138,6 +138,7 @@ final class ModulePackagesTest extends CIUnitTestCase
             [['requires' => ['package_probe']]], [['requires' => 'media']],
             [['public_paths' => ['admin']]], [['public_paths' => ['news']]],
             [['version' => 'bad']], [['provider' => 'MCMS\\Core\\Module']], [['id' => 'core']],
+            [['id' => "package_probe\n"]],
         ];
     }
 

@@ -227,7 +227,7 @@ This document records the current known-good mCMS implementation checkpoint.
 
 ## Verification
 
-The 2026-10-09 package checkpoint passed 151 PHPUnit tests / 1150 assertions,
+The 2026-10-09 package checkpoint passed 152 PHPUnit tests / 1151 assertions,
 PHP lint and Compose validation. Focused package tests cover malformed/unsafe ZIPs,
 compatibility/dependency cycles, stale concurrent previews, checksums, expiry and
 cancellation, and installation/discovery without provider execution. A fresh
