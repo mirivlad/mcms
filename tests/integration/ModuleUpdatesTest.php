@@ -239,8 +239,9 @@ final class ModuleUpdatesTest extends CIUnitTestCase
     {
         $readerCode = 'require ' . var_export(ROOTPATH . 'src/Core/Modules/ModuleRuntime.php', true) . ';'
             . '$runtime = new \\MCMS\\Core\\Modules\\ModuleRuntime(' . var_export($this->dir, true) . ');'
-            . '$runtime->readLock(); echo "ready\\n"; flush(); usleep(150000);'
-            . 'file_put_contents(' . var_export($this->dir . '/reader-finished', true) . ', "yes"); $runtime->release();';
+            . '$runtime->readLock(); echo "ready\\n"; flush();'
+            . 'register_shutdown_function(static function (): void { usleep(150000); file_put_contents('
+            . var_export($this->dir . '/reader-finished', true) . ', "yes"); });';
         $process = proc_open([PHP_BINARY, '-r', $readerCode], [0 => ['file', '/dev/null', 'r'], 1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
         self::assertIsResource($process);
         try {

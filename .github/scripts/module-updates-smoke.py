@@ -9,6 +9,7 @@ import json
 import re
 import subprocess
 import time
+import threading
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -49,13 +50,13 @@ def post(path, fields, source=form, client=owner):
     return response.read().decode(), response.url
 
 
-def upload(content):
-    token = html.unescape(re.search(r'name="csrf_test_name"[^>]*value="([^"]+)"', page(form)[0])[1])
+def upload(content, path=form):
+    token = html.unescape(re.search(r'name="csrf_test_name"[^>]*value="([^"]+)"', page(path)[0])[1])
     boundary = 'mcms-update-boundary'
     payload = (f'--{boundary}\r\nContent-Disposition: form-data; name="csrf_test_name"\r\n\r\n{token}\r\n'
                f'--{boundary}\r\nContent-Disposition: form-data; name="package"; filename="update.zip"\r\n'
                'Content-Type: application/zip\r\n\r\n').encode() + content + f'\r\n--{boundary}--\r\n'.encode()
-    response = owner.open(urllib.request.Request(base + form, payload, {'Content-Type': 'multipart/form-data; boundary=' + boundary}), timeout=45)
+    response = owner.open(urllib.request.Request(base + path, payload, {'Content-Type': 'multipart/form-data; boundary=' + boundary}), timeout=45)
     return response.read().decode()
 
 
@@ -97,6 +98,40 @@ def status(path, code, method=None):
 def sql(query):
     return command('exec', '-T', 'db', 'sh', '-c', 'exec mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE" --batch --skip-column-names -e "$1"', 'sh', query).decode().strip()
 
+
+# An independent enabled module exercises both ordinary shutdown writes and
+# the requirement that the parent apply request executes Core only.
+probe_output = io.BytesIO()
+with zipfile.ZipFile(probe_output, 'w', zipfile.ZIP_DEFLATED) as probe:
+    probe.writestr('module.json', json.dumps({
+        'id': 'runtime_probe', 'name': 'Runtime probe', 'version': '1.0.0',
+        'namespace': 'MCMS\\Modules\\RuntimeProbe', 'provider': 'MCMS\\Modules\\RuntimeProbe\\Module',
+        'mcms': '^0.1', 'public_paths': ['runtime-probe'],
+    }))
+    probe.writestr('Module.php', r'''<?php
+namespace MCMS\Modules\RuntimeProbe;
+final class Module implements \MCMS\Core\Modules\ModuleProviderInterface {
+    public function boot(\MCMS\Core\Modules\ModuleContext $context): void {
+        if (! is_cli() && str_ends_with(service('request')->getUri()->getPath(), '/update/apply')) {
+            file_put_contents(WRITEPATH . 'unexpected-update-boot', 'yes');
+        }
+    }
+    public function routes(\CodeIgniter\Router\RouteCollection $routes): void {
+        $routes->get('runtime-probe', static function (): string {
+            register_shutdown_function(static function (): void {
+                file_put_contents(WRITEPATH . 'runtime-reader-ready', 'yes');
+                usleep(2000000);
+                file_put_contents(WRITEPATH . 'runtime-reader-finished', 'yes');
+            });
+            return 'runtime-probe';
+        });
+    }
+}
+''')
+probe_preview = upload(probe_output.getvalue(), '/admin/modules/package')
+probe_token = re.search(r'name="token" value="([^"]+)"', probe_preview)[1]
+post('/admin/modules/package/install', {'token': probe_token, 'trusted': '1'}, '/admin/modules/package')
+post('/admin/modules/runtime_probe/enable', {}, '/admin/modules')
 
 assert page('/package-probe')[0] == 'package-probe:preserved-record:1'  # warms FPM opcache too
 post('/admin/modules/package_probe/disable', {}, '/admin/modules')
@@ -151,7 +186,26 @@ assert command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules/insta
 state = queued(content)
 backup_before_success = command('exec', '-T', 'db', 'sh', '-c', 'exec mariadb-dump -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" --single-transaction "$MARIADB_DATABASE"')
 assert b'package_probe_records' in backup_before_success
+reader_result = []
+def runtime_reader():
+    reader_result.append(urllib.request.urlopen(base + '/runtime-probe', timeout=30).read().decode())
+
+reader_thread = threading.Thread(target=runtime_reader)
+reader_thread.start()
+for _ in range(30):
+    ready = subprocess.run(compose + ['exec', '-T', 'app', 'test', '-f', '/var/www/html/writable/runtime-reader-ready'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if ready.returncode == 0:
+        break
+    time.sleep(0.05)
+else:
+    raise AssertionError('Runtime reader did not enter shutdown')
 assert 'Update applied' in post(form + '/apply', {'operation': state['operation'], 'backup': '1'})[0]
+# Apply must wait for the late shutdown write, and must not boot enabled modules
+# in the Core parent request even though normal administration requests boot them.
+command('exec', '-T', 'app', 'test', '-f', '/var/www/html/writable/runtime-reader-finished')
+command('exec', '-T', 'app', 'test', '!', '-f', '/var/www/html/writable/unexpected-update-boot')
+reader_thread.join(timeout=10)
+assert reader_result == ['runtime-probe']
 assert receipt()['status'] == 'applied'
 assert sql('SELECT CONCAT(version, ":", enabled) FROM mcms_modules WHERE module_id="package_probe"') == '1.1.0:0'
 post('/admin/modules/package_probe/enable', {}, '/admin/modules')
@@ -187,7 +241,7 @@ for _ in range(30):
     try:
         urllib.request.urlopen(base + '/_health', timeout=5)
         break
-    except (urllib.error.URLError, TimeoutError):
+    except (urllib.error.URLError, TimeoutError, ConnectionError):
         time.sleep(1)
 else:
     raise AssertionError('Recovery runtime did not restart')

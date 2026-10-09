@@ -220,7 +220,8 @@ Built-in modules continue to ship with the application image.
    volume, and confirm that it exists. Enable any required dependencies first;
    take the backup after doing so. Apply rechecks code, schema, checksums and
    dependency compatibility before entering persistent maintenance.
-5. The runtime lock drains normal requests before code replacement. A fresh PHP
+5. The runtime lock drains normal requests, including shutdown callbacks, before
+   code replacement. The parent apply request boots no module providers. A fresh PHP
    CLI worker publishes the candidate and runs only the target namespace's new
    migrations and permission registration. The target remains disabled. FPM
    invalidates affected PHP cache entries before normal traffic resumes. Review

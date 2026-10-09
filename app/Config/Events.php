@@ -38,7 +38,8 @@ Events::on('pre_system', static function (): void {
         if ($runtime->maintenance() === null) {
             $runtime->readLock();
         }
-        register_shutdown_function(static fn () => $runtime->release());
+        // PHP closes the lock resource after shutdown callbacks. Releasing in
+        // an early shutdown callback would let migrations overlap later writes.
     }
 
     if (ENVIRONMENT !== 'testing') {

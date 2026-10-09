@@ -241,7 +241,7 @@ This document records the current known-good mCMS implementation checkpoint.
 The 2026-10-09 update checkpoint passed 171 PHPUnit tests / 1190 assertions and
 PHP lint. Focused tests cover trusted-code staging without execution, cancellation,
 version/identity constraints, dependent modules, stale source/candidate checks,
-historical migration preservation, runtime reader draining, interrupted receipts
+historical migration preservation, runtime reader/shutdown draining, interrupted receipts
 and failed-update recovery with database baseline checks. Production Docker/MariaDB
 HTTP verification covers permissions, confirmation, code snapshot download,
 successful scoped migrations with preserved records and refreshed PHP code,

@@ -44,5 +44,13 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
 });
 
 $moduleManager = service('mcmsModules');
-$moduleManager->bootEnabled();
-$moduleManager->registerRoutes($routes);
+// Applying a replacement must not load old module PHP into the parent request.
+// The fresh worker owns target execution; normal requests drain through shutdown.
+$coreUpdateRequest = ! is_cli() && preg_match(
+    '#^admin/modules/[^/]+/update/(apply|restore)$#D',
+    trim(service('request')->getUri()->getPath(), '/'),
+) === 1;
+if (! $coreUpdateRequest) {
+    $moduleManager->bootEnabled();
+    $moduleManager->registerRoutes($routes);
+}
