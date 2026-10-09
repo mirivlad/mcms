@@ -75,3 +75,12 @@ separate `orders.export` permission, granted to the built-in admin group. A repo
 reader does not automatically receive access to exported customer data. Report and
 download responses are private/no-store. Disabling Orders hides both routes while
 preserving the source snapshots. Delivery accepts Orders 0.2 and 0.3.
+
+## External order reads (0.3.1)
+
+`orders.exchange` implements `OrderFeedInterface`. `exportPage` returns saved order
+details in ascending ID order with a fixed `until_id`, next cursor and `has_more`.
+An optional inclusive `updatedSince` (application-local SQL datetime) and status
+filter support repeated synchronization sweeps. Start a new sweep from ID zero to
+find changes to old orders; retain the first request start time as the next lower
+bound and deduplicate by order ID. Details retain item and delivery snapshots.

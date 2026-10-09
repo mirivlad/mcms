@@ -10,11 +10,12 @@ use InvalidArgumentException;
 use MCMS\Core\Content\HtmlSanitizer;
 use MCMS\Core\Events\CoreEvents;
 use MCMS\Modules\Catalogue\Api\CatalogueInterface;
+use MCMS\Modules\Catalogue\Api\VariantFeedInterface;
 use MCMS\Modules\ProductImages\Api\ProductImagesInterface;
 use RuntimeException;
 use Throwable;
 
-final class Catalogue implements CatalogueInterface
+final class Catalogue implements CatalogueInterface, VariantFeedInterface
 {
     public function __construct(private readonly BaseConnection $db, private readonly ProductImagesInterface $images)
     {
@@ -48,6 +49,20 @@ final class Catalogue implements CatalogueInterface
     public function countVariants(string $query = ''): int
     {
         return $this->variantBuilder($query)->countAllResults();
+    }
+
+    public function variantPage(int $afterId = 0, int $limit = 100, ?int $untilId = null): array
+    {
+        if ($afterId < 0 || $limit < 1 || $limit > 200 || ($untilId !== null && $untilId < $afterId)) {
+            throw new InvalidArgumentException('Invalid variant feed cursor or limit.');
+        }
+        $untilId ??= max($afterId, (int) ($this->db->table('catalogue_variants')->selectMax('id')->get()->getRowArray()['id'] ?? 0));
+        $rows = $this->variantBuilder('')
+            ->where('v.id >', $afterId)->where('v.id <=', $untilId)->orderBy('v.id', 'ASC')
+            ->limit($limit + 1)->get()->getResultArray();
+        $more = count($rows) > $limit;
+        $rows = array_map(fn (array $row): array => $this->decorateVariant($row), array_slice($rows, 0, $limit));
+        return ['items' => $rows, 'next_cursor' => $rows === [] ? $afterId : (int) end($rows)['id'], 'until_id' => $untilId, 'has_more' => $more];
     }
 
     public function findVariant(int $id): ?array

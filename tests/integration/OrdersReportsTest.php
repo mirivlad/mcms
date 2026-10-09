@@ -80,6 +80,24 @@ final class OrdersReportsTest extends CIUnitTestCase
         }
     }
 
+    public function testOrderExchangeReturnsSavedDetailsInStableIdPages(): void
+    {
+        $first = $this->order();
+        $this->item($first);
+        $second = $this->order();
+        $this->item($second);
+        $feed = $this->services->get('orders.exchange');
+        $page = $feed->exportPage(0, 1, null, '2026-10-08 12:00:00');
+        self::assertSame($first, $page['next_cursor']);
+        self::assertTrue($page['has_more']);
+        self::assertSame('HISTORICAL-SKU', $page['items'][0]['items'][0]['sku']);
+        $third = $this->order();
+        $next = $feed->exportPage($first, 100, $page['until_id']);
+        self::assertSame([$second], array_column($next['items'], 'id'));
+        $this->db->table('orders')->where('id', $first)->update(['updated_at' => '2026-10-09 12:00:00']);
+        self::assertSame([$first], array_column($feed->exportPage(0, 100, null, '2026-10-09 12:00:00')['items'], 'id'));
+    }
+
     public function testInclusiveDatesAndStatusCurrencyGroupsUseOrderTotalsWithoutLineDuplication(): void
     {
         $first = $this->order(['created_at' => '2026-10-08 00:00:00']);

@@ -8,11 +8,12 @@ use CodeIgniter\Database\BaseConnection;
 use InvalidArgumentException;
 use MCMS\Modules\Cart\Api\CartInterface;
 use MCMS\Modules\Orders\Api\OrdersInterface;
+use MCMS\Modules\Orders\Api\OrderFeedInterface;
 use MCMS\Modules\Stock\Api\StockInterface;
 use RuntimeException;
 use Throwable;
 
-final class Orders implements OrdersInterface
+final class Orders implements OrdersInterface, OrderFeedInterface
 {
     private const STATUSES = ['new', 'processing', 'ready', 'completed', 'cancelled'];
     private const TERMINAL = ['completed', 'cancelled'];
@@ -200,6 +201,32 @@ final class Orders implements OrdersInterface
         $order['allowed_statuses'] = $this->allowedStatuses((string) $row['status']);
 
         return $order;
+    }
+
+    public function exportPage(int $afterId = 0, int $limit = 100, ?int $untilId = null, string $updatedSince = '', string $status = ''): array
+    {
+        if ($afterId < 0 || $limit < 1 || $limit > 200 || ($untilId !== null && $untilId < $afterId)
+            || ($status !== '' && ! in_array($status, self::STATUSES, true))
+            || ($updatedSince !== '' && (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/D', $updatedSince) !== 1
+                || date('Y-m-d H:i:s', strtotime($updatedSince) ?: 0) !== $updatedSince))) {
+            throw new InvalidArgumentException('Invalid order feed cursor, date, status or limit.');
+        }
+        $untilId ??= max($afterId, (int) ($this->db->table('orders')->selectMax('id')->get()->getRowArray()['id'] ?? 0));
+        $builder = $this->builder('', $status)->select('id')->where('id >', $afterId)->where('id <=', $untilId)->orderBy('id', 'ASC');
+        if ($updatedSince !== '') {
+            $builder->where('updated_at >=', $updatedSince);
+        }
+        $rows = $builder->limit($limit + 1)->get()->getResultArray();
+        $more = count($rows) > $limit;
+        $rows = array_slice($rows, 0, $limit);
+        $items = [];
+        foreach ($rows as $row) {
+            $order = $this->find((int) $row['id']);
+            if ($order !== null) {
+                $items[] = $order;
+            }
+        }
+        return ['items' => $items, 'next_cursor' => $rows === [] ? $afterId : (int) end($rows)['id'], 'until_id' => $untilId, 'has_more' => $more];
     }
 
     public function transition(int $id, string $status, int $userId, string $note = ''): array

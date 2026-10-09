@@ -20,6 +20,7 @@ final class Module implements ModuleProviderInterface
     {
         $repository = new Catalogue(db_connect(), $context->services->get('product-images.library'));
         $context->services->register('catalogue.repository', $repository);
+        $context->services->register('catalogue.exchange', $repository);
         $categories = new Categories(db_connect());
         $context->services->register('catalogue.categories', $categories);
         $context->services->register('catalogue.search', new PublicSearch($repository));

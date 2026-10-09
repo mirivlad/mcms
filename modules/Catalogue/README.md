@@ -42,3 +42,10 @@ and raw original files are private.
 This stage does not implement cart, checkout, orders or stock. Stock will own
 availability/reservations by variant ID, rather than storing quantities in Catalogue.
 See [commerce contracts](../../docs/COMMERCE.md) for the boundaries and next stages.
+
+## Inventory identities (0.2.3)
+
+`catalogue.exchange` implements `VariantFeedInterface`. `variantPage` exposes
+variant/SKU identities, including draft products, in ascending permanent-ID pages
+with a fixed `until_id` upper bound. It avoids title/position ordering changes
+while an external accounting system reads inventory.

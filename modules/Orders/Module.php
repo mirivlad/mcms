@@ -23,6 +23,7 @@ final class Module implements ModuleProviderInterface
             )
         );
         $context->services->register('orders.reports', new Reports(db_connect(), $context->services->get('orders.orders')));
+        $context->services->register('orders.exchange', $context->services->get('orders.orders'));
         $context->admin->addMenu(
             'orders',
             '@Orders.title',

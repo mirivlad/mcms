@@ -91,6 +91,36 @@ final class StockModuleTest extends CIUnitTestCase
         parent::tearDown();
     }
 
+    public function testExternalStockCorrectionPreservesReservationsAndRejectsStaleBaseline(): void
+    {
+        $this->stock->setOnHand($this->firstVariant, 10, 0);
+        $this->stock->reserve('exchange:order', $this->firstVariant, 3);
+        $level = $this->stock->compareAndSetOnHand($this->firstVariant, 10, 12, 0, 'External correction');
+        self::assertSame([12, 3, 9], [$level['on_hand'], $level['reserved'], $level['available']]);
+        foreach ([[10, 14], [12, 2]] as [$expected, $quantity]) {
+            try {
+                $this->stock->compareAndSetOnHand($this->firstVariant, $expected, $quantity, 0);
+                self::fail('Conflicting stock correction accepted');
+            } catch (\MCMS\Modules\Stock\Api\StockConflict $e) {
+                self::assertSame(12, $e->current['on_hand']);
+            }
+        }
+        self::assertSame(2, $this->db->table('stock_movements')->countAllResults());
+        self::assertSame(12, $this->stock->level($this->firstVariant)['on_hand']);
+    }
+
+    public function testVariantFeedUsesStableIdsAndAClosedUpperBound(): void
+    {
+        $catalogue = $this->services->get('catalogue.repository');
+        $first = $catalogue->variantPage(0, 1);
+        self::assertSame($this->firstVariant, $first['next_cursor']);
+        self::assertTrue($first['has_more']);
+        self::assertSame($this->secondVariant, $first['until_id']);
+        $next = $catalogue->variantPage($first['next_cursor'], 1, $first['until_id']);
+        self::assertSame($this->secondVariant, $next['items'][0]['id']);
+        self::assertFalse($next['has_more']);
+    }
+
     public function testModuleBoundarySearchAndManualAdjustment(): void
     {
         self::assertTrue($this->services->has('catalogue.repository'));

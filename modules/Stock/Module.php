@@ -17,6 +17,7 @@ final class Module implements ModuleProviderInterface
             'stock.inventory',
             new Stock(db_connect(), $context->services->get('catalogue.repository'))
         );
+        $context->services->register('stock.exchange', $context->services->get('stock.inventory'));
         $context->admin->addMenu('stock', '@Stock.title', '/admin/stock', 'ti ti-packages', 'stock.view', 66, group: 'commerce');
     }
 

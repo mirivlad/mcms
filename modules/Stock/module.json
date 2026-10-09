@@ -1,7 +1,7 @@
 {
   "id": "stock",
   "name": "@Stock.title",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Modules\\Stock",
   "provider": "MCMS\\Modules\\Stock\\Module",
   "mcms": "^0.1.5",

@@ -30,3 +30,11 @@ stock.inventory implements StockInterface:
 Reservations are keyed by the stable Catalogue variant ID. Optional expiry is
 released lazily on subsequent stock operations. Cart/Orders can build on this API
 without owning stock quantities.
+
+## External synchronization (0.1.1)
+
+`stock.exchange` implements `StockSyncInterface`. `compareAndSetOnHand` sets an
+absolute physical quantity only when the supplied previous on-hand value matches.
+Corrections acquire a database row write lock before reading the audit baseline.
+A stale baseline or quantity below reserved stock throws `StockConflict` with the
+current level; no reservation or movement is changed.

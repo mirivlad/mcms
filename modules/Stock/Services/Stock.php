@@ -8,11 +8,12 @@ use CodeIgniter\Database\BaseConnection;
 use DateTimeInterface;
 use InvalidArgumentException;
 use MCMS\Modules\Catalogue\Api\CatalogueInterface;
-use MCMS\Modules\Stock\Api\StockInterface;
+use MCMS\Modules\Stock\Api\StockSyncInterface;
+use MCMS\Modules\Stock\Api\StockConflict;
 use RuntimeException;
 use Throwable;
 
-final class Stock implements StockInterface
+final class Stock implements StockSyncInterface
 {
     private const MAX_QUANTITY = 2_000_000_000;
 
@@ -92,7 +93,9 @@ final class Stock implements StockInterface
         $this->db->transBegin();
         try {
             $this->ensureLevel($variantId);
-            $before = $this->rawLevel($variantId);
+            // Serialize physical corrections before reading the audit baseline.
+            $this->db->query('UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET on_hand = on_hand WHERE variant_id = ?', [$variantId]);
+            $before = $this->rawLevel($variantId, true);
             if ($quantity < $before['reserved']) {
                 throw new InvalidArgumentException(lang('Stock.belowReserved'));
             }
@@ -131,6 +134,38 @@ final class Stock implements StockInterface
         }
 
         return $this->level($variantId);
+    }
+
+    public function compareAndSetOnHand(int $variantId, int $expected, int $quantity, int $userId, string $note = ''): array
+    {
+        $this->assertVariant($variantId);
+        if ($expected < 0 || $expected > self::MAX_QUANTITY || $quantity < 0 || $quantity > self::MAX_QUANTITY) {
+            throw new InvalidArgumentException(lang('Stock.invalidQuantity'));
+        }
+        $this->purgeExpired();
+        $this->db->transBegin();
+        try {
+            $this->ensureLevel($variantId);
+            // A no-op UPDATE obtains a row write lock on MariaDB and SQLite.
+            $this->db->query('UPDATE ' . $this->db->prefixTable('stock_levels') . ' SET on_hand = on_hand WHERE variant_id = ?', [$variantId]);
+            $current = $this->rawLevel($variantId, true);
+            if ($current['on_hand'] !== $expected) {
+                throw new StockConflict(lang('Stock.concurrentChange'), $current);
+            }
+            if ($quantity < $current['reserved']) {
+                throw new StockConflict(lang('Stock.belowReserved'), $current);
+            }
+            $this->setOnHand($variantId, $quantity, $userId, $note);
+            $level = $this->rawLevel($variantId, true);
+            if (! $this->db->transStatus()) {
+                throw new RuntimeException(lang('Stock.saveFailed'));
+            }
+            $this->db->transCommit();
+            return $level;
+        } catch (Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
     }
 
     public function reserve(string $key, int $variantId, int $quantity, ?DateTimeInterface $expiresAt = null): array
@@ -316,7 +351,7 @@ final class Stock implements StockInterface
         if ($this->db->table('stock_levels')->where('variant_id', $variantId)->countAllResults() > 0) {
             return;
         }
-        $this->db->table('stock_levels')->insert([
+        $this->db->table('stock_levels')->ignore(true)->insert([
             'variant_id' => $variantId,
             'on_hand' => 0,
             'reserved' => 0,
@@ -326,9 +361,15 @@ final class Stock implements StockInterface
     }
 
     /** @return array{variant_id:int,on_hand:int,reserved:int,available:int,updated_at:?string} */
-    private function rawLevel(int $variantId): array
+    private function rawLevel(int $variantId, bool $locked = false): array
     {
-        $row = $this->db->table('stock_levels')->where('variant_id', $variantId)->get()->getRowArray();
+        // MariaDB REPEATABLE READ may already have a snapshot from owner/catalogue
+        // reads. A locking read must see the latest value after the write lock.
+        $sql = $this->db->table('stock_levels')->where('variant_id', $variantId)->getCompiledSelect();
+        if ($locked && $this->db->DBDriver === 'MySQLi') {
+            $sql .= ' FOR UPDATE';
+        }
+        $row = $this->db->query($sql)->getRowArray();
 
         return $row === null ? $this->emptyLevel($variantId) : [
             'variant_id' => $variantId,
