@@ -124,6 +124,7 @@ final class RestoreManager
             // Set the maintenance flag only after active HTTP requests drain.
             // Unlike ModuleRuntime, this flag lives OUTSIDE the replaced volumes.
             service('mcmsModuleRuntime')->exclusive(function () use ($token): void {
+                service('mcmsModuleRuntime')->assertAvailable();
                 $this->atomicWrite($this->directory . '/restore-active.json', [
                     'token' => $token, 'status' => 'queued',
                 ]);

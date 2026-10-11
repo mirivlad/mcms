@@ -65,7 +65,7 @@ $coreUpdateRequest = ! is_cli() && preg_match(
     '#^admin/modules/[^/]+/update/(apply|restore)$#D',
     trim(service('request')->getUri()->getPath(), '/'),
 ) === 1;
-if (! $coreUpdateRequest) {
+if (! $coreUpdateRequest && ! is_file(WRITEPATH . 'backups/restore-active.json')) {
     $moduleManager->bootEnabled();
     $moduleManager->registerRoutes($routes);
 }
