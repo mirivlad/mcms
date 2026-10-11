@@ -54,12 +54,19 @@ final class ScopedStorage implements StorageInterface
         return $this->storage->path($path);
     }
 
-    /** Creates the requested directory, or returns the module's root. */
-    public function directory(string $path = ''): string
+    /**
+     * Create a directory. Public media roots must be traversable by nginx,
+     * whose UID differs from the PHP worker. All other roots remain private.
+     */
+    public function directory(string $path = '', bool $public = false): string
     {
         $dir = $path === '' ? $this->root : $this->path($path);
-        if (! is_dir($dir) && ! mkdir($dir, 0770, true) && ! is_dir($dir)) {
+        $mode = $public ? 0755 : 0770;
+        if (! is_dir($dir) && ! mkdir($dir, $mode, true) && ! is_dir($dir)) {
             throw new RuntimeException('Unable to create scoped storage directory.');
+        }
+        if ($public && ! chmod($dir, 0755)) {
+            throw new RuntimeException('Unable to allow read access to public media directory.');
         }
 
         return $dir;

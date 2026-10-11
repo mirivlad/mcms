@@ -58,7 +58,9 @@ An image-processing library that needs an absolute filesystem path can use
 `WRITEPATH` or `FCPATH` for persistent module files. The scoped API rejects
 unsafe IDs and dot-traversal paths, and is intended for **trusted** extension
 code; it is not a PHP sandbox. Do not make module files publicly accessible
-just because they are in the same volume.
+just because they are in the same volume. Only files intended for public
+serving may use `directory(public: true)` (used by Media); other directories
+are private and nginx must not be able to traverse them.
 
 A theme can use `service('mcmsThemeStorage', 'theme-id')` for optional
 persistent data. Installed ZIPs live in a separate subtree from mutable data.

@@ -19,7 +19,7 @@ final class Module implements ModuleProviderInterface
             'media.library',
             new MediaLibrary(
                 db_connect(),
-                $context->storage->directory(),
+                $context->storage->directory(public: true),
             ),
         );
 

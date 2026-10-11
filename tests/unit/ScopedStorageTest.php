@@ -43,6 +43,17 @@ final class ScopedStorageTest extends TestCase
         self::assertSame($this->root . '/product-images/sets', $images->directory('sets'));
     }
 
+    public function testOnlyExplicitPublicDirectoriesAreWorldTraversable(): void
+    {
+        $media = new ScopedStorage($this->root, 'media');
+        $secret = new ScopedStorage($this->root, 'stock');
+        self::assertSame(0700, fileperms($secret->directory()) & 0700);
+        self::assertSame(0, fileperms($secret->directory()) & 0005);
+        $public = $media->directory(public: true);
+        clearstatcache(true, $public);
+        self::assertSame(0755, fileperms($public) & 0777);
+    }
+
     public function testRejectsCrossNamespaceTraversal(): void
     {
         $storage = new ScopedStorage($this->root, 'media');
