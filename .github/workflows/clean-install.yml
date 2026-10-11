@@ -635,14 +635,19 @@ jobs:
 
       - name: Verify admin backups, download and unattended CLI
         run: |
-          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/backups -o /tmp/backups-page.html
+          # Other smoke scenarios recreated PHP-FPM; issue a fresh session.
+          curl -fsS -c /tmp/backups.cookies http://127.0.0.1:8080/login -o /tmp/backups-login.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-login.html)"
+          curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies -L --data-urlencode "csrf_test_name=$csrf" --data-urlencode 'email=admin@example.test' --data-urlencode 'password=Correct-Horse-Battery-Staple-42!' http://127.0.0.1:8080/login -o /tmp/backups-admin.html
+          grep -q 'Dashboard' /tmp/backups-admin.html
+          curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies             http://127.0.0.1:8080/admin/backups -o /tmp/backups-page.html
           grep -q 'Create backup' /tmp/backups-page.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-page.html)"
-          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/backups/create -o /tmp/backups-created.html
+          curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/backups/create -o /tmp/backups-created.html
           grep -q 'Backup ready:' /tmp/backups-created.html
           file="$(grep -oE 'mcms-[0-9]{8}T[0-9]{6}Z-[a-f0-9]{12}\.zip' /tmp/backups-created.html | head -n1)"
           test -n "$file"
-          curl -fsS -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/backups/$file/download"             -o /tmp/mcms-admin-download.zip
+          curl -fsS -b /tmp/backups.cookies             "http://127.0.0.1:8080/admin/backups/$file/download"             -o /tmp/mcms-admin-download.zip
           python3 .github/scripts/backup-archive-check.py /tmp/mcms-admin-download.zip
           code="$(curl -sS -o /dev/null -w '%{http_code}'             "http://127.0.0.1:8080/admin/backups/$file/download")"
           test "$code" != "200"
