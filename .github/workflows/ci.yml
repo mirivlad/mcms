@@ -49,3 +49,5 @@ jobs:
         run: |
           docker compose config -q
           docker compose -f portainer-stack.yml config -q
+          docker compose config --format json | python3 .github/scripts/storage-contract-check.py
+          docker compose -f portainer-stack.yml config --format json | python3 .github/scripts/storage-contract-check.py

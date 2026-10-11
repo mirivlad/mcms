@@ -73,7 +73,7 @@ def archive(version, files):
 
 
 def receipt():
-    return json.loads(command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules/updates/package_probe/state.json'))
+    return json.loads(command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules-data/updates/package_probe/state.json'))
 
 
 def queued(content):
@@ -136,10 +136,10 @@ post('/admin/modules/runtime_probe/enable', {}, '/admin/modules')
 assert page('/package-probe')[0] == 'package-probe:preserved-record:1'  # warms FPM opcache too
 post('/admin/modules/package_probe/disable', {}, '/admin/modules')
 # Preview/queue are isolated from existing code and registry.
-installed = command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules/installed/PackageProbe/module.json')
+installed = command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules-data/installed/PackageProbe/module.json')
 files = {'module.json': installed}
 for path in ['Module.php', 'Controllers/Probe.php', 'Database/Migrations/2026-10-09-000001_CreateProbe.php']:
-    files[path] = command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules/installed/PackageProbe/' + path)
+    files[path] = command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules-data/installed/PackageProbe/' + path)
 files['Controllers/Probe.php'] = files['Controllers/Probe.php'].replace(b"count($rows);", b"count($rows) . ':' . $rows[0]['stage'];")
 files['Database/Migrations/2026-10-09-000002_UpdateProbe.php'] = b'''<?php
 namespace MCMS\\Modules\\PackageProbe\\Database\\Migrations;
@@ -173,7 +173,7 @@ for action in ['', '/queue', '/cancel', '/apply', '/restore']:
     reader_token = html.unescape(re.search(r'name="csrf_test_name"[^>]*value="([^"]+)"', page('/admin/settings', reader)[0])[1])
 
 state = queued(content)
-assert command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules/installed/PackageProbe/module.json') == installed
+assert command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules-data/installed/PackageProbe/module.json') == installed
 assert sql('SELECT version FROM mcms_modules WHERE module_id="package_probe"') == '1.0.0'
 snapshot = owner.open(base + form + '/snapshot').read()
 assert hashlib.sha256(snapshot).hexdigest() == state['previous_sha256']
@@ -182,7 +182,7 @@ post('/admin/modules/package_probe/enable', {}, '/admin/modules')
 assert sql('SELECT enabled FROM mcms_modules WHERE module_id="package_probe"') == '0'
 assert 'Confirm the database backup' in post(form + '/apply', {'operation': state['operation']})[0]
 post(form + '/cancel', {'operation': state['operation']})
-assert command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules/installed/PackageProbe/module.json') == installed
+assert command('exec', '-T', 'app', 'cat', '/var/www/html/writable/modules-data/installed/PackageProbe/module.json') == installed
 state = queued(content)
 backup_before_success = command('exec', '-T', 'db', 'sh', '-c', 'exec mariadb-dump -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" --single-transaction "$MARIADB_DATABASE"')
 assert b'package_probe_records' in backup_before_success

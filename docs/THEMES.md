@@ -57,16 +57,16 @@ it does not execute or certify the PHP template code.
 
 ## Storage and lifecycle
 
-Preview archives are private in `writable/themes/pending`, expire after one hour,
+Preview archives are private in `writable/themes-data/pending`, expire after one hour,
 and are bound to the uploading session/user. Installation checks SHA-256 again
 and rechecks Core compatibility and ID/namespace collisions under a lock.
-Files are staged and atomically published to `writable/themes/installed/<id>`.
+Files are staged and atomically published to `writable/themes-data/installed/<id>`.
 An existing theme cannot be overwritten; package updates/removal are outside this
 workflow. Activation checks Core compatibility independently.
 
-Compose and Portainer persist the private directory in `theme_packages_data`,
-mounted only in the application. Add this mount when upgrading an existing stack
-and include it in backups alongside the database (which stores active selection
+Compose and Portainer persist the private directory in `themes_data`,
+mounted only in the application. Include it in backups alongside the database
+(which stores active selection
 and per-theme settings). First-party themes remain in the application image.
 External resources are served by Core at `theme-assets/<id>/<version>/<path>`
 with explicit MIME types, nosniff, ETag and immutable caching. PHP, manifests and
@@ -93,3 +93,5 @@ php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.0.0.z
 ```
 
 The installer requires a separate trust-confirmation and activation step.
+
+Per-theme persistent files, when needed, must use `service('mcmsThemeStorage', '<theme-id>')` within `themes_data/data/<theme-id>`; themes never require another Docker mount.

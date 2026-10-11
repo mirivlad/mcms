@@ -3,10 +3,12 @@
 declare(strict_types=1);
 
 use MCMS\Core\Themes\ThemePackages;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 final class AtelierExamplePackageTest extends TestCase
 {
+    #[RunInSeparateProcess]
     public function testExternalViewTranslationClassLoadsFromThemeNamespace(): void
     {
         service('autoloader')->addNamespace(

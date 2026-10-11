@@ -99,7 +99,7 @@ def assets():
         missing(root + path)
     missing('/theme-assets/theme-probe/2.0.0/css/style.css')
     missing('/theme-assets/mcms-default/0.4.1/css/theme.css')
-    missing('/writable/themes/installed/theme-probe/Views/home.php')
+    missing('/writable/themes-data/installed/theme-probe/Views/home.php')
 
 
 if args.phase == 'persist':

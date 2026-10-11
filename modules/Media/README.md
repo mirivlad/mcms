@@ -32,7 +32,7 @@ Those concerns belong to dependent modules.
 Files are stored below:
 
 ```text
-public/assets/uploads/media/YYYY/MM/<random>.<ext>
+writable/modules-data/data/media/YYYY/MM/<random>.<ext> (private filesystem, served by nginx as /assets/uploads/media/...)
 ```
 
 The Docker/Portainer deployment mounts `public/assets/uploads` as a persistent

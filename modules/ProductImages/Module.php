@@ -13,7 +13,7 @@ final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
-        $context->services->register('product-images.library', new ProductImages(db_connect(), WRITEPATH . 'product-images'));
+        $context->services->register('product-images.library', new ProductImages(db_connect(), $context->storage->directory()));
     }
 
     public function routes(RouteCollection $routes): void

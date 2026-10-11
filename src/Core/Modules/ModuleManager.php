@@ -200,7 +200,10 @@ final class ModuleManager
 
         foreach ($this->enabledManifests() as $manifest) {
             $this->provider($manifest)->boot(
-                new ModuleContext($manifest, $this->admin, $this->services, $this->navigation)
+                new ModuleContext(
+                    $manifest, $this->admin, $this->services, $this->navigation,
+                    \Config\Services::mcmsModuleStorage($manifest->id),
+                )
             );
         }
     }

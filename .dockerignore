@@ -7,7 +7,6 @@ writable/session
 writable/uploads
 public/assets/uploads
 
-writable/product-images/
 
-writable/modules/
-writable/themes/
+writable/modules-data/
+writable/themes-data/

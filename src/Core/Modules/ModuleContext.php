@@ -6,6 +6,7 @@ namespace MCMS\Core\Modules;
 
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
+use MCMS\Core\Storage\ScopedStorage;
 
 final class ModuleContext
 {
@@ -14,6 +15,7 @@ final class ModuleContext
         public readonly AdminRegistry $admin,
         public readonly ModuleServiceRegistry $services,
         public readonly NavigableResourceRegistry $navigation,
+        public readonly ScopedStorage $storage,
     ) {
     }
 }

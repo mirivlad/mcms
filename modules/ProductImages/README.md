@@ -11,8 +11,8 @@ Upload/crop/order/remove controls require `product-images.manage`, in addition t
 session authentication and CSRF protection. Unattached sets belong to their creator.
 
 Original bytes and generated WebP revisions live in private
-`writable/product-images`. Compose and Portainer mount a dedicated
-`product_images_data` volume on the app only. Back up this volume alongside the
+`writable/modules-data/data/product-images`. ProductImages automatically receives a directory within the shared
+`modules_data` volume. Back up that volume alongside the
 SQL database. Native installations must make the directory writable by PHP and
 configure a 10 MiB upload limit, a 12 MiB request limit and 256 MiB memory.
 

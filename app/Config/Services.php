@@ -14,6 +14,7 @@ use MCMS\Core\Modules\ModuleUpdates;
 use MCMS\Core\Modules\ModuleServiceRegistry;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Core\Storage\LocalStorage;
+use MCMS\Core\Storage\ScopedStorage;
 use MCMS\Core\Storage\StorageInterface;
 use MCMS\Core\Themes\ThemeManager;
 use MCMS\Core\Themes\ThemePackages;
@@ -107,7 +108,7 @@ class Services extends BaseService
             static::mcmsModuleServices(),
             ROOTPATH . 'modules',
             static::mcmsNavigation(),
-            WRITEPATH . 'modules/installed',
+            WRITEPATH . 'modules-data/installed',
             static::mcmsModuleRuntime(),
         );
     }
@@ -118,7 +119,7 @@ class Services extends BaseService
             return static::getSharedInstance('mcmsModulePackages');
         }
 
-        return new ModulePackages(static::mcmsModules(), WRITEPATH . 'modules', static::mcmsModuleRuntime());
+        return new ModulePackages(static::mcmsModules(), WRITEPATH . 'modules-data', static::mcmsModuleRuntime());
     }
 
     public static function mcmsModuleRuntime(bool $getShared = true): ModuleRuntime
@@ -126,7 +127,7 @@ class Services extends BaseService
         if ($getShared) {
             return static::getSharedInstance('mcmsModuleRuntime');
         }
-        return new ModuleRuntime(WRITEPATH . 'modules');
+        return new ModuleRuntime(WRITEPATH . 'modules-data');
     }
 
     public static function mcmsModuleUpdates(bool $getShared = true): ModuleUpdates
@@ -134,7 +135,7 @@ class Services extends BaseService
         if ($getShared) {
             return static::getSharedInstance('mcmsModuleUpdates');
         }
-        return new ModuleUpdates(static::mcmsModules(), static::mcmsModulePackages(), static::mcmsModuleRuntime(), WRITEPATH . 'modules');
+        return new ModuleUpdates(static::mcmsModules(), static::mcmsModulePackages(), static::mcmsModuleRuntime(), WRITEPATH . 'modules-data');
     }
 
     public static function mcmsThemePackages(bool $getShared = true): ThemePackages
@@ -142,7 +143,7 @@ class Services extends BaseService
         if ($getShared) {
             return static::getSharedInstance('mcmsThemePackages');
         }
-        return new ThemePackages(static::mcmsThemes(), WRITEPATH . 'themes', static::mcmsModuleRuntime());
+        return new ThemePackages(static::mcmsThemes(), WRITEPATH . 'themes-data', static::mcmsModuleRuntime());
     }
 
     public static function mcmsThemes(bool $getShared = true): ThemeManager
@@ -151,7 +152,19 @@ class Services extends BaseService
             return static::getSharedInstance('mcmsThemes');
         }
 
-        return new ThemeManager(static::settings(), ROOTPATH . 'themes', null, WRITEPATH . 'themes');
+        return new ThemeManager(static::settings(), ROOTPATH . 'themes', null, WRITEPATH . 'themes-data');
+    }
+
+    /** Every module uses its own directory inside the ONE modules_data volume. */
+    public static function mcmsModuleStorage(string $moduleId): ScopedStorage
+    {
+        return new ScopedStorage(WRITEPATH . 'modules-data/data', $moduleId);
+    }
+
+    /** Themes use their own persistent files inside the ONE themes_data volume. */
+    public static function mcmsThemeStorage(string $themeId): ScopedStorage
+    {
+        return new ScopedStorage(WRITEPATH . 'themes-data/data', $themeId);
     }
 
     public static function mcmsStorage(bool $getShared = true): StorageInterface
@@ -160,6 +173,6 @@ class Services extends BaseService
             return static::getSharedInstance('mcmsStorage');
         }
 
-        return new LocalStorage(WRITEPATH . 'storage');
+        return new LocalStorage(WRITEPATH . 'modules-data/core');
     }
 }

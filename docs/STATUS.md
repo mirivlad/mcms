@@ -56,7 +56,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Remote repository retrieval remains future work.
 - Opted-in demo initialization discovers enabled external packages as well as
   first-party modules; its one-time content marker and existing package state are preserved.
-- Docker and Portainer persist external code in `module_packages_data`; back up
+- Docker and Portainer persist external code in `modules_data`; back up
   this volume with the database. Package inspection is not a PHP sandbox.
 
 ## First-party modules
@@ -232,7 +232,7 @@ This document records the current known-good mCMS implementation checkpoint.
   - `footer.primary` — maximum depth 1;
   - `footer.legal` — maximum depth 1.
 - First-party theme assets are copied into the nginx runtime; PHP/view files are not exposed by the web server.
-- External ZIP themes live on the private `theme_packages_data` volume. Core serves only validated static asset types, with versioned URLs, MIME/ETag/nosniff and SVG script restrictions.
+- External ZIP themes live on the private `themes_data` volume. Core serves only validated static asset types, with versioned URLs, MIME/ETag/nosniff and SVG script restrictions.
 - Themes → Install theme ZIP validates archive paths/limits, templates, namespace and Core compatibility without loading views. Trust confirmation installs an inactive theme; activation remains separate. SHA-256, preview expiry and locked collision checks protect the reviewed package.
 - HTTP smoke covers permissions, confirmation/cancellation, duplicate rejection, static/private path separation, activation and settings after application recreation; the ZIP command is `mcms:theme:pack`. Browser review covered English/Russian at 320/390/1440px.
 - If no explicit theme has been selected, the built-in default theme is used when present.

@@ -23,6 +23,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify unified storage mounts
+        run: docker compose config --format json | python3 .github/scripts/storage-contract-check.py
+
       - name: Build and start a clean stack
         run: docker compose up -d --build db app web
 
@@ -202,6 +205,14 @@ jobs:
 
           curl -fsS "http://127.0.0.1:8080${media_url}" -o /tmp/downloaded.png
           cmp /tmp/smoke.png /tmp/downloaded.png
+
+          # Public URL is unchanged; bytes now live inside modules_data.
+          relative="${media_url#/assets/uploads/media/}"
+          docker compose exec -T app test -f "/var/www/html/writable/modules-data/data/media/$relative"
+          docker compose exec -T app test -d /var/www/html/writable/modules-data/data/media
+          docker compose exec -T app test -d /var/www/html/writable/themes-data
+          private_code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/assets/uploads/product-images/secret.txt)"
+          test "$private_code" = "404"
 
           php_code="$(curl -sS             -o /dev/null             -w '%{http_code}'             http://127.0.0.1:8080/assets/uploads/media/probe.php)"
 
@@ -554,7 +565,7 @@ jobs:
 
       - name: Verify themes survive application recreation and CLI packaging
         run: |
-          docker compose exec -T app php spark mcms:theme:pack writable/themes/installed/theme-probe /tmp/theme-probe.zip
+          docker compose exec -T app php spark mcms:theme:pack writable/themes-data/installed/theme-probe /tmp/theme-probe.zip
           docker compose exec -T app test -s /tmp/theme-probe.zip
           docker compose up -d --force-recreate app web
           for i in $(seq 1 30); do

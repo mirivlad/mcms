@@ -7,8 +7,10 @@ Demo content is optional and disabled by default. For your own test instance,
 set `MCMS_DEMO_SEED=1` before installation or a redeploy. Seeding is additive and
 runs only once per database. See [Portainer demo setup](PORTAINER.md#optional-demo-content-for-your-own-test-stack).
 
+Files live in `modules_data` / `themes_data` without extra per-module volumes (see [Storage](STORAGE.md)).
+
 Third-party themes can be added from Themes → Install theme ZIP. Preserve the
-application-only `theme_packages_data` volume when redeploying; see
+`themes_data` volume when redeploying; see
 [theme package format and lifecycle](THEMES.md).
 
 ## Docker Compose / Portainer flow

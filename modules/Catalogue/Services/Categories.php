@@ -13,8 +13,11 @@ use Throwable;
 
 final class Categories
 {
-    public function __construct(private readonly BaseConnection $db, private readonly string $directory = WRITEPATH . 'product-images/category-icons')
+    private readonly string $directory;
+
+    public function __construct(private readonly BaseConnection $db, ?string $directory = null)
     {
+        $this->directory = $directory ?? service('mcmsModuleStorage', 'catalogue')->directory('category-icons');
     }
 
     public static function icons(): array

@@ -71,13 +71,12 @@ Administration → Modules → **Install from ZIP** accepts a module archive,
 checks its manifest and dependencies, and shows a preview before adding trusted
 code. Enable the added module separately to apply its migrations. Build a package
 with `php spark mcms:module:pack modules/Example /tmp/example.zip`; for a repository,
-export the required revision first. External modules persist in
-`module_packages_data`, which must be backed up with the database. Existing
+export the required revision first. External modules and their data persist in the common
+`modules_data` volume, which must be backed up with the database. Existing
 modules cannot be replaced through this installer. See the [package contract](docs/MODULES.md#zip-package-contract).
 
 See [commerce contracts](docs/COMMERCE.md), [Catalogue](modules/Catalogue/README.md)
-and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md), [Cart](modules/Cart/README.md), [Orders](modules/Orders/README.md) and [Delivery](modules/Delivery/README.md). Back up the dedicated
-`product_images_data` volume together with the database.
+and [ProductImages](modules/ProductImages/README.md), plus [Stock](modules/Stock/README.md), [Cart](modules/Cart/README.md), [Orders](modules/Orders/README.md) and [Delivery](modules/Delivery/README.md). Back up the shared `modules_data` volume together with the database. No module needs its own volume.
 
 For your own test instance, optional one-time demo content can be enabled with
 `MCMS_DEMO_SEED=1` before installation or redeployment. The default is `0`; an
@@ -94,3 +93,7 @@ customer data, routes or deployment assumptions.
 editorial theme, available as a [ready-to-install ZIP](examples/packages/mcms-atelier-1.0.0.zip).
 Install it under Administration → Themes → Install theme ZIP; it remains
 inactive until explicitly activated. See [the package contract](docs/THEMES.md).
+
+## File storage
+
+All extensions use two shared Docker volumes: `modules_data` (module packages, uploaded files, generated data and Core files) and `themes_data` (theme packages and theme data). Module-specific volumes are not supported. See [the storage contract](docs/STORAGE.md).

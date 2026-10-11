@@ -39,14 +39,27 @@ directly exposed to the Internet. A host reverse proxy should forward to
 The persistent volumes are:
 
 - `db_data` — MariaDB;
-- `media_data` — public Media uploads shared by the PHP and nginx containers;
-- `theme_packages_data` — private installed themes and pending ZIP previews;
-- `mail_queue`;
-- `dkim_data`.
+- `modules_data` — installed third-party module code, each module's own
+  uploaded/generated files, and Core persistent storage. Media URLs are served by
+  nginx from a **read-only mount of the same volume**;
+- `themes_data` — installed third-party theme code and per-theme persistent data;
+- `mail_queue` — Postfix queue;
+- `dkim_data` — mail signing keys.
 
-Redeploying or rebuilding the stack does not remove these volumes. When upgrading
-an existing stack, add the theme volume/mount from `portainer-stack.yml` before
-installing themes. See [theme packages](THEMES.md) for the ZIP workflow and backups.
+No extension is allowed to require an additional Compose volume. Both file
+volumes are created by Docker on a fresh install; enabling or installing modules
+creates subdirectories automatically. Read [Storage](STORAGE.md) for the contract.
+
+**Development reset:** this change intentionally does not migrate the former
+`media_data`, `product_images_data`, `module_packages_data`, or
+`theme_packages_data` volumes. For a clean development installation, recreate
+the test stack/database using the new Compose configuration. Old volumes are not
+deleted automatically. Never run `docker compose down -v` against unrelated or
+production stacks.
+
+For backups/restores, preserve `db_data`, `modules_data`, `themes_data`
+and the Postfix volumes if mail queue/DKIM continuity is required. A snapshot of
+only the database does not include uploaded files or installed ZIP packages.
 
 ## 2. Reverse proxy
 

@@ -61,8 +61,7 @@ Status: Catalogue, ProductImages, Stock, Cart, Orders and Delivery implemented, 
   output is limited to 300–2400 pixels on its longest side, without upscaling.
   240px thumbnail and 800px display derivatives accompany the selected full size.
   Repeated edits always start from the unchanged original.
-- Originals live in private `writable/product-images` storage, on a dedicated
-  Docker volume. Only Catalogue serves public derivatives, after checking the
+- Originals live in private `writable/modules-data/data/product-images` storage in the shared `modules_data` Docker volume. Only Catalogue serves public derivatives, after checking the
   published product/image association. Draft images and originals stay private.
 - `/shop` lists published products; `/shop/{slug}` renders the product gallery
   and variant selector. Product resources participate in navigation, search,

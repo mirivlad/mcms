@@ -181,11 +181,11 @@ Core's existing APIs; the installer does not run Composer, npm, shell scripts or
 fetch arbitrary repositories. For a repository, export the desired revision and
 package its module directory locally before uploading the ZIP.
 
-External code is stored under `writable/modules/installed/<Name>`, separately
+External code is stored under `writable/modules-data/installed/<Name>`, separate
 from first-party `modules/`. `ModuleManager` discovers both roots and registers
 external namespaces with the CodeIgniter autoloader, including when Composer's
 production class map is authoritative. Docker and Portainer preserve this root
-in `module_packages_data`; include it in backups alongside the database. Pending
+in `modules_data`; include it in backups alongside the database. Pending
 archives are private, expire after one hour and are not discoverable modules.
 
 Publishing uses an installation lock and an atomic directory rename on the same
@@ -202,7 +202,7 @@ administrators must review their source before installation or update.
 ## Updating an installed ZIP module
 
 In Administration → Modules, use the refresh icon on an external module. This
-workflow only replaces installed ZIP packages under `writable/modules/installed`.
+workflow only replaces installed ZIP packages under `writable/modules-data/installed`.
 Built-in modules continue to ship with the application image.
 
 1. Disable the target module and every enabled module depending on it. The target
@@ -252,7 +252,7 @@ loading the target module or migrating down, then clears maintenance after FPM
 cache invalidation. The module remains disabled for inspection.
 
 Receipts, candidates, logs, previous code and the maintenance marker are private
-under `writable/modules` on `module_packages_data`. A new update retains the prior
+under `writable/modules-data` on `modules_data`. A new update retains the prior
 completed receipt/snapshot under `history/`; include this volume in backups and
 manage retained history as part of normal storage maintenance. Previous-code ZIP
 downloads require `core.modules`. A successfully applied update has no one-click
@@ -261,3 +261,7 @@ code rollback against the migrated database.
 `mcms:module:update <id> <operation-token> apply|restore` is the internal fresh
 worker command. It requires an existing matching receipt and maintenance owner;
 it cannot start an arbitrary unprepared module update.
+
+### Module-owned files
+
+Modules receive `$context->storage` in `boot()` (a `ScopedStorage`). This stores files under the single `modules_data/data/<module-id>/` root. It supports `put/get/exists/delete` relative to the module's namespace, and `directory()/path()` for legacy image processors. It cannot request another Docker volume. See [Storage](STORAGE.md).

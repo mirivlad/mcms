@@ -56,6 +56,12 @@ final class LocalStorage implements StorageInterface
         }
     }
 
+    /** Resolve a relative file path inside this storage namespace. */
+    public function path(string $path): string
+    {
+        return $this->absolutePath($path);
+    }
+
     private function absolutePath(string $path): string
     {
         if (str_contains($path, "\0")) {

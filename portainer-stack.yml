@@ -24,10 +24,8 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - media_data:/var/www/html/public/assets/uploads
-      - product_images_data:/var/www/html/writable/product-images
-      - module_packages_data:/var/www/html/writable/modules
-      - theme_packages_data:/var/www/html/writable/themes
+      - modules_data:/var/www/html/writable/modules-data
+      - themes_data:/var/www/html/writable/themes-data
 
   web:
     build:
@@ -39,7 +37,7 @@ services:
     ports:
       - "${MCMS_BIND_ADDRESS:-127.0.0.1}:${MCMS_HTTP_PORT:-8188}:80"
     volumes:
-      - media_data:/var/www/html/public/assets/uploads:ro
+      - modules_data:/var/www/html/writable/modules-data:ro
 
   db:
     image: mariadb:11.4
@@ -76,9 +74,7 @@ services:
 
 volumes:
   db_data:
-  media_data:
-  product_images_data:
-  theme_packages_data:
-  module_packages_data:
+  modules_data:
+  themes_data:
   mail_queue:
   dkim_data:

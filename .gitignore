@@ -12,8 +12,7 @@ writable/uploads/*
 public/assets/uploads/*
 !public/assets/uploads/.gitkeep
 
-writable/product-images/
 writable/demo-seed.lock
 
-writable/modules/
-writable/themes/
+writable/modules-data/
+writable/themes-data/

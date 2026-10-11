@@ -19,7 +19,7 @@ final class Module implements ModuleProviderInterface
             'media.library',
             new MediaLibrary(
                 db_connect(),
-                FCPATH . 'assets/uploads/media',
+                $context->storage->directory(),
             ),
         );
 

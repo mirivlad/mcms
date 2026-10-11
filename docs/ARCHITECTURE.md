@@ -280,3 +280,11 @@ Category management reuses news.edit permission. Used categories cannot be delet
 category IDs stay stable when names/slugs change. Category and full-tag filters
 combine with text/status filters and persist across archive pagination. The generic
 Core TagNames helper normalizes comma-delimited metadata shared with Pages and SEO.
+
+## Persistent file contract
+
+The only CMS file volumes are `modules_data` and `themes_data`, besides
+MariaDB's `db_data`. See [STORAGE.md](STORAGE.md) for paths, API, nginx
+exposure and deployment requirements. Modules must never introduce their own
+Compose volume or hardcode persistent paths. This is a pre-release breaking
+change; old development uploads are not migrated.
