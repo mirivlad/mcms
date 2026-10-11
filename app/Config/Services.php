@@ -5,6 +5,7 @@ namespace Config;
 use CodeIgniter\Config\BaseService;
 use App\Services\DemoData;
 use MCMS\Core\Admin\AdminRegistry;
+use MCMS\Core\Backup\BackupManager;
 use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
@@ -53,6 +54,7 @@ class Services extends BaseService
         $registry->addMenu('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 65, group: 'appearance');
         $registry->addMenu('settings', '@MCMS.nav.settings', '/admin/settings', 'ti ti-settings', 'core.settings', 70, group: 'administration');
         $registry->addMenu('system', '@MCMS.nav.system', '/admin/system', 'ti ti-activity', 'core.system', 90, group: 'administration');
+        $registry->addMenu('backups', '@MCMS.backups.title', '/admin/backups', 'ti ti-database-export', 'core.backups', 95, group: 'administration');
 
         $registry->addSettings('general', '@Settings.general', '/admin/settings', 'ti ti-settings', 'core.settings', 'general');
         $registry->addSettings('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 'appearance');
@@ -165,6 +167,18 @@ class Services extends BaseService
     public static function mcmsThemeStorage(string $themeId): ScopedStorage
     {
         return new ScopedStorage(WRITEPATH . 'themes-data/data', $themeId);
+    }
+
+    public static function mcmsBackups(bool $getShared = true): BackupManager
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsBackups');
+        }
+
+        return new BackupManager(WRITEPATH . 'backups', [
+            'modules_data' => WRITEPATH . 'modules-data',
+            'themes_data' => WRITEPATH . 'themes-data',
+        ]);
     }
 
     public static function mcmsStorage(bool $getShared = true): StorageInterface

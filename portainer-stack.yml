@@ -26,6 +26,7 @@ services:
     volumes:
       - modules_data:/var/www/html/writable/modules-data
       - themes_data:/var/www/html/writable/themes-data
+      - backup_data:/var/www/html/writable/backups
 
   web:
     build:
@@ -76,5 +77,6 @@ volumes:
   db_data:
   modules_data:
   themes_data:
+  backup_data:
   mail_queue:
   dkim_data:

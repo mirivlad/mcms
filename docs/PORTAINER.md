@@ -43,6 +43,7 @@ The persistent volumes are:
   uploaded/generated files, and Core persistent storage. Media URLs are served by
   nginx from a **read-only mount of the same volume**;
 - `themes_data` — installed third-party theme code and per-theme persistent data;
+- `backup_data` — downloaded backups created from the admin panel or CLI (not inside archived volumes);
 - `mail_queue` — Postfix queue;
 - `dkim_data` — mail signing keys.
 
@@ -171,3 +172,7 @@ For this first real-module acceptance test, check:
 - Media settings are saved;
 - disabling Media removes its routes/menu but preserves table/settings/files;
 - re-enabling Media brings the library back with the uploaded files intact.
+
+Site ZIP backup creation and download are available in **Administration → Backups**.
+The archives remain in the `backup_data` volume through container recreation.
+See [Backup management](BACKUPS.md) for cron, off-host copies, and restore.

@@ -5,11 +5,12 @@ are **not** migrated, adopted or cleaned up automatically.
 
 ## Volumes
 
-Only three Docker volumes belong to mCMS data:
+The website needs three data volumes; a fourth, separate system volume holds its backup archives:
 
 - `db_data`: database
 - `modules_data`: module code, installed archives and ALL module-owned files
 - `themes_data`: installed theme code and theme-owned files
+- `backup_data`: generated ZIP backups, deliberately excluded from site archives
 
 The mail service additionally retains `mail_queue` and `dkim_data`.
 Neither modules nor themes are allowed to require Compose changes or new volumes.
@@ -75,3 +76,6 @@ volumes on an unrelated deployment. On a fresh Portainer Git stack, declare
 `portainer-stack.yml` from main and let Docker create the common volumes.
 
 Backup and restore must include the database and both CMS file volumes together.
+
+Core backup archives are written to `backup_data`. No module gets its own
+volume. See [Backup management](BACKUPS.md).

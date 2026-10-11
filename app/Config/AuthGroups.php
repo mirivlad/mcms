@@ -33,6 +33,7 @@ class AuthGroups extends ShieldAuthGroups
         'core.settings' => 'Manage core and module settings.',
         'core.themes'   => 'Manage site themes and appearance.',
         'core.system'   => 'View diagnostics and perform system maintenance.',
+        'core.backups'  => 'Create and download full site backups.',
     ];
 
     public array $matrix = [

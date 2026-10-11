@@ -97,3 +97,7 @@ inactive until explicitly activated. See [the package contract](docs/THEMES.md).
 ## File storage
 
 All extensions use two shared Docker volumes: `modules_data` (module packages, uploaded files, generated data and Core files) and `themes_data` (theme packages and theme data). Module-specific volumes are not supported. See [the storage contract](docs/STORAGE.md).
+
+## Backups
+
+Create and download full-site ZIP archives from **Administration → Backups**, or schedule `php spark mcms:backup:create --keep=7` from cron. The separately mounted `backup_data` volume holds completed ZIPs, while each archive includes a transaction-consistent MariaDB SQL dump and both CMS data volumes. See [docs/BACKUPS.md](docs/BACKUPS.md).

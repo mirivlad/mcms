@@ -49,6 +49,9 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
         $routes->post($themePrefix . '/(:segment)/activate', 'Admin\Themes::activate/$1');
     }
     $routes->get('system', 'Admin\System::index', ['as' => 'admin.system']);
+    $routes->get('backups', 'Admin\Backups::index', ['as' => 'admin.backups']);
+    $routes->post('backups/create', 'Admin\Backups::create');
+    $routes->get('backups/(:segment)/download', 'Admin\Backups::download/$1');
 });
 
 $moduleManager = service('mcmsModules');

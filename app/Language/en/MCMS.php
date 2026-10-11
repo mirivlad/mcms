@@ -1,6 +1,20 @@
 <?php
 
 return [
+    'backups' => [
+        'title' => 'Backups',
+        'createTitle' => 'Create a full site backup',
+        'description' => 'Database SQL, module data and installed themes are saved in one ZIP. Large sites can take time. Finished backups are stored outside the site data volumes.',
+        'create' => 'Create backup',
+        'available' => 'Available archives',
+        'empty' => 'There are no backups yet.',
+        'filename' => 'File',
+        'size' => 'Size',
+        'created' => 'Created',
+        'download' => 'Download',
+        'success' => 'Backup ready: %s',
+        'failed' => 'Could not create or read backup.',
+    ],
     'locale' => [
         'en' => 'English',
         'ru' => 'Russian',

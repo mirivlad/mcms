@@ -633,6 +633,29 @@ jobs:
       - name: Verify explicit one-time demo data and unchanged repeat runs
         run: python3 .github/scripts/demo-smoke.py
 
+      - name: Verify admin backups, download and unattended CLI
+        run: |
+          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies             http://127.0.0.1:8080/admin/backups -o /tmp/backups-page.html
+          grep -q 'Create backup' /tmp/backups-page.html
+          csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-page.html)"
+          curl -fsS -b /tmp/mcms.cookies -c /tmp/mcms.cookies -L             --data-urlencode "csrf_test_name=$csrf"             http://127.0.0.1:8080/admin/backups/create -o /tmp/backups-created.html
+          grep -q 'Backup ready:' /tmp/backups-created.html
+          file="$(grep -oE 'mcms-[0-9]{8}T[0-9]{6}Z-[a-f0-9]{12}\.zip' /tmp/backups-created.html | head -n1)"
+          test -n "$file"
+          curl -fsS -b /tmp/mcms.cookies             "http://127.0.0.1:8080/admin/backups/$file/download"             -o /tmp/mcms-admin-download.zip
+          python3 .github/scripts/backup-archive-check.py /tmp/mcms-admin-download.zip
+          code="$(curl -sS -o /dev/null -w '%{http_code}'             "http://127.0.0.1:8080/admin/backups/$file/download")"
+          test "$code" != "200"
+          # The ZIP is not exposed as a static file, even with the exact name.
+          code="$(curl -sS -o /dev/null -w '%{http_code}'             "http://127.0.0.1:8080/writable/backups/$file")"
+          test "$code" = "404"
+          docker compose exec -T app php spark mcms:backup:create --keep=2
+          docker compose exec -T app php spark mcms:backup:create --keep=2
+          count="$(docker compose exec -T app sh -c 'ls writable/backups/mcms-*.zip | wc -l')"
+          test "$count" = "2"
+          # The backups directory is independent of the archived module volumes.
+          docker compose exec -T app test -d writable/backups
+
       - name: Verify installer is closed after setup
         run: |
           code="$(curl -sS -o /dev/null -w '%{http_code}' http://127.0.0.1:8080/install)"
