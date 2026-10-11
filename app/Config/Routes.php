@@ -52,6 +52,10 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->get('backups', 'Admin\Backups::index', ['as' => 'admin.backups']);
     $routes->post('backups/create', 'Admin\Backups::create');
     $routes->get('backups/(:segment)/download', 'Admin\Backups::download/$1');
+    $routes->post('backups/(:segment)/restore', 'Admin\Backups::prepareExisting/$1');
+    $routes->post('backups/restore/upload', 'Admin\Backups::prepareUpload');
+    $routes->get('backups/restore/confirm', 'Admin\Backups::confirm');
+    $routes->post('backups/restore/apply', 'Admin\Backups::apply');
 });
 
 $moduleManager = service('mcmsModules');

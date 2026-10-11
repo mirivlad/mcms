@@ -6,6 +6,7 @@ use CodeIgniter\Config\BaseService;
 use App\Services\DemoData;
 use MCMS\Core\Admin\AdminRegistry;
 use MCMS\Core\Backup\BackupManager;
+use MCMS\Core\Backup\RestoreManager;
 use MCMS\Core\Auth\AccessManager;
 use MCMS\Core\Install\InstallationService;
 use MCMS\Core\Modules\ModuleManager;
@@ -176,6 +177,17 @@ class Services extends BaseService
         }
 
         return new BackupManager(WRITEPATH . 'backups', [
+            'modules_data' => WRITEPATH . 'modules-data',
+            'themes_data' => WRITEPATH . 'themes-data',
+        ]);
+    }
+
+    public static function mcmsBackupRestore(bool $getShared = true): RestoreManager
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsBackupRestore');
+        }
+        return new RestoreManager(static::mcmsBackups(), WRITEPATH . 'backups', [
             'modules_data' => WRITEPATH . 'modules-data',
             'themes_data' => WRITEPATH . 'themes-data',
         ]);

@@ -173,6 +173,6 @@ For this first real-module acceptance test, check:
 - disabling Media removes its routes/menu but preserves table/settings/files;
 - re-enabling Media brings the library back with the uploaded files intact.
 
-Site ZIP backup creation and download are available in **Administration → Backups**.
+Site ZIP backup creation, download and restoration are available in **Administration → Backups**.
 The archives remain in the `backup_data` volume through container recreation.
 See [Backup management](BACKUPS.md) for cron, off-host copies, and restore.

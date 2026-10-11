@@ -51,7 +51,7 @@ release on the destination. Postfix's `mail_queue` and `dkim_data` are also
 outside site ZIP scope, as is any external mail relay or host-level config.
 Do not assume bare-metal recovery from the ZIP alone.
 
-To restore into a **stopped, clean** test installation:
+For **manual disaster recovery** into a stopped, clean installation:
 
 1. Verify every member against `manifest.json` SHA-256 and check archive
    paths for traversal before extraction.
@@ -62,8 +62,40 @@ To restore into a **stopped, clean** test installation:
 5. Start the application, run `php spark mcms:update` if required by the
    chosen release, and test login, media, catalogue and installed themes.
 
-This release does **not** yet include a one-click restore wizard. Never extract
-an untrusted ZIP as root or over a running production stack.
+## Restore from the administration panel
+
+With `core.backups` permission, open **Administration → Backups**.
+
+1. Click **Restore** beside a saved ZIP, or upload an existing mCMS ZIP from
+   your computer (**up to 1 GiB** via the standard web upload configuration).
+2. Review the backup's creation date, file count, total unpacked size and SHA-256.
+   The complete manifest is checked: paths, bytes, hashes, duplicate entries,
+   size limits, forbidden symlinks and expected data root prefixes.
+3. Type `RESTORE` and explicitly confirm that the current site will be
+   replaced. The source ZIP is privately staged inside `backup_data`.
+4. A **fresh CLI worker** sets maintenance mode and creates a safety backup
+   of the *current* database and both persistent file volumes before modifying
+   any data. While the worker is active, the website returns HTTP 503.
+5. The worker stages files on their respective volumes, replaces both sets of
+   files, imports the SQL dump, and removes maintenance mode. The admin session
+   might need a fresh login because users and permissions are restored.
+
+Status is retained in the private `backup_data/restore` directory and displayed
+on the Backups screen. The pre-restore safety ZIP is retained as a normal
+downloadable backup. If restoration fails, the worker attempts to return to
+the previous files and reimport the safety SQL automatically.
+
+**Important:** An interrupted process, full disk or failed automatic recovery
+may leave a `recovery_required` state with the site held in maintenance mode.
+Keep an off-host copy and use the safety ZIP for manual recovery as above.
+The app image itself is not rolled back; restore ZIPs only into compatible
+Core releases. Treat uploaded ZIPs as trusted administrator-supplied data:
+installed extension PHP code is executable, and ZIP inspection is not a PHP
+sandbox. Never run restoration over a production database that has not been
+backed up off-host.
+
+File-and-database snapshots are still not fully atomic if uploads are changing
+during the safety backup. Schedule planned maintenance for strict consistency.
 
 ## Consistency limitation
 

@@ -2,6 +2,30 @@
 
 return [
     'backups' => [
+        'restoreTitle' => 'Restore site',
+        'restoreIntro' => 'Select a saved backup below, or upload a ZIP. The archive is verified first; nothing changes until you explicitly confirm. Maximum upload size: 1 GiB.',
+        'chooseZip' => 'mCMS ZIP archive',
+        'inspect' => 'Inspect backup',
+        'restore' => 'Restore',
+        'restoreExpired' => 'Prepared backup is unavailable. Inspect it again.',
+        'restoreConfirmRequired' => 'Type RESTORE and acknowledge replacing the existing site.',
+        'restoreQueued' => 'Restore started. The website is temporarily unavailable. You might need to sign in again afterwards.',
+        'restoreWarning' => 'Warning! The entire database, module files and themes will be replaced. Users, orders and settings return to the backup state. A safety ZIP of the current site is created first.',
+        'typeRestore' => 'Type RESTORE to confirm',
+        'acknowledge' => 'I understand the existing site data will be replaced',
+        'startRestore' => 'Start restoration',
+        'files' => 'Files',
+        'lastRestore' => 'Last restoration',
+        'safety' => 'Safety backup',
+        'state' => [
+            'prepared' => 'Archive verified',
+            'queued' => 'Queued',
+            'running' => 'Restoring',
+            'completed' => 'Completed',
+            'failed' => 'Failed; previous data restored',
+            'recovery_required' => 'Manual recovery required',
+        ],
+
         'title' => 'Backups',
         'createTitle' => 'Create a full site backup',
         'description' => 'Database SQL, module data and installed themes are saved in one ZIP. Large sites can take time. Finished backups are stored outside the site data volumes.',

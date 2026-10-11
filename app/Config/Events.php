@@ -32,6 +32,9 @@ Events::on('register', static function ($user): void {
 Events::on('pre_system', static function (): void {
     if (! is_cli() && ENVIRONMENT !== 'testing') {
         $runtime = service('mcmsModuleRuntime');
+        if (is_file(WRITEPATH . 'backups/restore-active.json')) {
+            return;
+        }
         if ($runtime->maintenance() !== null) {
             service('mcmsModuleUpdates')->finalize();
         }

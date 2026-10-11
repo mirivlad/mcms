@@ -27,6 +27,7 @@ final class Backups extends BaseAdminController
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
             'items' => $items,
+            'lastRestore' => $this->lastRestore(),
         ]);
     }
 
@@ -46,6 +47,91 @@ final class Backups extends BaseAdminController
             log_message('error', 'Backup creation failed: {message}', ['message' => $e->getMessage()]);
             return redirect()->to('/admin/backups')->with('error', lang('MCMS.backups.failed') . ' ' . $e->getMessage());
         }
+    }
+
+    public function prepareExisting(string $name): RedirectResponse
+    {
+        if (($denied = $this->guard('core.backups')) !== null) {
+            return $denied;
+        }
+        try {
+            $state = service('mcmsBackupRestore')->prepareExisting($name, (string) auth()->id());
+            session()->set('backup_restore_preview', $state['token']);
+            return redirect()->to('/admin/backups/restore/confirm');
+        } catch (Throwable $e) {
+            return redirect()->to('/admin/backups')->with('error', $e->getMessage());
+        }
+    }
+
+    public function prepareUpload(): RedirectResponse
+    {
+        if (($denied = $this->guard('core.backups')) !== null) {
+            return $denied;
+        }
+        try {
+            $upload = $this->request->getFile('archive');
+            if ($upload === null || ! $upload->isValid() || ! $upload->isFile()) {
+                throw new \RuntimeException('Select a valid ZIP archive.');
+            }
+            $state = service('mcmsBackupRestore')->prepareUpload($upload->getTempName(), (string) auth()->id());
+            session()->set('backup_restore_preview', $state['token']);
+            return redirect()->to('/admin/backups/restore/confirm');
+        } catch (Throwable $e) {
+            return redirect()->to('/admin/backups')->with('error', $e->getMessage());
+        }
+    }
+
+    public function confirm(): string|RedirectResponse
+    {
+        if (($denied = $this->guard('core.backups')) !== null) {
+            return $denied;
+        }
+        $token = session()->get('backup_restore_preview');
+        $state = is_string($token) ? service('mcmsBackupRestore')->state($token) : null;
+        if ($state === null || ($state['status'] ?? null) !== 'prepared'
+            || (string) ($state['owner'] ?? '') !== (string) auth()->id()) {
+            return redirect()->to('/admin/backups')->with('error', lang('MCMS.backups.restoreExpired'));
+        }
+        return view('admin/backups/confirm', [
+            'title' => lang('MCMS.backups.restoreTitle'),
+            'adminMenu' => $this->adminMenu(),
+            'user' => auth()->user(),
+            'state' => $state,
+        ]);
+    }
+
+    public function apply(): RedirectResponse
+    {
+        if (($denied = $this->guard('core.backups')) !== null) {
+            return $denied;
+        }
+        try {
+            $token = session()->get('backup_restore_preview');
+            if (! is_string($token) || ! hash_equals($token, (string) $this->request->getPost('token'))
+                || $this->request->getPost('confirmation') !== 'RESTORE'
+                || $this->request->getPost('acknowledge') !== '1') {
+                throw new \RuntimeException(lang('MCMS.backups.restoreConfirmRequired'));
+            }
+            $restore = service('mcmsBackupRestore');
+            $restore->begin($token, (string) auth()->id());
+            session()->remove('backup_restore_preview');
+            session()->set('backup_restore_last', $token);
+            // A fresh CLI process handles module source and DB replacement;
+            // it must never share the FPM request's module lock or session.
+            session()->close();
+            $restore->launch($token);
+            session()->start();
+            return redirect()->to('/admin/backups')->with('message', lang('MCMS.backups.restoreQueued'));
+        } catch (Throwable $e) {
+            session()->start();
+            return redirect()->to('/admin/backups')->with('error', $e->getMessage());
+        }
+    }
+
+    private function lastRestore(): ?array
+    {
+        $token = session()->get('backup_restore_last');
+        return is_string($token) ? service('mcmsBackupRestore')->state($token) : null;
     }
 
     public function download(string $name): DownloadResponse|RedirectResponse

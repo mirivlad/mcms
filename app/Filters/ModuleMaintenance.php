@@ -12,6 +12,18 @@ final class ModuleMaintenance implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        // Full-site restore blocks the entire app, including the API. This flag
+        // lives on backup_data and survives replacement of modules_data.
+        if (is_file(WRITEPATH . 'backups/restore-active.json')) {
+            if (trim($request->getUri()->getPath(), '/') === '_health') {
+                return null;
+            }
+            return service('response')->setStatusCode(503)
+                ->setHeader('Retry-After', '10')
+                ->setHeader('Refresh', '10')
+                ->setHeader('Cache-Control', 'no-store')
+                ->setBody(view('maintenance'));
+        }
         $flag = service('mcmsModuleRuntime')->maintenance();
         if ($flag === null) {
             return null;
