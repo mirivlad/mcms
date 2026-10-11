@@ -7,6 +7,7 @@ namespace MCMS\Core\Backup;
 use Closure;
 use FilesystemIterator;
 use InvalidArgumentException;
+use MCMS\Core\Version;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
@@ -94,6 +95,20 @@ final class BackupManager
             $opened = true;
 
             $files = [];
+            // A signed-off backup is always tied to an exact mCMS Core version.
+            // Keep the descriptor as an actual ZIP member, covered by the
+            // manifest's SHA-256 just like database.sql and extension files.
+            $versionJson = json_encode([
+                'application' => 'mCMS',
+                'version' => Version::VERSION,
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
+            if (! $zip->addFromString('app-version.json', $versionJson)) {
+                throw new RuntimeException('Cannot add application version to the archive.');
+            }
+            $files['app-version.json'] = [
+                'size' => strlen($versionJson),
+                'sha256' => hash('sha256', $versionJson),
+            ];
             $this->addFile($zip, $dumpPath, 'database.sql', $files);
             foreach ($this->roots as $prefix => $root) {
                 if (! in_array($prefix, ['modules_data', 'themes_data'], true)) {

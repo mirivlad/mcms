@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use MCMS\Core\Backup\BackupManager;
+use MCMS\Core\Version;
 use PHPUnit\Framework\TestCase;
 
 final class BackupManagerTest extends TestCase
@@ -60,6 +61,9 @@ final class BackupManagerTest extends TestCase
             $manifest = json_decode((string) $zip->getFromName('manifest.json'), true, flags: JSON_THROW_ON_ERROR);
             self::assertSame('mcms-full-backup-v1', $manifest['format']);
             self::assertSame('CREATE TABLE example (id int);', $zip->getFromName('database.sql'));
+            $version = json_decode((string) $zip->getFromName('app-version.json'), true, flags: JSON_THROW_ON_ERROR);
+            self::assertSame(['application' => 'mCMS', 'version' => Version::VERSION], $version);
+            self::assertArrayHasKey('app-version.json', $manifest['files']);
             self::assertSame('photo bytes', $zip->getFromName('modules_data/media/2026/photo.txt'));
             self::assertSame('{"id":"atelier"}', $zip->getFromName('themes_data/installed/atelier/theme.json'));
             foreach ($manifest['files'] as $name => $info) {

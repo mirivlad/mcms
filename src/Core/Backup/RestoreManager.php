@@ -84,6 +84,7 @@ final class RestoreManager
                 'label' => $label,
                 'sha256' => hash_file('sha256', $candidate),
                 'created_at' => $report['created_at'],
+                'app_version' => $report['app_version'],
                 'files' => count($report['files']),
                 'bytes' => $report['bytes'],
                 'status' => 'prepared',
@@ -119,6 +120,8 @@ final class RestoreManager
             if (! is_file($archive) || ! hash_equals($state['sha256'], (string) hash_file('sha256', $archive))) {
                 throw new RuntimeException('Prepared archive has changed.');
             }
+            // Fail BEFORE entering maintenance or preparing destructive work.
+            BackupArchive::assertCompatible((string) ($state['app_version'] ?? ''));
             $state['status'] = 'queued';
             $this->writeState($state);
             // Set the maintenance flag only after active HTTP requests drain.
@@ -177,7 +180,8 @@ final class RestoreManager
             if (! hash_equals($state['sha256'], (string) hash_file('sha256', $archive))) {
                 throw new RuntimeException('Restore ZIP changed during execution.');
             }
-            BackupArchive::inspect($archive);
+            $inspection = BackupArchive::inspect($archive);
+            BackupArchive::assertCompatible($inspection['app_version']);
 
             // Preserve the current site before changing a single DB table or data file.
             $safety = $this->backups->create();

@@ -3,10 +3,12 @@
 import hashlib
 import html
 import http.cookiejar
+import io
 import json
 import re
 import subprocess
 import time
+import zipfile
 import urllib.parse
 import urllib.request
 import urllib.error
@@ -108,4 +110,44 @@ request = urllib.request.Request(BASE + '/admin/backups/restore/upload', form, {
 reply = client.open(request, timeout=40)
 assert reply.url.endswith('/admin/backups/restore/confirm'), reply.url
 assert 'Uploaded ZIP' in reply.read().decode()
-print('Restore smoke passed: database, module files, recovery ZIP, admin upload, permission-safe flow.')
+
+# Forge a well-formed backup from another mCMS version (all manifest hashes
+# corrected) and verify the admin preview cannot offer a restore button.
+with zipfile.ZipFile(io.BytesIO(backup_bytes)) as original_zip:
+    files = {item: original_zip.read(item) for item in original_zip.namelist()}
+metadata = json.loads(files['app-version.json'])
+installed_version = metadata['version']
+assert installed_version != '9.9.9'
+metadata['version'] = '9.9.9'
+files['app-version.json'] = (json.dumps(metadata) + '\n').encode()
+manifest = json.loads(files['manifest.json'])
+manifest['files']['app-version.json'] = {
+    'size': len(files['app-version.json']),
+    'sha256': hashlib.sha256(files['app-version.json']).hexdigest(),
+}
+files['manifest.json'] = json.dumps(manifest).encode()
+buffer = io.BytesIO()
+with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as changed_zip:
+    for path, content in files.items():
+        changed_zip.writestr(path, content)
+
+source = page('/admin/backups')[0]
+csrf = re.search(r'name="csrf_test_name"[^>]*value="([^"]+)"', source)[1]
+form = (b'--' + boundary.encode() + b'\r\n'
+        + b'Content-Disposition: form-data; name="csrf_test_name"\r\n\r\n'
+        + csrf.encode() + b'\r\n'
+        + b'--' + boundary.encode() + b'\r\n'
+        + b'Content-Disposition: form-data; name="archive"; filename="old-version.zip"\r\n'
+        + b'Content-Type: application/zip\r\n\r\n'
+        + buffer.getvalue() + b'\r\n--' + boundary.encode() + b'--\r\n')
+request = urllib.request.Request(BASE + '/admin/backups/restore/upload', form, {
+    'Content-Type': 'multipart/form-data; boundary=' + boundary,
+})
+reply = client.open(request, timeout=40)
+assert reply.url.endswith('/admin/backups/restore/confirm'), reply.url
+preview = html.unescape(reply.read().decode())
+assert '9.9.9' in preview and installed_version in preview
+assert 'requires mCMS 9.9.9' in preview, preview[-1000:]
+assert 'name="confirmation"' not in preview
+exec_app('test', '!', '-e', 'writable/backups/restore-active.json')
+print('Restore smoke passed: SQL and files, safety copy, upload, version mismatch blocked.')

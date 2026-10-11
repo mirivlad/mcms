@@ -8,6 +8,8 @@ use CodeIgniter\HTTP\DownloadResponse;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Exceptions\PageNotFoundException;
 use Throwable;
+use MCMS\Core\Version;
+use MCMS\Core\Backup\BackupArchive;
 
 final class Backups extends BaseAdminController
 {
@@ -97,6 +99,8 @@ final class Backups extends BaseAdminController
             'adminMenu' => $this->adminMenu(),
             'user' => auth()->user(),
             'state' => $state,
+            'currentVersion' => Version::VERSION,
+            'versionCompatible' => BackupArchive::isCompatible((string) ($state['app_version'] ?? '')),
         ]);
     }
 

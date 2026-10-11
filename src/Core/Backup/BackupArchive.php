@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace MCMS\Core\Backup;
 
 use RuntimeException;
+use MCMS\Core\Version;
 use ZipArchive;
 
 /**
@@ -16,7 +17,7 @@ final class BackupArchive
     private const MAX_FILES = 50000;
     private const MAX_BYTES = 12 * 1024 * 1024 * 1024; // 12 GiB unpacked
 
-    /** @return array{created_at:string,files:array<string,array{size:int,sha256:string}>,bytes:int} */
+    /** @return array{created_at:string,app_version:string,files:array<string,array{size:int,sha256:string}>,bytes:int} */
     public static function inspect(string $archive): array
     {
         $zip = new ZipArchive();
@@ -37,6 +38,9 @@ final class BackupArchive
                 throw new RuntimeException('Unsupported backup manifest format.');
             }
             $files = $manifest['files'];
+            if (! isset($files['app-version.json'])) {
+                throw new RuntimeException('Backup has no app-version.json; its mCMS version cannot be verified. Create a new backup.');
+            }
             if (count($files) !== $zip->numFiles - 1 || ! isset($files['database.sql'])) {
                 throw new RuntimeException('Backup manifest does not match archive.');
             }
@@ -98,9 +102,41 @@ final class BackupArchive
                     throw new RuntimeException('Backup checksum mismatch: ' . $name);
                 }
             }
-            return ['created_at' => $manifest['created_at'], 'files' => $files, 'bytes' => $bytes];
+            $descriptor = $zip->getFromName('app-version.json');
+            if (! is_string($descriptor) || strlen($descriptor) > 4096) {
+                throw new RuntimeException('Invalid application version file in backup.');
+            }
+            $metadata = json_decode($descriptor, true);
+            if (! is_array($metadata) || ($metadata['application'] ?? null) !== 'mCMS'
+                || ! is_string($metadata['version'] ?? null)
+                || preg_match('/^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][a-zA-Z0-9.-]+)?$/D', $metadata['version']) !== 1) {
+                throw new RuntimeException('Invalid mCMS version metadata in backup.');
+            }
+            return [
+                'created_at' => $manifest['created_at'],
+                'app_version' => $metadata['version'],
+                'files' => $files,
+                'bytes' => $bytes,
+            ];
         } finally {
             $zip->close();
+        }
+    }
+
+    public static function isCompatible(string $archiveVersion): bool
+    {
+        return $archiveVersion === Version::VERSION;
+    }
+
+    public static function assertCompatible(string $archiveVersion): void
+    {
+        if (! self::isCompatible($archiveVersion)) {
+            throw new RuntimeException(sprintf(
+                'Backup requires mCMS %s; currently installed mCMS is %s. Install version %s before restoring.',
+                $archiveVersion,
+                Version::VERSION,
+                $archiveVersion,
+            ));
         }
     }
 
@@ -118,7 +154,7 @@ final class BackupArchive
                 if (! is_string($name) || ! self::safePath($name)) {
                     throw new RuntimeException('Unsafe path during archive extraction.');
                 }
-                if ($name === 'manifest.json') {
+                if (in_array($name, ['manifest.json', 'app-version.json'], true)) {
                     continue;
                 }
                 if ($name === 'database.sql') {
@@ -174,6 +210,7 @@ final class BackupArchive
             }
         }
         return $path === 'manifest.json' || $path === 'database.sql'
+            || $path === 'app-version.json'
             || str_starts_with($path, 'modules_data/')
             || str_starts_with($path, 'themes_data/');
     }

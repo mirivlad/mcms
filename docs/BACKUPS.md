@@ -41,6 +41,7 @@ password hashes, licensed assets and extension PHP code.
 
 ```text
 manifest.json             # format marker, timestamps, file sizes and SHA-256
+app-version.json          # application: mCMS, version: e.g. 0.1.6
 database.sql              # MariaDB logical dump, --single-transaction
 modules_data/...          # all installed extension code and module data
 themes_data/...           # all installed themes and theme-owned files
@@ -71,12 +72,18 @@ With `core.backups` permission, open **Administration → Backups**.
 2. Review the backup's creation date, file count, total unpacked size and SHA-256.
    The complete manifest is checked: paths, bytes, hashes, duplicate entries,
    size limits, forbidden symlinks and expected data root prefixes.
-3. Type `RESTORE` and explicitly confirm that the current site will be
+3. Before confirmation, the preview compares `app-version.json` to the
+   running `MCMS\Core\Version::VERSION`. If they differ, both versions are
+   shown, the **Restore** form is disabled, and the exact version required by
+   the archive is displayed. An archive without the version file is also
+   rejected, because its compatibility cannot be established. The version
+   descriptor has its own SHA-256 entry in `manifest.json`.
+4. Type `RESTORE` and explicitly confirm that the current site will be
    replaced. The source ZIP is privately staged inside `backup_data`.
-4. A **fresh CLI worker** sets maintenance mode and creates a safety backup
+5. A **fresh CLI worker** sets maintenance mode and creates a safety backup
    of the *current* database and both persistent file volumes before modifying
    any data. While the worker is active, the website returns HTTP 503.
-5. The worker stages files on their respective volumes, replaces both sets of
+6. The worker stages files on their respective volumes, replaces both sets of
    files, imports the SQL dump, and removes maintenance mode. The admin session
    might need a fresh login because users and permissions are restored.
 
@@ -106,3 +113,11 @@ the manifest, but cannot provide an **atomic snapshot across MariaDB and
 files actively changed by other requests**. Schedule routine backups at quiet
 times or place the website in maintenance mode externally for strict
 database/files cross-consistency. This limitation is not hidden by the UI.
+
+Restore compatibility is intentionally **exact mCMS Core version equality**,
+not merely compatible major/minor. The same check runs again immediately before
+maintenance starts and inside the restoration worker, so upgrading mCMS between
+inspection and execution cannot bypass the guard. Bump `Version::VERSION` for
+releases that change the recoverable data format. Older ZIPs without
+`app-version.json` remain downloadable but cannot be restored through the
+admin interface: recreate the backup under an identified release first.

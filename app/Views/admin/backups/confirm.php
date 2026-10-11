@@ -18,6 +18,10 @@
             <dd class="col-sm-8"><?= esc($state['label']) ?></dd>
             <dt class="col-sm-4"><?= esc(lang('MCMS.backups.created')) ?></dt>
             <dd class="col-sm-8"><?= esc($state['created_at']) ?></dd>
+            <dt class="col-sm-4"><?= esc(lang('MCMS.backups.archiveVersion')) ?></dt>
+            <dd class="col-sm-8"><?= esc($state['app_version']) ?></dd>
+            <dt class="col-sm-4"><?= esc(lang('MCMS.backups.installedVersion')) ?></dt>
+            <dd class="col-sm-8"><?= esc($currentVersion) ?></dd>
             <dt class="col-sm-4"><?= esc(lang('MCMS.backups.files')) ?></dt>
             <dd class="col-sm-8"><?= esc((string) $state['files']) ?></dd>
             <dt class="col-sm-4"><?= esc(lang('MCMS.backups.size')) ?></dt>
@@ -25,6 +29,15 @@
             <dt class="col-sm-4">SHA-256</dt>
             <dd class="col-sm-8 text-break"><?= esc($state['sha256']) ?></dd>
         </dl>
+        <?php if (! $versionCompatible): ?>
+            <div class="alert alert-danger" role="alert">
+                <i class="ti ti-alert-circle me-2"></i>
+                <?= esc(sprintf(lang('MCMS.backups.versionMismatch'), $state['app_version'], $currentVersion, $state['app_version'])) ?>
+            </div>
+            <a href="<?= site_url('admin/backups') ?>" class="btn btn-outline-secondary">
+                <?= esc(lang('MCMS.common.cancel')) ?>
+            </a>
+        <?php else: ?>
         <form method="post" action="<?= site_url('admin/backups/restore/apply') ?>">
             <?= csrf_field() ?>
             <input type="hidden" name="token" value="<?= esc($state['token'], 'attr') ?>">
@@ -37,6 +50,7 @@
             <button type="submit" class="btn btn-danger"><?= esc(lang('MCMS.backups.startRestore')) ?></button>
             <a href="<?= site_url('admin/backups') ?>" class="btn btn-link"><?= esc(lang('MCMS.common.cancel')) ?></a>
         </form>
+        <?php endif ?>
     </div>
 </div>
 <?= $this->endSection() ?>

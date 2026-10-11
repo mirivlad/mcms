@@ -2,6 +2,10 @@
 
 return [
     'backups' => [
+        'archiveVersion' => 'mCMS version in backup',
+        'installedVersion' => 'Installed mCMS version',
+        'versionMismatch' => 'Restore blocked. This backup requires mCMS %s, but mCMS %s is installed. Install version %s and inspect the archive again.',
+
         'restoreTitle' => 'Restore site',
         'restoreIntro' => 'Select a saved backup below, or upload a ZIP. The archive is verified first; nothing changes until you explicitly confirm. Maximum upload size: 1 GiB.',
         'chooseZip' => 'mCMS ZIP archive',
