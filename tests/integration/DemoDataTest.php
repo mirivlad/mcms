@@ -153,7 +153,7 @@ final class DemoDataTest extends CIUnitTestCase
     public function testSeedRecognizesAndPreservesEnabledExternalPackages(): void
     {
         $this->install();
-        $dir = WRITEPATH . 'modules/installed/DemoSeedProbe';
+        $dir = WRITEPATH . 'modules-data/installed/DemoSeedProbe';
         self::assertDirectoryDoesNotExist($dir);
         mkdir($dir, 0755, true);
         try {

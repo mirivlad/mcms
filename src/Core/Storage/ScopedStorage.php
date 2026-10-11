@@ -21,7 +21,7 @@ final class ScopedStorage implements StorageInterface
 
     public function __construct(string $dataRoot, string $ownerId)
     {
-        if (preg_match('/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/D', $ownerId) !== 1) {
+        if (preg_match('/^[a-z][a-z0-9_-]*$/D', $ownerId) !== 1) {
             throw new InvalidArgumentException('Unsafe storage owner id.');
         }
 

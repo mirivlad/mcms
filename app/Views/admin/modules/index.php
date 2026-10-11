@@ -60,14 +60,14 @@
                             <?= esc($enabled
                                 ? lang('MCMS.modules.enabled')
                                 : (isset($states[$id]) ? lang('MCMS.modules.disabled')
-                                    : lang(str_starts_with($module->path, WRITEPATH . 'modules/installed/')
+                                    : lang(str_starts_with($module->path, WRITEPATH . 'modules-data/installed/')
                                         ? 'MCMS.modules.packageReady' : 'MCMS.modules.notInstalled'))) ?>
                         </span>
                     </td>
                     <td><?= esc(implode(', ', array_map(static fn ($d) => is_array($d) ? ($d['id'] ?? '?') : $d, $module->requires)) ?: '—') ?></td>
                     <td>
                         <div class="d-flex gap-1">
-                        <?php if (str_starts_with($module->path, WRITEPATH . 'modules/installed/')): ?>
+                        <?php if (str_starts_with($module->path, WRITEPATH . 'modules-data/installed/')): ?>
                             <a class="btn btn-outline-secondary btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/modules/' . rawurlencode($id) . '/update') ?>" aria-label="<?= esc(lang('MCMS.modules.update'), 'attr') ?>" title="<?= esc(lang('MCMS.modules.update'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-refresh" aria-hidden="true"></i></a>
                         <?php endif ?>
                         <?php if ($maintenance === null): ?>

@@ -34,6 +34,9 @@ final class ScopedStorageTest extends TestCase
     {
         $media = new ScopedStorage($this->root, 'media');
         $images = new ScopedStorage($this->root, 'product-images');
+        $legacyId = new ScopedStorage($this->root, 'demo_seed_probe');
+        $legacyId->put('test.txt', 'ok');
+        self::assertSame('ok', $legacyId->get('test.txt'));
 
         $media->put('2026/10/photo.png', 'media');
         $images->put('2026/10/photo.png', 'image');
