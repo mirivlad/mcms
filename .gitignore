@@ -18,3 +18,6 @@ writable/modules-data/
 writable/themes-data/
 
 writable/backups/
+
+__pycache__/
+*.pyc
