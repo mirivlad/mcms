@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let saving = false;
     function fields() {
         synchronizing = true;
-        editor.dispatchEvent(new Event('input', {bubbles:true}));
+        editor.dispatchEvent(new Event('mcms:content-sync'));
         synchronizing = false;
         const body = new FormData(form);
         body.set('content_id', String(id));
@@ -109,8 +109,9 @@ document.addEventListener('DOMContentLoaded', () => {
             field.value = value;
             field.dispatchEvent(new Event('change', {bubbles:true}));
         }
-        editor.innerHTML = data.body || '';
-        editor.dispatchEvent(new Event('input', {bubbles:true}));
+        editor.dispatchEvent(new CustomEvent('mcms:content-restore', {detail:{html: data.body || ''}}));
+        // A restored source must be autosaved without DOM reserialization.
+        form.elements.namedItem('body').dispatchEvent(new Event('input', {bubbles:true}));
         const featured = document.getElementById('featured-preview-image');
         if (featured) {
             featured.src = data.featured_image_url || '';
