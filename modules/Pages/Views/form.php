@@ -35,6 +35,17 @@
     height: 2.25rem;
     padding: 0;
 }
+.mcms-editor-toolbar [data-html-source-toggle] {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0 .65rem;
+    margin-left: auto;
+}
+.mcms-editor-source {
+    min-height: 24rem;
+    resize: vertical;
+    tab-size: 4;
+}
 .mcms-editor-toolbar .mcms-editor-toolbar-separator {
     flex: 0 0 1px;
     width: 1px;
