@@ -148,8 +148,26 @@ final class Themes extends BaseAdminController
                 $assignments[$locationId] = $menuIds[$index] ?? null;
             }
 
+            $extraAssignments = [];
+            $extraLocations = $this->request->getPost('extra_location');
+            $extraSources = $this->request->getPost('extra_source');
+            $extraVisibility = $this->request->getPost('extra_visibility');
+            if (is_array($extraLocations) && is_array($extraSources) && is_array($extraVisibility)) {
+                foreach ($extraLocations as $index => $locationId) {
+                    if (! is_string($locationId) || ! isset($theme->menuLocations[$locationId])) {
+                        continue;
+                    }
+                    $extraAssignments[$locationId][] = [
+                        'source' => is_string($extraSources[$index] ?? null) ? $extraSources[$index] : '',
+                        'visibility' => is_string($extraVisibility[$index] ?? null) ? $extraVisibility[$index] : 'all',
+                    ];
+                }
+            }
             try {
-                $manager->saveMenuAssignments($theme->id, $assignments);
+                $manager->saveExtraMenuAssignments($theme->id, $extraAssignments);
+                if ($manager->menusAvailable()) {
+                    $manager->saveMenuAssignments($theme->id, $assignments);
+                }
 
                 return redirect()->to($this->settingsPath('/admin/themes/' . $theme->id))->with(
                     'message',
@@ -170,6 +188,8 @@ final class Themes extends BaseAdminController
             'menusAvailable' => $manager->menusAvailable(),
             'menus' => $manager->availableMenus(),
             'assignments' => $manager->menuAssignments($theme),
+            'extraSources' => $manager->availableExtraMenuSources(),
+            'extraAssignments' => $manager->extraMenuAssignments($theme),
             'appearance' => $manager->appearance($theme),
             'homeContent' => $manager->homeContent($theme),
             'imagesAvailable' => $manager->imagesAvailable(),

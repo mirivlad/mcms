@@ -55,6 +55,47 @@ php spark mcms:theme:pack /path/to/export /tmp/studio.zip
 The output must not already exist. The command validates bytes and metadata;
 it does not execute or certify the PHP template code.
 
+## Dynamic menu sources and conditional assignments
+
+The mCMS 0.1.x Theme API keeps its original
+`Core.themeMenuAssignments` contract: every theme location still accepts one
+primary Menus menu. It additionally supports **up to two ordered extra menus
+per location**, configured under Administration → Themes → Configure. Extras
+are stored separately in `Core.themeExtraMenus`; switching themes preserves
+each theme's assignments and existing theme ZIPs require no migration.
+
+Each extra entry selects a source and visibility rule:
+
+- `menu:<id>` refers to a normal Menus tree (it stays editable in Menus).
+- `dynamic:catalogue.categories` follows live public Catalogue categories
+  without copying category records into Menus.
+- Visibility rules: all pages, shop pages, pages, news or product pages.
+  Conditions are evaluated against the logical template while rendering,
+  not against the visitor-controlled URL or query string.
+
+Existing custom themes continue to receive the same `themeMenus` array by
+location. The additional trees are appended to the old primary tree in
+assignment order; `max_depth` from `theme.json` remains effective. If a
+source module is disabled or removed, its assignment stays saved but produces
+no public items, and returns when that provider is re-enabled.
+
+A module can expose another generated source by implementing
+`MCMS\Core\Themes\DynamicMenuSourceInterface` and registering its service
+in the module runtime:
+
+```php
+$context->services->register('my-module.menu', new MyDynamicMenuSource());
+```
+
+A source has a stable, unique `id()`, a translated `label()` and a read-only
+`tree()` of `label`, `url` and `children` values following the normal
+Menus tree structure. It must return only public resources, and should not
+depend on another optional module being enabled.
+
+The Catalogue's separate `/admin/catalogue/settings` also lets a store use
+a regular Menus tree as additional shop navigation, and controls the category
+tree display (full, collapsible or horizontal).
+
 ## Storage and lifecycle
 
 Preview archives are private in `writable/themes-data/pending`, expire after one hour,

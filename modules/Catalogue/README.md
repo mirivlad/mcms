@@ -54,3 +54,26 @@ Catalogue 0.2.4 adds `catalogue.settings`, a Store management settings link and
 central `/admin/settings/catalogue` alias to the same form/handler. Public shop
 and category/filter pages use `catalogue.per_page` (1–100, default 24).
 Administration pagination is unchanged; invalid values are rejected before saving.
+
+## Catalogue navigation (0.2.5)
+
+`/admin/catalogue/settings` now controls category navigation style:
+
+- `tree` (default): all published category branches and descendants shown in a tree.
+- `collapsed`: top-level categories initially visible, nested groups expanded with
+  accessible buttons. The category name remains a navigable link.
+- `horizontal`: top-level categories arranged horizontally with click/touch dropdowns;
+  the layout becomes vertical on small screens. Escape closes open dropdowns.
+
+The tree is generated **at render time** from published products' categories and
+ancestors. Categories do not need to be copied into Menus or manually synchronized.
+`catalogue.menu` implements `MCMS\Core\Themes\DynamicMenuSourceInterface` with
+source ID `catalogue.categories`; it can be assigned to any theme menu location
+under Admin → Themes → Configure → Additional menus, independently of the
+shop-specific category navigation style. The theme's declared maximum depth
+still applies in that location.
+
+The same Catalogue settings page optionally selects an existing menu from Menus
+as an additional shop menu, shown on listing/category pages or on all shop pages
+(including product cards). When Menus is disabled, the configured ID is preserved
+and the extra menu is hidden, not deleted. Other themes do not need changes.

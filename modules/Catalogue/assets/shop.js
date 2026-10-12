@@ -122,3 +122,34 @@
     }, {passive: true});
     dialog.addEventListener('close', () => link.focus());
 })();
+
+document.addEventListener('click', event => {
+    const control = event.target.closest('[data-mcms-cat-toggle]');
+    if (!control) return;
+    const menu = control.closest('.mcms-shop-categories');
+    const target = document.getElementById(control.getAttribute('aria-controls'));
+    if (!menu || !target || !menu.contains(target)) return;
+    const expanding = target.hidden;
+    target.hidden = !expanding;
+    control.setAttribute('aria-expanded', expanding ? 'true' : 'false');
+    if (expanding && menu.classList.contains('mcms-shop-cat-horizontal')) {
+        menu.querySelectorAll('[data-mcms-cat-toggle]').forEach(other => {
+            if (other === control || other.contains(control)) return;
+            const panel = document.getElementById(other.getAttribute('aria-controls'));
+            if (panel && panel !== target && !panel.contains(control)) {
+                panel.hidden = true;
+                other.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+});
+document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    const menu = event.target.closest('.mcms-shop-cat-horizontal');
+    if (!menu) return;
+    menu.querySelectorAll('[data-mcms-cat-toggle][aria-expanded="true"]').forEach(control => {
+        const panel = document.getElementById(control.getAttribute('aria-controls'));
+        if (panel) panel.hidden = true;
+        control.setAttribute('aria-expanded', 'false');
+    });
+});

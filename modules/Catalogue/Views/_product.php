@@ -54,3 +54,4 @@
 <?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
 <?php endif ?>
 </article>
+<?= view('MCMS\\Modules\\Catalogue\\Views\\secondary_menu', ['menu' => $secondaryMenu ?? []]) ?>

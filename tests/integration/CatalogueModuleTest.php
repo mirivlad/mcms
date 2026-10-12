@@ -73,6 +73,36 @@ final class CatalogueModuleTest extends CIUnitTestCase
                 ['sku' => strtoupper($slug) . '-500', 'label' => '500 g', 'price' => '2400']]];
     }
 
+    public function testDynamicMenuUsesPublishedCategoriesAndTheirAncestors(): void
+    {
+        $parent = $this->categories->save(null, [
+            'name' => 'Books', 'slug' => 'books', 'parent_id' => '',
+            'icon_type' => 'tabler', 'icon' => 'folder', 'icon_color' => '#206bc4',
+        ]);
+        $child = $this->categories->save(null, [
+            'name' => 'Science', 'slug' => 'science', 'parent_id' => (string) $parent['id'],
+            'icon_type' => 'tabler', 'icon' => 'folder', 'icon_color' => '#206bc4',
+        ]);
+        $this->categories->save(null, [
+            'name' => 'Unused', 'slug' => 'unused', 'parent_id' => '',
+            'icon_type' => 'tabler', 'icon' => 'folder', 'icon_color' => '#206bc4',
+        ]);
+        $menu = $this->services->get('catalogue.menu');
+        self::assertInstanceOf(\MCMS\Core\Themes\DynamicMenuSourceInterface::class, $menu);
+        self::assertSame('catalogue.categories', $menu->id());
+        self::assertSame([], $menu->tree());
+
+        $product = $this->data($this->images->createSet(1), 'nav-product');
+        $product['category_id'] = (string) $child['id'];
+        $this->catalogue->save(null, $product, 1);
+
+        $tree = $menu->tree();
+        self::assertSame(['Books'], array_column($tree, 'label'));
+        self::assertSame('Science', $tree[0]['children'][0]['label']);
+        self::assertSame('/shop/category/science', $tree[0]['children'][0]['url']);
+        self::assertSame($parent['id'], $tree[0]['id']);
+    }
+
     public function testModuleBoundaryAndDisablePreserveData(): void
     {
         self::assertTrue($this->services->has('product-images.library'));

@@ -78,8 +78,9 @@
 - [ ] Comments follow-up: controls on individual resources, threaded reply UI, Notifications adapter and moderation refinements.
 - [x] Ratings v0.1: independent five-star votes, one mutable vote per user/resource, average and distribution, admin deletion and optional Captcha-guarded guest mode.
 - [ ] Ratings follow-up: suspicious-vote analytics, verified purchase badges and stronger guest deduplication.
-- [ ] Menus 2.0: dynamic menu sources, context visibility rules and multiple ordered assignments per theme location while preserving existing assignments.
-- [ ] Catalogue navigation: full category tree (default), collapsed first-level tree and horizontal dropdown; optional shop secondary menu, mobile behavior and theme integration.
+- [x] Menus 2.0 foundation: dynamic menu sources, page-type visibility conditions and two ordered secondary menus per existing theme location without altering primary assignments.
+- [ ] Menus 2.0 follow-up: per-resource visibility, admin ordering beyond two slots and richer custom theme locations.
+- [x] Catalogue navigation v0.2.5: full category tree (default), collapsible first-level tree and horizontal dropdown with responsive controls, plus optional shop secondary menu and Theme API integration.
 
 ## Reference policy
 

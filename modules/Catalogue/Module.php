@@ -10,6 +10,7 @@ use MCMS\Core\Modules\ModuleProviderInterface;
 use MCMS\Modules\Catalogue\Navigation\Archive;
 use MCMS\Modules\Catalogue\Navigation\Products;
 use MCMS\Modules\Catalogue\Navigation\Categories as CategoryNavigation;
+use MCMS\Modules\Catalogue\Navigation\CategoryMenu;
 use MCMS\Modules\Catalogue\Services\Categories;
 use MCMS\Modules\Catalogue\Services\Catalogue;
 use MCMS\Modules\Catalogue\Services\PublicSearch;
@@ -23,6 +24,7 @@ final class Module implements ModuleProviderInterface
         $context->services->register('catalogue.exchange', $repository);
         $categories = new Categories(db_connect(), $context->storage->directory('category-icons'));
         $context->services->register('catalogue.categories', $categories);
+        $context->services->register('catalogue.menu', new CategoryMenu($categories));
         $context->services->register('catalogue.search', new PublicSearch($repository));
         $context->navigation->register(new Archive());
         $context->navigation->register(new Products($repository));

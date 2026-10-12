@@ -15,7 +15,8 @@
     </header>
     <form class="mcms-shop-filter" method="get" action="<?= site_url('shop') ?>"><input class="form-control" name="q" value="<?= esc($query, 'attr') ?>" placeholder="<?= esc(lang('Catalogue.search'), 'attr') ?>" aria-label="<?= esc(lang('Catalogue.search'), 'attr') ?>"><select class="form-select" name="category" aria-label="<?= esc(lang('Catalogue.category'), 'attr') ?>"><option value=""><?= esc(lang('Catalogue.allCategories')) ?></option><?php foreach ($categories as $item): ?><option value="<?= esc($item['slug'], 'attr') ?>" <?= $category === $item['slug'] ? 'selected' : '' ?>><?= esc($item['path']) ?></option><?php endforeach ?></select><button class="btn btn-outline-secondary" type="submit"><?= esc(lang('Catalogue.search')) ?></button></form>
     <?php if ($selectedCategory !== null): ?><a class="mcms-shop-back" href="<?= site_url('shop') ?>">← <?= esc(lang('Catalogue.allCategories')) ?></a><?php endif ?>
-    <?php if ($categories !== []): ?><nav class="mcms-shop-categories" aria-label="<?= esc(lang('Catalogue.categories'), 'attr') ?>"><?php foreach ($categories as $item): ?><a href="<?= esc(site_url(ltrim($item['url'], '/')), 'attr') ?>" style="padding-inline-start:<?= min(6, $item['depth']) + 1 ?>rem" <?= $category === $item['slug'] ? 'aria-current="page"' : '' ?>><?= view('MCMS\\Modules\\Catalogue\\Views\\category_icon', ['category' => $item]) ?><span><?= esc($item['path']) ?></span></a><?php endforeach ?></nav><?php endif ?>
+    <?= view('MCMS\\Modules\\Catalogue\\Views\\category_menu', ['tree' => $categoryMenuTree ?? [], 'style' => $categoryMenuStyle ?? 'tree', 'selectedSlug' => $category]) ?>
+    <?= view('MCMS\\Modules\\Catalogue\\Views\\secondary_menu', ['menu' => $secondaryMenu ?? []]) ?>
 
     <div class="mcms-product-grid">
     <?php foreach ($products as $product): ?>

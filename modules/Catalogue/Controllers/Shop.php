@@ -45,6 +45,9 @@ final class Shop extends BaseController
             'query' => $query,
             'category' => $category,
             'categories' => $this->catalogue()->categories(true),
+            'categoryMenuTree' => service('mcmsModuleServices')->get('catalogue.menu')->tree(),
+            'categoryMenuStyle' => (string) (setting('catalogue.category_menu_style') ?? 'tree'),
+            'secondaryMenu' => $this->secondaryMenu(),
             'selectedCategory' => $selectedCategory,
             'count' => $count,
             'page' => $page,
@@ -81,6 +84,8 @@ final class Shop extends BaseController
             'cartCount' => $cartEnabled ? $cart->count() : 0,
             'cartStockLevels' => $cartEnabled ? $levels : [],
             'cartReturn' => $this->returnPath(),
+            'secondaryMenu' => (string) (setting('catalogue.secondary_menu_scope') ?? 'listing') === 'all_shop'
+                ? $this->secondaryMenu() : [],
         ], 'MCMS\\Modules\\Catalogue\\Views\\public_product');
     }
 
@@ -166,6 +171,18 @@ final class Shop extends BaseController
         $path = '/' . ltrim($uri->getPath(), '/');
 
         return $uri->getQuery() === '' ? $path : $path . '?' . $uri->getQuery();
+    }
+
+    /** @return array Existing Menus tree; empty if Menus is disabled or selection unavailable. */
+    private function secondaryMenu(): array
+    {
+        $id = (int) (setting('catalogue.secondary_menu_id') ?? 0);
+        $services = service('mcmsModuleServices');
+        if ($id <= 0 || ! $services->has('menus.repository')) {
+            return [];
+        }
+        $menus = $services->get('menus.repository');
+        return $menus->findMenu($id) === null ? [] : $menus->tree($id, true);
     }
 
     private function categories(): Categories

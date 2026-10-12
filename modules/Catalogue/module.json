@@ -1,14 +1,14 @@
 {
   "id": "catalogue",
   "name": "@Catalogue.name",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "namespace": "MCMS\\Modules\\Catalogue",
   "provider": "MCMS\\Modules\\Catalogue\\Module",
   "mcms": "^0.1.6",
   "description": "@Catalogue.description",
   "requires": [{"id": "product-images", "version": "^0.1"}],
   "public_paths": ["shop"],
-  "settings": {"per_page": 24},
+  "settings": {"per_page": 24, "category_menu_style": "tree", "secondary_menu_id": 0, "secondary_menu_scope": "listing"},
   "permissions": {
     "catalogue.settings": "@CatalogueSettings.permission",
     "catalogue.view": "@Catalogue.view", "catalogue.create": "@Catalogue.create",

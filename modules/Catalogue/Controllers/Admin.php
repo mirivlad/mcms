@@ -37,12 +37,36 @@ final class Admin extends BaseAdminController
             if ($perPage === false || $perPage < 1 || $perPage > 100) {
                 return redirect()->to($this->settingsPath('/admin/catalogue/settings'))->withInput()->with('error', lang('CatalogueSettings.invalid'));
             }
+            $style = (string) ($this->request->getPost('category_menu_style') ?? ($settings->get('catalogue.category_menu_style') ?? 'tree'));
+            $scope = (string) ($this->request->getPost('secondary_menu_scope') ?? ($settings->get('catalogue.secondary_menu_scope') ?? 'listing'));
+            $menuIdInput = $this->request->getPost('secondary_menu_id');
+            $menuId = $menuIdInput === null ? (int) ($settings->get('catalogue.secondary_menu_id') ?? 0)
+                : filter_var($menuIdInput, FILTER_VALIDATE_INT);
+            $menus = service('mcmsModuleServices');
+            $menuSource = $menus->has('menus.repository') ? $menus->get('menus.repository') : null;
+            if (! in_array($style, ['tree', 'collapsed', 'horizontal'], true)
+                || ! in_array($scope, ['listing', 'all_shop'], true)
+                || $menuId === false || $menuId < 0
+                || ($menuId > 0 && $menuSource !== null && $menuSource->findMenu($menuId) === null)
+                || ($menuId > 0 && $menuSource === null && $menuId !== (int) ($settings->get('catalogue.secondary_menu_id') ?? 0))) {
+                return redirect()->to($this->settingsPath('/admin/catalogue/settings'))->withInput()->with('error', lang('CatalogueSettings.invalid'));
+            }
             $settings->set('catalogue.per_page', $perPage);
+            $settings->set('catalogue.category_menu_style', $style);
+            $settings->set('catalogue.secondary_menu_id', $menuId);
+            $settings->set('catalogue.secondary_menu_scope', $scope);
             return redirect()->to($this->settingsPath('/admin/catalogue/settings'))->with('message', lang('CatalogueSettings.saved'));
         }
+        $services = service('mcmsModuleServices');
+        $menuSource = $services->has('menus.repository') ? $services->get('menus.repository') : null;
         return view('MCMS\\Modules\\Catalogue\\Views\\settings', [
             'adminMenu' => $this->adminMenu(), 'title' => lang('CatalogueSettings.title'),
             'perPage' => (int) ($settings->get('catalogue.per_page') ?? 24),
+            'categoryMenuStyle' => (string) ($settings->get('catalogue.category_menu_style') ?? 'tree'),
+            'secondaryMenuId' => (int) ($settings->get('catalogue.secondary_menu_id') ?? 0),
+            'secondaryMenuScope' => (string) ($settings->get('catalogue.secondary_menu_scope') ?? 'listing'),
+            'menuAvailable' => $menuSource !== null,
+            'availableMenus' => $menuSource?->list() ?? [],
         ]);
     }
 

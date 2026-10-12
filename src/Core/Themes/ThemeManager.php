@@ -113,12 +113,12 @@ final class ThemeManager
         if ($theme !== null) {
             $view = $theme->view($logicalTemplate);
             if ($view !== null) {
-                return view($view, $this->decorateViewData($data, $theme));
+                return view($view, $this->decorateViewData($data, $theme, $logicalTemplate));
             }
         }
 
         if ($fallbackView !== null && trim($fallbackView) !== '') {
-            return view($fallbackView, $this->decorateViewData($data, $theme));
+            return view($fallbackView, $this->decorateViewData($data, $theme, $logicalTemplate));
         }
 
         throw new RuntimeException(
@@ -380,9 +380,122 @@ final class ThemeManager
     }
 
     /**
+     * Optional generated menus and secondary Menus trees.
+     * Entries are specific to a theme location, without changing the existing primary assignment.
+     *
+     * @return array<string, list<array{source:string,visibility:string}>>
+     */
+    public function extraMenuAssignments(?ThemeManifest $theme = null): array
+    {
+        $theme ??= $this->active();
+        if ($theme === null) {
+            return [];
+        }
+        $all = $this->settings->get('Core.themeExtraMenus');
+        $stored = is_array($all) && is_array($all[$theme->id] ?? null) ? $all[$theme->id] : [];
+        $result = [];
+        foreach ($theme->menuLocations as $locationId => $_definition) {
+            $result[$locationId] = [];
+            foreach (($stored[$locationId] ?? []) as $assignment) {
+                if (is_array($assignment)
+                    && is_string($assignment['source'] ?? null)
+                    && is_string($assignment['visibility'] ?? null)) {
+                    $result[$locationId][] = $assignment;
+                }
+            }
+        }
+        return $result;
+    }
+
+    /** @return array<string, string> Human-readable source labels indexed by stable source ID. */
+    public function availableExtraMenuSources(): array
+    {
+        $choices = [];
+        foreach ($this->availableMenus() as $menu) {
+            $choices['menu:' . $menu['id']] = $menu['name'];
+        }
+        foreach ($this->dynamicMenuSources() as $id => $source) {
+            $choices['dynamic:' . $id] = $source->label();
+        }
+        return $choices;
+    }
+
+    /** @param array<string, list<array{source:string,visibility:string}>> $input */
+    public function saveExtraMenuAssignments(string $themeId, array $input): void
+    {
+        $theme = $this->find($themeId);
+        if ($theme === null) {
+            throw new RuntimeException(lang('MCMS.errors.themeNotFound'));
+        }
+        $available = $this->availableExtraMenuSources();
+        $existing = $this->extraMenuAssignments($theme);
+        $normalized = [];
+        $visibilityOptions = ['all', 'shop', 'pages', 'news', 'products'];
+        foreach ($theme->menuLocations as $locationId => $_definition) {
+            $normalized[$locationId] = [];
+            $seen = [];
+            $rows = $input[$locationId] ?? [];
+            if (! is_array($rows) || count($rows) > 3) {
+                throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+            }
+            foreach ($rows as $row) {
+                if (! is_array($row)) {
+                    throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+                }
+                $source = trim((string) ($row['source'] ?? ''));
+                if ($source === '') {
+                    continue;
+                }
+                $visibility = (string) ($row['visibility'] ?? 'all');
+                if (! in_array($visibility, $visibilityOptions, true)
+                    || ! preg_match('/^(menu:[1-9][0-9]*|dynamic:[a-z][a-z0-9._-]*)$/D', $source)
+                    || isset($seen[$source])) {
+                    throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+                }
+                // Preserve references to temporarily disabled providers, but do not
+                // allow submitting an arbitrary inaccessible source.
+                $wasSaved = in_array($source, array_column($existing[$locationId] ?? [], 'source'), true);
+                if (! isset($available[$source]) && ! $wasSaved) {
+                    throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+                }
+                $seen[$source] = true;
+                $normalized[$locationId][] = ['source' => $source, 'visibility' => $visibility];
+            }
+        }
+        $all = $this->settings->get('Core.themeExtraMenus');
+        $all = is_array($all) ? $all : [];
+        $all[$themeId] = $normalized;
+        $this->settings->set('Core.themeExtraMenus', $all);
+    }
+
+    /** @return array<string, DynamicMenuSourceInterface> */
+    private function dynamicMenuSources(): array
+    {
+        $found = [];
+        foreach (service('mcmsModuleServices')->all() as $service) {
+            if ($service instanceof DynamicMenuSourceInterface) {
+                $found[$service->id()] = $service;
+            }
+        }
+        return $found;
+    }
+
+    private static function visibleExtraMenu(string $scope, ?string $logicalTemplate): bool
+    {
+        return match ($scope) {
+            'all' => true,
+            'shop' => str_starts_with((string) $logicalTemplate, 'catalogue.'),
+            'pages' => $logicalTemplate === 'page',
+            'news' => str_starts_with((string) $logicalTemplate, 'news.'),
+            'products' => $logicalTemplate === 'catalogue.product',
+            default => false,
+        };
+    }
+
+    /**
      * @return array<string, array>
      */
-    public function menuTrees(?ThemeManifest $theme = null): array
+    public function menuTrees(?ThemeManifest $theme = null, ?string $logicalTemplate = null): array
     {
         $theme ??= $this->active();
         if ($theme === null) {
@@ -407,10 +520,36 @@ final class ThemeManager
                 : $this->limitTreeDepth($tree, (int) $maxDepth);
         }
 
+        // Append optional, independently scoped sources after the primary menu.
+        // This preserves the old themeMenus shape expected by existing themes.
+        $dynamic = $this->dynamicMenuSources();
+        foreach ($this->extraMenuAssignments($theme) as $locationId => $entries) {
+            $depth = $theme->menuLocations[$locationId]['max_depth'] ?? null;
+            foreach ($entries as $entry) {
+                if (! self::visibleExtraMenu($entry['visibility'], $logicalTemplate)) {
+                    continue;
+                }
+                $ref = $entry['source'];
+                $items = [];
+                if (str_starts_with($ref, 'menu:') && $source !== null) {
+                    $id = (int) substr($ref, 5);
+                    if ($id > 0 && $source->findMenu($id) !== null) {
+                        $items = $source->tree($id, true);
+                    }
+                } elseif (str_starts_with($ref, 'dynamic:')) {
+                    $items = ($dynamic[substr($ref, 8)] ?? null)?->tree() ?? [];
+                }
+                if ($depth !== null) {
+                    $items = $this->limitTreeDepth($items, (int) $depth);
+                }
+                $trees[$locationId] = array_merge($trees[$locationId] ?? [], $items);
+            }
+        }
+
         return $trees;
     }
 
-    private function decorateViewData(array $data, ?ThemeManifest $theme): array
+    private function decorateViewData(array $data, ?ThemeManifest $theme, string $logicalTemplate): array
     {
         if (! array_key_exists('siteName', $data)) {
             $data['siteName'] = (string) ($this->settings->get('Core.siteName') ?? 'mCMS');
@@ -424,7 +563,7 @@ final class ThemeManager
 
         if ($theme !== null) {
             $data['themeAssets'] = site_url($theme->assetBaseUrl());
-            $data['themeMenus'] = $this->menuTrees($theme);
+            $data['themeMenus'] = $this->menuTrees($theme, $logicalTemplate);
         } else {
             $data['themeMenus'] = [];
         }

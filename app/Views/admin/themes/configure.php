@@ -114,9 +114,47 @@
                         <?php endforeach ?>
                     </div>
                 <?php endif ?>
+                <?php if ($theme->menuLocations !== []): ?>
+                    <hr class="my-4">
+                    <h3 class="card-title mb-2"><?= esc(lang('MCMS.themes.extraMenus')) ?></h3>
+                    <p class="text-secondary small"><?= esc(lang('MCMS.themes.extraMenusHint')) ?></p>
+                    <?php foreach ($theme->menuLocations as $locationId => $definition): ?>
+                    <?php $savedExtras = $extraAssignments[$locationId] ?? []; ?>
+                    <fieldset class="mb-3">
+                        <legend class="form-label"><?= esc($manager->displayLocationLabel($definition)) ?></legend>
+                        <?php for ($slot = 0; $slot < 2; $slot++): ?>
+                        <?php
+                        $savedSource = (string) ($savedExtras[$slot]['source'] ?? '');
+                        $savedVisibility = (string) ($savedExtras[$slot]['visibility'] ?? 'shop');
+                        ?>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-7">
+                                <input type="hidden" name="extra_location[]" value="<?= esc($locationId, 'attr') ?>">
+                                <select class="form-select" name="extra_source[]" aria-label="<?= esc(lang('MCMS.themes.extraMenuSource'), 'attr') ?>">
+                                    <option value=""><?= esc(lang('MCMS.themes.noMenu')) ?></option>
+                                    <?php foreach ($extraSources as $sourceId => $sourceLabel): ?>
+                                        <option value="<?= esc($sourceId, 'attr') ?>" <?= $savedSource === $sourceId ? 'selected' : '' ?>><?= esc($sourceLabel) ?> (<?= esc($sourceId) ?>)</option>
+                                    <?php endforeach ?>
+                                    <?php if ($savedSource !== '' && ! isset($extraSources[$savedSource])): ?>
+                                        <option value="<?= esc($savedSource, 'attr') ?>" selected><?= esc($savedSource) ?> (<?= esc(lang('MCMS.themes.extraMenuUnavailable')) ?>)</option>
+                                    <?php endif ?>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <select class="form-select" name="extra_visibility[]" aria-label="<?= esc(lang('MCMS.themes.extraVisibility'), 'attr') ?>">
+                                    <?php foreach (['all','shop','pages','news','products'] as $visibility): ?>
+                                    <option value="<?= $visibility ?>" <?= $savedVisibility === $visibility ? 'selected' : '' ?>><?= esc(lang('MCMS.themes.extraScope.' . $visibility)) ?></option>
+                                    <?php endforeach ?>
+                                </select>
+                            </div>
+                        </div>
+                        <?php endfor ?>
+                    </fieldset>
+                    <?php endforeach ?>
+                <?php endif ?>
             </div>
 
-            <?php if ($menusAvailable && $theme->menuLocations !== []): ?>
+            <?php if (($menusAvailable || $extraSources !== []) && $theme->menuLocations !== []): ?>
                 <div class="card-footer d-flex justify-content-between align-items-center">
                     <a class="btn btn-link px-0" href="<?= $settingsUrl('admin/themes') ?>">
                         <?= esc(lang('MCMS.common.back')) ?>
