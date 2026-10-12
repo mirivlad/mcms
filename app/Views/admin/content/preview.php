@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const submitButtons = Array.from(form.querySelectorAll('button[type="submit"]')).map(button => [button, button.disabled]);
         submitButtons.forEach(([button]) => button.disabled = true);
         dialog.showModal();
-        editor.dispatchEvent(new Event('input', {bubbles:true}));
+        editor.dispatchEvent(new Event('mcms:content-sync'));
         try {
             const data = await form.mcmsRequest(<?= json_encode($previewUrl) ?>, new FormData(form));
             if (currentRequest !== requestId || !dialog.open) return;
