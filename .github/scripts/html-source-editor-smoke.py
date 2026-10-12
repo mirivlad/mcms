@@ -75,6 +75,12 @@ try {
     editor.innerHTML = '<p>Visual edit</p>';
     editor.dispatchEvent(new Event('input', {bubbles:true}));
     check(body.value === '<p>Visual edit</p>', 'visual editing did not update canonical HTML');
+    let toolbarAutosaves = 0;
+    body.addEventListener('input', () => { toolbarAutosaves++; });
+    editor.innerHTML = '<p>Toolbar edit</p>';
+    controller.changed();
+    check(body.value === '<p>Toolbar edit</p>', 'toolbar changed visual HTML but did not sync');
+    check(toolbarAutosaves === 1, 'toolbar editing did not notify autosave');
 
     const restored = '<p class="old" data-raw="1">Restore</p>';
     editor.dispatchEvent(new CustomEvent('mcms:content-restore', {detail:{html:restored}}));
