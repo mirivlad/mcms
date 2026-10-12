@@ -112,7 +112,6 @@ final class Backups extends BaseAdminController
         try {
             $token = session()->get('backup_restore_preview');
             if (! is_string($token) || ! hash_equals($token, (string) $this->request->getPost('token'))
-                || $this->request->getPost('confirmation') !== 'RESTORE'
                 || $this->request->getPost('acknowledge') !== '1') {
                 throw new \RuntimeException(lang('MCMS.backups.restoreConfirmRequired'));
             }
@@ -136,6 +135,28 @@ final class Backups extends BaseAdminController
     {
         $token = session()->get('backup_restore_last');
         return is_string($token) ? service('mcmsBackupRestore')->state($token) : null;
+    }
+
+    public function delete(string $name): RedirectResponse
+    {
+        if (($denied = $this->guard('core.backups')) !== null) {
+            return $denied;
+        }
+
+        try {
+            if (! service('mcmsBackups')->delete($name)) {
+                throw PageNotFoundException::forPageNotFound();
+            }
+
+            return redirect()->to('/admin/backups')
+                ->with('message', lang('MCMS.backups.deleted'));
+        } catch (PageNotFoundException $e) {
+            throw $e;
+        } catch (Throwable $e) {
+            log_message('error', 'Backup deletion failed: {message}', ['message' => $e->getMessage()]);
+            return redirect()->to('/admin/backups')
+                ->with('error', lang('MCMS.backups.deleteFailed') . ' ' . $e->getMessage());
+        }
     }
 
     public function download(string $name): DownloadResponse|RedirectResponse

@@ -78,6 +78,37 @@ final class BackupManagerTest extends TestCase
         }
     }
 
+    public function testDeleteOnlyExistingPublishedArchives(): void
+    {
+        $manager = $this->manager();
+        $first = $manager->create();
+        $second = $manager->create();
+        self::assertCount(2, $manager->listing());
+
+        self::assertTrue($manager->delete($first));
+        self::assertNull($manager->file($first));
+        self::assertNotNull($manager->file($second));
+        self::assertCount(1, $manager->listing());
+        self::assertFalse($manager->delete($first));
+        self::assertFalse($manager->delete('../evil.zip'));
+        self::assertFalse($manager->delete('create.lock'));
+        self::assertNotFalse(file_get_contents($this->root . '/backups/create.lock'));
+    }
+
+    public function testCannotDeleteDuringSiteRestoration(): void
+    {
+        $manager = $this->manager();
+        $name = $manager->create();
+        file_put_contents($this->root . '/backups/restore-active.json', '{"status":"running"}');
+        try {
+            $manager->delete($name);
+            self::fail('Backup should remain protected while restoration is active.');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('during site restoration', $e->getMessage());
+            self::assertNotNull($manager->file($name));
+        }
+    }
+
     public function testNeverPublishesFailedBackup(): void
     {
         $manager = $this->manager(static function (string $path): void {

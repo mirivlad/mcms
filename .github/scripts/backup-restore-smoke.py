@@ -56,13 +56,21 @@ exec_app('sh', '-c', "printf mutated > writable/modules-data/data/restore-smoke/
 _, url = post('/admin/backups/' + name + '/restore', {}, '/admin/backups')
 assert url.endswith('/admin/backups/restore/confirm'), url
 source = page('/admin/backups/restore/confirm')[0]
-assert 'Type RESTORE' in source
+assert 'name="confirmation"' not in source
+assert 'name="acknowledge"' in source
 token = re.search(r'name="token" value="([a-f0-9]{32})"', source)[1]
+
+# Do not permit a direct POST that skips the single acknowledgement checkbox.
+rejected, _ = post('/admin/backups/restore/apply', {
+    'token': token,
+}, '/admin/backups/restore/confirm')
+assert 'Acknowledge' in rejected
+exec_app('test', '!', '-e', 'writable/backups/restore-active.json')
 
 # Authenticated browser starts a separate CLI worker; returns before mutation.
 try:
     post('/admin/backups/restore/apply', {
-        'token': token, 'confirmation': 'RESTORE', 'acknowledge': '1'
+        'token': token, 'acknowledge': '1'
     }, '/admin/backups/restore/confirm')
 except urllib.error.HTTPError as error:
     # The background worker activates a 503 maintenance response before the
@@ -150,4 +158,19 @@ assert '9.9.9' in preview and installed_version in preview
 assert 'requires mCMS 9.9.9' in preview, preview[-1000:]
 assert 'name="confirmation"' not in preview
 exec_app('test', '!', '-e', 'writable/backups/restore-active.json')
-print('Restore smoke passed: SQL and files, safety copy, upload, version mismatch blocked.')
+# A disposable additional backup can be deleted with one confirmation in the UI
+# (JS confirm happens in browsers; POST+CSRF is enforced server-side).
+temporary = re.search(r'(mcms-[0-9]{8}T[0-9]{6}Z-[a-f0-9]{12}\.zip)',
+                      exec_app('php', 'spark', 'mcms:backup:create'))[1]
+assert temporary in page('/admin/backups')[0]
+listing_html = page('/admin/backups')[0]
+assert '/delete' in listing_html and 'Delete' in listing_html
+result, url = post('/admin/backups/' + temporary + '/delete', {}, '/admin/backups')
+assert url.endswith('/admin/backups'), url
+assert 'Backup deleted.' in result
+exec_app('test', '!', '-e', 'writable/backups/' + temporary)
+assert temporary not in [entry.rsplit('/', 1)[-1] for entry in
+                        exec_app('sh', '-c', 'ls writable/backups/mcms-*.zip').splitlines()]
+# The original archive used for restore remains available.
+exec_app('test', '-f', 'writable/backups/' + name)
+print('Restore smoke passed: SQL, files, version mismatch and admin ZIP deletion.')

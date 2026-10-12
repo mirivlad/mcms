@@ -86,6 +86,13 @@
                             <a class="btn btn-outline-primary btn-sm" href="<?= site_url('admin/backups/' . rawurlencode($item['name']) . '/download') ?>">
                                 <i class="ti ti-download me-1"></i><?= esc(lang('MCMS.backups.download')) ?>
                             </a>
+                            <form method="post" action="<?= site_url('admin/backups/' . rawurlencode($item['name']) . '/delete') ?>"
+                                  data-backup-delete="<?= esc(sprintf(lang('MCMS.backups.deleteConfirm'), $item['name']), 'attr') ?>">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-outline-danger btn-sm">
+                                    <i class="ti ti-trash me-1"></i><?= esc(lang('MCMS.backups.delete')) ?>
+                                </button>
+                            </form>
                             </div>
                         </td>
                     </tr>
@@ -95,4 +102,13 @@
         </div>
     <?php endif ?>
 </div>
+<script>
+document.querySelectorAll('[data-backup-delete]').forEach(form => {
+    form.addEventListener('submit', event => {
+        if (!window.confirm(form.dataset.backupDelete)) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
 <?= $this->endSection() ?>

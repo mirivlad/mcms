@@ -41,8 +41,6 @@
         <form method="post" action="<?= site_url('admin/backups/restore/apply') ?>">
             <?= csrf_field() ?>
             <input type="hidden" name="token" value="<?= esc($state['token'], 'attr') ?>">
-            <label class="form-label" for="restore-confirmation"><?= esc(lang('MCMS.backups.typeRestore')) ?></label>
-            <input id="restore-confirmation" class="form-control mb-3" type="text" name="confirmation" autocomplete="off" required>
             <label class="form-check mb-3">
                 <input type="checkbox" name="acknowledge" value="1" class="form-check-input" required>
                 <span class="form-check-label"><?= esc(lang('MCMS.backups.acknowledge')) ?></span>

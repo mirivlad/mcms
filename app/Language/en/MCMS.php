@@ -2,6 +2,10 @@
 
 return [
     'backups' => [
+        'delete' => 'Delete',
+        'deleted' => 'Backup deleted.',
+        'deleteFailed' => 'Unable to delete backup.',
+        'deleteConfirm' => 'Delete backup %s? This cannot be undone.',
         'archiveVersion' => 'mCMS version in backup',
         'installedVersion' => 'Installed mCMS version',
         'versionMismatch' => 'Restore blocked. This backup requires mCMS %s, but mCMS %s is installed. Install version %s and inspect the archive again.',
@@ -12,10 +16,9 @@ return [
         'inspect' => 'Inspect backup',
         'restore' => 'Restore',
         'restoreExpired' => 'Prepared backup is unavailable. Inspect it again.',
-        'restoreConfirmRequired' => 'Type RESTORE and acknowledge replacing the existing site.',
+        'restoreConfirmRequired' => 'Acknowledge that restoration will replace the current site data.',
         'restoreQueued' => 'Restore started. The website is temporarily unavailable. You might need to sign in again afterwards.',
         'restoreWarning' => 'Warning! The entire database, module files and themes will be replaced. Users, orders and settings return to the backup state. A safety ZIP of the current site is created first.',
-        'typeRestore' => 'Type RESTORE to confirm',
         'acknowledge' => 'I understand the existing site data will be replaced',
         'startRestore' => 'Start restoration',
         'files' => 'Files',

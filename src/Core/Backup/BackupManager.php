@@ -65,6 +65,44 @@ final class BackupManager
         return is_file($path) && ! is_link($path) ? $path : null;
     }
 
+    /**
+     * Delete only published backup ZIPs. No archive may be removed while a
+     * backup or full-site restoration is running.
+     *
+     * @return bool false if no file with this (safe) name exists
+     */
+    public function delete(string $name): bool
+    {
+        if (! self::validName($name)) {
+            return false;
+        }
+
+        $lock = fopen($this->directory . '/create.lock', 'c');
+        if ($lock === false || ! flock($lock, LOCK_EX | LOCK_NB)) {
+            throw new RuntimeException('Cannot delete a backup while another backup is running.');
+        }
+
+        try {
+            if (is_file($this->directory . '/restore-active.json')) {
+                throw new RuntimeException('Cannot delete backups during site restoration.');
+            }
+
+            $path = $this->file($name);
+            if ($path === null) {
+                return false;
+            }
+
+            if (! unlink($path)) {
+                throw new RuntimeException('Unable to delete backup archive.');
+            }
+
+            return true;
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
     public function create(): string
     {
         $lock = fopen($this->directory . '/create.lock', 'c');

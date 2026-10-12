@@ -4,7 +4,7 @@
 
 Sign in with `core.backups` permission (superadministrator by default) and
 open **Administration → Backups** (`/admin/backups`). Click **Create backup**.
-After completion, the generated ZIP is listed with a **Download** action.
+After completion, the generated ZIP is listed with **Download**, **Restore** and **Delete** actions. Deleting a backup requires one confirmation and removes only that archive from `backup_data`, not any site files or database records. Backups cannot be deleted while full-site restoration is active.
 Only finished archives appear. Archives are stored in the separate Docker
 `backup_data` volume, mounted privately at `writable/backups` in the app.
 No public HTTP URL or nginx volume mount exposes these files. This volume is
@@ -78,8 +78,8 @@ With `core.backups` permission, open **Administration → Backups**.
    the archive is displayed. An archive without the version file is also
    rejected, because its compatibility cannot be established. The version
    descriptor has its own SHA-256 entry in `manifest.json`.
-4. Type `RESTORE` and explicitly confirm that the current site will be
-   replaced. The source ZIP is privately staged inside `backup_data`.
+4. Check **I understand the existing site data will be replaced** and click
+   **Start restoration**. No additional text challenge is required. The source ZIP is privately staged inside `backup_data`.
 5. A **fresh CLI worker** sets maintenance mode and creates a safety backup
    of the *current* database and both persistent file volumes before modifying
    any data. While the worker is active, the website returns HTTP 503.
