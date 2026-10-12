@@ -29,6 +29,17 @@ final class CategoryMenuTest extends CIUnitTestCase
         self::assertSame([], CategoryMenu::fromRows([]));
     }
 
+    public function testHorizontalDropdownDoesNotUseTranslucentCardSurface(): void
+    {
+        $css = file_get_contents(ROOTPATH . 'modules/Catalogue/assets/shop.css');
+        self::assertIsString($css);
+        self::assertSame(1, preg_match('/\\.mcms-shop-cat-horizontal \\.mcms-shop-cat-children\\s*\\{([^}]*)\\}/', $css, $matches));
+        self::assertStringContainsString('--mcms-shop-menu-bg', $matches[1]);
+        self::assertStringContainsString('--mcms-surface', $matches[1]);
+        self::assertStringContainsString('--bs-body-bg', $matches[1]);
+        self::assertStringNotContainsString('--shop-surface', $matches[1]);
+    }
+
     public function testThreeTreeVariantsRenderAccessibleToggleControls(): void
     {
         $tree = CategoryMenu::fromRows([
