@@ -59,17 +59,20 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
     const sync = () => {
         if (!sourceMode && visualDirty) body.value = editor.innerHTML;
     };
-    const changed = () => {
+    const changed = (fromEditorInput = false) => {
         if (sourceMode) return;
         visualDirty = true;
         sync();
+        // Toolbar commands and Media insertions do not reliably generate a
+        // native input event. Notify the draft workflow explicitly for them.
+        if (!fromEditorInput) body.dispatchEvent(new Event('input', {bubbles:true}));
     };
     const restore = html => {
         body.value = html;
         editor.innerHTML = safeVisualHtml(html);
         visualDirty = false;
     };
-    editor.addEventListener('input', changed);
+    editor.addEventListener('input', () => changed(true));
     editor.addEventListener('mcms:content-sync', sync);
     editor.addEventListener('mcms:content-restore', event => restore(String(event.detail?.html ?? '')));
     toggle.addEventListener('click', () => {
