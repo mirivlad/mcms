@@ -24,7 +24,7 @@ jobs:
         run: composer install --prefer-dist --no-interaction --no-progress
       - name: Lint application PHP
         run: find app src modules themes -name '*.php' -type f -print0 | xargs -0 -n1 php -l
-      - name: Browser regression: HTML source round trips
+      - name: "Browser regression: HTML source round trips"
         run: python3 .github/scripts/html-source-editor-smoke.py
       - name: Run Core unit tests
         run: composer test
