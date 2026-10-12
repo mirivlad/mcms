@@ -70,6 +70,15 @@
 - [x] Optional order Notifications: recipient/events/templates, transactional outbox, test email and retry; see [delivery contract](NOTIFICATIONS.md).
 - [ ] Further notification/integration modules as concrete requirements arise.
 
+## Stage 4 — public interaction and flexible navigation (approved 2026-10-12)
+
+- [x] Captcha foundation: first-party PNG counting challenge, session/form-bound single-use tokens, server verification, expiry, throttles and Feedback guest integration.
+- [ ] Captcha follow-up: accessible nonvisual verification, configurable policies/difficulty and abuse metrics before forcing it on all forms.
+- [ ] Comments: guests with Captcha, registered users, reply trees, central moderation, reporting and resource-level enablement (Pages, News, Catalogue).
+- [ ] Ratings: standalone five-star votes with one vote per user/resource, aggregate and distribution, moderation and optional guarded guest mode.
+- [ ] Menus 2.0: dynamic menu sources, context visibility rules and multiple ordered assignments per theme location while preserving existing assignments.
+- [ ] Catalogue navigation: full category tree (default), collapsed first-level tree and horizontal dropdown; optional shop secondary menu, mobile behavior and theme integration.
+
 ## Reference policy
 
 Ferma is a functional reference only.

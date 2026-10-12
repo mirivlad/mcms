@@ -7,5 +7,8 @@
     <div class="mb-3"><label class="form-label" for="contact-email"><?= esc(lang('Feedback.Public.email')) ?></label><input class="form-control" id="contact-email" name="email" type="email" maxlength="254" autocomplete="email" value="<?= esc($values['email'] ?? '', 'attr') ?>" required></div>
     <div class="mb-3"><label class="form-label" for="contact-message"><?= esc(lang('Feedback.Public.message')) ?></label><textarea class="form-control" id="contact-message" name="message" rows="7" maxlength="5000" required><?= esc($values['message'] ?? '') ?></textarea></div>
     <div hidden aria-hidden="true"><label for="contact-website">Website</label><input id="contact-website" name="website" tabindex="-1" autocomplete="off"></div>
-    <button class="btn btn-primary" type="submit"><?= esc(lang('Feedback.Public.send')) ?></button>
+    <?php if (($captchaChallenge ?? null) !== null): ?>
+        <?= view('MCMS\\Modules\\Captcha\\Views\\widget', ['challenge' => $captchaChallenge]) ?>
+    <?php endif ?>
+    <button class="btn btn-primary" type="submit" <?= ! empty($captchaRequired) && $captchaChallenge === null ? 'disabled' : '' ?>><?= esc(lang('Feedback.Public.send')) ?></button>
 </form>
