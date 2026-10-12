@@ -1,0 +1,32 @@
+{
+  "id": "ratings",
+  "name": "@Ratings.Admin.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Ratings",
+  "provider": "MCMS\\Modules\\Ratings\\Module",
+  "mcms": "^0.1.1",
+  "description": "@Ratings.Admin.description",
+  "requires": [
+    {
+      "id": "captcha",
+      "version": "^0.1"
+    }
+  ],
+  "public_paths": [
+    "ratings"
+  ],
+  "settings": {
+    "allow_guests": false,
+    "enabled_resources": "pages.page,news.article,catalogue.product"
+  },
+  "permissions": {
+    "ratings.view": "@Ratings.Permissions.view",
+    "ratings.manage": "@Ratings.Permissions.manage"
+  },
+  "grants": {
+    "admin": [
+      "ratings.view",
+      "ratings.manage"
+    ]
+  }
+}

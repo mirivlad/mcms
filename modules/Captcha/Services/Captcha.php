@@ -36,7 +36,7 @@ final class Captcha implements CaptchaInterface
             ->where('owner_hash', $owner)
             ->where('created_at >=', date('Y-m-d H:i:s', $now - 60))
             ->countAllResults();
-        if ($recent >= 8) {
+        if ($recent >= 24) {
             throw new RuntimeException(lang('Captcha.Public.unavailable'));
         }
         if (random_int(1, 20) === 1) {

@@ -47,6 +47,9 @@
         </div>
     </div>
     <dialog class="mcms-product-lightbox" data-photo-dialog aria-label="<?= esc($product['title'], 'attr') ?>"><button type="button" data-photo-close class="mcms-photo-close" aria-label="<?= esc(lang('Catalogue.close'), 'attr') ?>">×</button><img data-photo-full alt="<?= esc($product['title'], 'attr') ?>"><div class="mcms-photo-controls"><button type="button" data-photo-prev aria-label="<?= esc(lang('Catalogue.previous'), 'attr') ?>">←</button><span data-photo-counter></span><button type="button" data-photo-next aria-label="<?= esc(lang('Catalogue.next'), 'attr') ?>">→</button></div></dialog>
+<?php if (empty($isPreview) && service('mcmsModuleServices')->has('ratings.repository')): ?>
+<?= view('MCMS\\Modules\\Ratings\\Views\\widget', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
+<?php endif ?>
 <?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
 <?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
 <?php endif ?>

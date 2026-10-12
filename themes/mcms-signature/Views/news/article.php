@@ -6,6 +6,9 @@
 <h1><?= esc($article['title']) ?></h1><?php if (! empty($article['excerpt'])): ?><p class="sig-lead"><?= esc($article['excerpt']) ?></p><?php endif ?></header>
     <?php if ($article['featured_image_url'] !== null): ?><img class="sig-article-cover" src="<?= esc(site_url(ltrim($article['featured_image_url'], '/')), 'attr') ?>" alt=""><?php endif ?>
     <div class="sig-prose mcms-page-content"><?= $article['body'] ?></div></article>
+<?php if (empty($isPreview) && service('mcmsModuleServices')->has('ratings.repository')): ?>
+<?= view('MCMS\\Modules\\Ratings\\Views\\widget', ['targetType' => 'news.article', 'targetId' => (string) $article['id']]) ?>
+<?php endif ?>
 <?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
     <?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'news.article', 'targetId' => (string) $article['id']]) ?>
 <?php endif ?>

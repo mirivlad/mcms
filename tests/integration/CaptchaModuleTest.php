@@ -93,7 +93,7 @@ final class CaptchaModuleTest extends CIUnitTestCase
     public function testIssuanceBoundPreventsUnlimitedSessionChallenges(): void
     {
         $captcha = $this->verifier();
-        for ($i = 0; $i < 8; $i++) {
+        for ($i = 0; $i < 24; $i++) {
             $captcha->issue('feedback.contact', 'rate-session');
         }
         $this->expectException(RuntimeException::class);

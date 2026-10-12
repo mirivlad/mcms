@@ -16,6 +16,9 @@
             <?= $page['body'] ?>
         </div>
     </article>
+<?php if (empty($isPreview) && service('mcmsModuleServices')->has('ratings.repository')): ?>
+<?= view('MCMS\\Modules\\Ratings\\Views\\widget', ['targetType' => 'pages.page', 'targetId' => (string) $page['id']]) ?>
+<?php endif ?>
 <?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
     <?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'pages.page', 'targetId' => (string) $page['id']]) ?>
 <?php endif ?>

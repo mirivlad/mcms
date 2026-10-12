@@ -23,6 +23,9 @@
 <div class="text-secondary mb-4"><?= esc(sprintf(lang('News.Public.published'), $article['published_at'])) ?></div>
 <div class="mcms-page-content"><?= $article['body'] ?></div>
 </article>
+<?php if (empty($isPreview) && service('mcmsModuleServices')->has('ratings.repository')): ?>
+<?= view('MCMS\\Modules\\Ratings\\Views\\widget', ['targetType' => 'news.article', 'targetId' => (string) $article['id']]) ?>
+<?php endif ?>
 <?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
 <?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'news.article', 'targetId' => (string) $article['id']]) ?>
 <?php endif ?>
