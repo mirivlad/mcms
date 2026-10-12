@@ -22,6 +22,9 @@
             <?= $page['body'] ?>
         </div>
     </article>
+<?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
+<?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'pages.page', 'targetId' => (string) $page['id']]) ?>
+<?php endif ?>
 </main>
 <script src="<?= site_url('assets/vendor/bootstrap/js/bootstrap.bundle.min.js') ?>"></script>
 </body>

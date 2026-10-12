@@ -1,0 +1,36 @@
+{
+  "id": "comments",
+  "name": "@Comments.Admin.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Comments",
+  "provider": "MCMS\\Modules\\Comments\\Module",
+  "mcms": "^0.1.1",
+  "description": "@Comments.Admin.description",
+  "requires": [
+    {
+      "id": "captcha",
+      "version": "^0.1"
+    }
+  ],
+  "public_paths": [
+    "comments"
+  ],
+  "settings": {
+    "allow_guests": true,
+    "auto_approve_users": false,
+    "max_depth": 3,
+    "enabled_resources": "pages.page,news.article,catalogue.product"
+  },
+  "permissions": {
+    "comments.view": "@Comments.Permissions.view",
+    "comments.moderate": "@Comments.Permissions.moderate",
+    "comments.delete": "@Comments.Permissions.delete"
+  },
+  "grants": {
+    "admin": [
+      "comments.view",
+      "comments.moderate",
+      "comments.delete"
+    ]
+  }
+}

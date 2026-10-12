@@ -74,7 +74,8 @@
 
 - [x] Captcha foundation: first-party PNG counting challenge, session/form-bound single-use tokens, server verification, expiry, throttles and Feedback guest integration.
 - [ ] Captcha follow-up: accessible nonvisual verification, configurable policies/difficulty and abuse metrics before forcing it on all forms.
-- [ ] Comments: guests with Captcha, registered users, reply trees, central moderation, reporting and resource-level enablement (Pages, News, Catalogue).
+- [x] Comments v0.1: guests with Captcha, registered users, reply depth, central moderation queue, reports, and module-type enablement for Pages/News/Catalogue.
+- [ ] Comments follow-up: controls on individual resources, threaded reply UI, Notifications adapter and moderation refinements.
 - [ ] Ratings: standalone five-star votes with one vote per user/resource, aggregate and distribution, moderation and optional guarded guest mode.
 - [ ] Menus 2.0: dynamic menu sources, context visibility rules and multiple ordered assignments per theme location while preserving existing assignments.
 - [ ] Catalogue navigation: full category tree (default), collapsed first-level tree and horizontal dropdown; optional shop secondary menu, mobile behavior and theme integration.
