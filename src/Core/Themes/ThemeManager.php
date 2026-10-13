@@ -30,6 +30,11 @@ final class ThemeManager
     public function catalog(): array
     {
         if ($this->catalog !== []) {
+            // Test/service resets may replace the namespace loader while this
+            // ThemeManager instance retains its catalog. Re-register paths.
+            foreach ($this->catalog as $manifest) {
+                service('autoloader')->addNamespace($manifest->namespace, $manifest->path);
+            }
             return $this->catalog;
         }
 
@@ -556,6 +561,15 @@ final class ThemeManager
         }
 
         $data['theme'] = $theme;
+        if (str_starts_with($logicalTemplate, 'account.')) {
+            // Core account views reuse the active theme's header, navigation
+            // and footer, while optional account.* theme templates may replace
+            // individual account screens via the normal manifest API.
+            $data['accountThemeLayout'] = $theme !== null
+                && is_file($theme->path . '/Views/layout.php')
+                ? $theme->namespace . '\Views\layout'
+                : 'auth/standalone_layout';
+        }
         $data['themeAppearance'] = $this->appearance($theme);
         if ($theme !== null && $theme->homeDefaults !== []) {
             $data['themeHome'] = $this->homeContent($theme);

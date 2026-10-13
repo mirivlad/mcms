@@ -11,7 +11,9 @@ $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']
 $routes->get('_health', 'Health::index');
 $routes->get('search/results', 'Search::index');
 
-service('auth')->routes($routes, ['except' => ['register']]);
+service('auth')->routes($routes, ['except' => ['register', 'login']]);
+$routes->get('login', 'Auth\Login::loginView', ['as' => 'login']);
+$routes->post('login', 'Auth\Login::loginAction');
 $routes->get('register', 'Auth\\Register::registerView', ['as' => 'register']);
 $routes->post('register', 'Auth\\Register::registerAction');
 $routes->post('logout', 'Account::logout', ['filter' => 'session']);

@@ -23,6 +23,20 @@ Core migration account_profiles stores optional full name and phone. Email ident
 
 ### Modules and themes
 
+All public account pages (login, registration, profile, order list and
+individual order details) are rendered via ThemeManager inside the **active site
+theme**, including its normal header, menus, branding, typography, footer, and
+theme appearance settings. Shield still provides the POST login flow and session
+security. Core account views are shared across all themes: they do not duplicate
+the theme's layout or introduce a separate site shell.
+
+An installed theme may optionally add account.login, account.register,
+account.account, account.orders or account.order mappings under templates
+in theme.json to override an individual account page. Otherwise mCMS renders
+the matching Core auth view inside the theme's conventional Views/layout.php.
+Themes without that conventional layout use the minimal standalone layout
+as a compatibility fallback.
+
 The built-in themes mcms-default, mcms-depth, mcms-focus and mcms-signature include shared auth/nav account links. Third-party themes can include that view and public/assets/css/account-nav.css.
 
 Comments and Ratings use Shield user IDs as before. Guest comments (when allowed), guest carts and guest checkouts remain available. Logged-in purchasers' orders are linked to their identity through customer_user_id, and checkout pre-populates stored name, phone and email. Previously placed guest orders are not claimed by email, to prevent unauthorized account linking.

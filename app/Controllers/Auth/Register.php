@@ -26,7 +26,7 @@ final class Register extends RegisterController
 
         $captcha = $this->captcha();
         if ($captcha === null) {
-            return view('auth/register', ['challenge' => null, 'captchaUnavailable' => true]);
+            return $this->renderRegistration(['challenge' => null, 'captchaUnavailable' => true]);
         }
 
         session();
@@ -36,7 +36,7 @@ final class Register extends RegisterController
             $challenge = null;
         }
 
-        return view('auth/register', [
+        return $this->renderRegistration([
             'challenge' => $challenge,
             'captchaUnavailable' => $challenge === null,
         ]);
@@ -67,6 +67,17 @@ final class Register extends RegisterController
         // Shield performs its standard validation, creates the user in group
         // "user", activates it and completes the authenticated session.
         return parent::registerAction();
+    }
+
+    private function renderRegistration(array $data): string
+    {
+        $title = lang('MCMS.account.register');
+        return service('mcmsThemes')->render('account.register', [
+            ...$data,
+            'accountPageTitle' => $title,
+            'metaTitle' => $title . ' · ' . (string) (setting('Core.siteName') ?? 'mCMS'),
+            'metaRobots' => 'noindex, nofollow',
+        ], 'auth/register');
     }
 
     private function captcha(): ?object
