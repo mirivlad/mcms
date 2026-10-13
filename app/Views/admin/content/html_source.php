@@ -376,10 +376,9 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             insertTable(rows, columns);
         });
     }
-    // Rehydrating Squire resets its selection to the first paragraph. Native
-    // focus on that selection scrolls long edit forms to the top of the editor.
-    // Preserve the document and any scrollable parent without changing the
-    // user's HTML, caret content or current viewport position.
+    // Both editors may scroll the page when taking focus (Ace when entering
+    // source mode, Squire when returning to visual mode). Preserve the page
+    // viewport and scrollable parent positions around either transition.
     const captureViewport = () => {
         const x = window.scrollX, y = window.scrollY;
         const scrollers = [];
@@ -397,6 +396,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
         };
     };
     toggle.addEventListener('click', () => {
+        const restoreViewport = captureViewport();
         if (!sourceMode) {
             sync();
             sourceMode = true;
@@ -407,7 +407,6 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             if (hint) hint.hidden = false;
             showSource();
         } else {
-            const restoreViewport = captureViewport();
             // Squire normalizes the *visual* DOM; the source is not rewritten.
             hydrate(body.value);
             sourceMode = false;
@@ -421,12 +420,15 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             // first-paragraph selection. Native preventScroll keeps keyboard
             // focus in the editor without moving the surrounding page.
             editor.focus({preventScroll: true});
-            restoreViewport();
-            // Layout updates can shift scroll anchoring on the next frame.
-            requestAnimationFrame(() => {
-                if (!sourceMode) restoreViewport();
-            });
         }
+        // This must run after Ace/Squire focus, not just before it. Apply the
+        // same restoration on the next animation frame to defeat scroll anchoring
+        // triggered by the editor panel changing height or layout.
+        restoreViewport();
+        const modeAfterToggle = sourceMode;
+        requestAnimationFrame(() => {
+            if (sourceMode === modeAfterToggle) restoreViewport();
+        });
     });
     return {sync, changed, restore, format, formatBlock, link, insertImage, insertTable, engine,
         get codeEditor() { return codeEditor; }, formatHtml };
