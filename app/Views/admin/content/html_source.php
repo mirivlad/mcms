@@ -123,6 +123,12 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             case 'removeFormat':
                 engine.removeAllFormatting();
                 break;
+            case 'undo':
+                engine.undo();
+                break;
+            case 'redo':
+                engine.redo();
+                break;
             default:
                 throw new Error('Unknown rich-text command: ' + command);
         }
@@ -168,6 +174,30 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
         engine.insertHTML(paragraph.outerHTML);
         changed();
     };
+    const tableDialog = document.getElementById('mcms-insert-table-dialog');
+    const tableTrigger = toolbar.querySelector('[data-insert-table]');
+    const insertTable = (rows, columns) => {
+        if (sourceMode || !Number.isInteger(rows) || !Number.isInteger(columns)
+            || rows < 1 || rows > 12 || columns < 1 || columns > 12) return;
+        const cells = Array.from({length: rows}, () =>
+            '<tr>' + '<td>&nbsp;</td>'.repeat(columns) + '</tr>'
+        ).join('');
+        engine.focus();
+        engine.insertHTML('<table class="table table-bordered"><tbody>' + cells + '</tbody></table>');
+        changed();
+    };
+    if (tableDialog && tableTrigger) {
+        const tableForm = tableDialog.querySelector('form');
+        tableTrigger.addEventListener('click', () => tableDialog.showModal());
+        tableForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const rows = Number(tableForm.elements.namedItem('rows').value);
+            const columns = Number(tableForm.elements.namedItem('columns').value);
+            if (!tableForm.reportValidity()) return;
+            tableDialog.close();
+            insertTable(rows, columns);
+        });
+    }
     toggle.addEventListener('click', () => {
         if (!sourceMode) {
             sync();
@@ -190,6 +220,25 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             engine.focus();
         }
     });
-    return {sync, changed, restore, format, formatBlock, link, insertImage, engine};
+    return {sync, changed, restore, format, formatBlock, link, insertImage, insertTable, engine};
 };
 </script>
+<dialog id="mcms-insert-table-dialog" aria-labelledby="mcms-insert-table-label" class="rounded-3 border p-4" style="width:min(420px,94vw);background:var(--tblr-bg-surface);color:var(--tblr-body-color)">
+    <h3 id="mcms-insert-table-label" class="mb-3"><?= esc(lang('MCMS.content.insertTable')) ?></h3>
+    <form method="dialog">
+        <div class="row g-3">
+            <div class="col-6">
+                <label for="mcms-table-rows" class="form-label"><?= esc(lang('MCMS.content.tableRows')) ?></label>
+                <input id="mcms-table-rows" name="rows" type="number" min="1" max="12" value="3" required class="form-control">
+            </div>
+            <div class="col-6">
+                <label for="mcms-table-columns" class="form-label"><?= esc(lang('MCMS.content.tableColumns')) ?></label>
+                <input id="mcms-table-columns" name="columns" type="number" min="1" max="12" value="3" required class="form-control">
+            </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn" onclick="this.closest('dialog').close()"><?= esc(lang('MCMS.common.cancel')) ?></button>
+            <button type="submit" class="btn btn-primary"><?= esc(lang('MCMS.content.insertTable')) ?></button>
+        </div>
+    </form>
+</dialog>
