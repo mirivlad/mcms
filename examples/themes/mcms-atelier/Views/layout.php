@@ -31,6 +31,7 @@ $version = rawurlencode($theme->version);
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
     <?php if (! empty($metaRobots)): ?><meta name="robots" content="<?= esc($metaRobots, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
+    <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css') ?>">
     <?= view('themes/appearance_head') ?>
 </head>
 <body class="<?= ! empty($isThemeHome) ? 'site-home' : 'site-inner' ?>">
@@ -43,6 +44,8 @@ $version = rawurlencode($theme->version);
 
     <nav class="site-desktop-nav" aria-label="<?= esc(\MCMS\Themes\Atelier\Views\Text::get('navigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Atelier\\Views\\_navigation', ['items' => $headerMenu]) ?></ul></nav>
     <details class="site-mobile-nav"><summary><?= esc(\MCMS\Themes\Atelier\Views\Text::get('menu')) ?><span aria-hidden="true">☰</span></summary><nav aria-label="<?= esc(\MCMS\Themes\Atelier\Views\Text::get('navigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Atelier\\Views\\_navigation', ['items' => $headerMenu]) ?></ul></nav></details>
+    <?php // Shared CMS account actions update automatically when users sign in/out. ?>
+    <?= view('auth/nav') ?>
 </div></header>
 <main id="main-content" tabindex="-1"><?= $this->renderSection('content') ?></main>
 <footer class="site-footer"><div class="site-container">

@@ -30,7 +30,7 @@ final class AtelierExamplePackageTest extends TestCase
 
     public function testShippedAtelierArchiveMatchesSourceContract(): void
     {
-        $zip = ROOTPATH . 'examples/packages/mcms-atelier-1.0.0.zip';
+        $zip = ROOTPATH . 'examples/packages/mcms-atelier-1.1.0.zip';
         $example = ROOTPATH . 'examples/themes/mcms-atelier';
         self::assertFileExists($zip);
 
@@ -38,9 +38,30 @@ final class AtelierExamplePackageTest extends TestCase
         $manifest = $report['manifest'];
         self::assertSame('mcms-atelier', $manifest->id);
         self::assertSame('MCMS\\Themes\\Atelier', $manifest->namespace);
-        self::assertSame('1.0.0', $manifest->version);
+        self::assertSame('1.1.0', $manifest->version);
         self::assertTrue($manifest->external);
         self::assertCount(12, $manifest->templates);
+        foreach ([
+            'home', 'page', 'news.index', 'news.article', 'galleries.index',
+            'galleries.album', 'galleries.embed', 'feedback.form',
+            'search.index', 'catalogue.index', 'catalogue.product', 'cart.index',
+        ] as $logicalTemplate) {
+            self::assertNotNull($manifest->view($logicalTemplate), $logicalTemplate);
+        }
+        $layout = file_get_contents($example . '/Views/layout.php');
+        self::assertStringContainsString("view('auth/nav')", $layout);
+        self::assertStringContainsString('assets/css/account-nav.css', $layout);
+        self::assertStringContainsString("renderSection('content')", $layout);
+        // Interactive article features must match the bundled themes, not
+        // merely the archive's list of logical view names.
+        foreach (['page.php' => 'pages.page', 'news/article.php' => 'news.article'] as $path => $target) {
+            $view = file_get_contents($example . '/Views/' . $path);
+            self::assertStringContainsString("'targetType' => '" . $target . "'", $view);
+            self::assertStringContainsString("has('comments.repository')", $view);
+            self::assertStringContainsString("has('ratings.repository')", $view);
+            self::assertStringContainsString('empty($isPreview)', $view);
+        }
+
 
         $archive = new ZipArchive();
         self::assertTrue($archive->open($zip, ZipArchive::RDONLY));

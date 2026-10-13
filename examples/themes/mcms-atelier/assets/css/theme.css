@@ -499,3 +499,36 @@ body { background: var(--site-paper); color: var(--site-ink); font-family: 'Sego
     .site-story-image img, .site-album-image img, .site-button { transition: none; }
     .site-button:hover { transform: none; }
 }
+
+/*
+ * Public accounts use the same Core widget and page templates as first-party
+ * themes, including login, registration, profile and orders. Keep the widget
+ * in the existing responsive header, even when a menu has many entries.
+ */
+.site-header-inner { justify-content: space-between; gap: clamp(12px, 2vw, 28px); }
+.site-desktop-nav { flex: 1 1 auto; min-width: 0; }
+.site-desktop-nav > ul { justify-content: center; }
+.mcms-account-access {
+    flex: 0 0 auto;
+    width: auto;
+    margin-left: auto;
+    color: var(--site-on-accent);
+    font-size: .76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+}
+.mcms-account-access :is(a, button) { min-height: 40px; display: inline-flex; align-items: center; }
+.mcms-account-access :is(a, button):hover { color: #f1b68e; }
+.mcms-account-card { background: var(--site-panel); border-color: var(--site-line); }
+.mcms-account-card :is(h1, h2) { font-family: Georgia, serif; color: var(--site-ink); }
+.mcms-account-card .form-control { min-height: 44px; }
+.mcms-account-card .table { --bs-table-bg: transparent; --bs-table-color: var(--site-ink); }
+.mcms-account-breadcrumbs { color: var(--site-muted); }
+@media (max-width: 760px) {
+    .site-header-inner { flex-wrap: wrap; justify-content: space-between; }
+    .mcms-account-access { width: auto; flex: 0 1 auto; justify-content: flex-end; margin-left: auto; }
+}
+@media (max-width: 440px) {
+    .mcms-account-access { width: 100%; justify-content: flex-start; margin: 0 0 10px; }
+}
