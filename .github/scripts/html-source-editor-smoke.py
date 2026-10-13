@@ -25,7 +25,7 @@ def main() -> None:
     vendor = ROOT / "public/assets/vendor/squire/squire.min.js"
     if not vendor.exists() or "window.Squire" not in vendor.read_text(encoding="utf-8"):
         raise SystemExit("Vendored Squire engine is missing")
-    if not widget.startswith('<script src=') or not widget.rstrip().endswith("</script>"):
+    if not widget.startswith('<script src=') or "mcmsCreateHtmlSourceEditor" not in widget:
         raise SystemExit("Expected production HTML editor view with local Squire")
     # PHP resolves base_url in production. In the browser fixture use file://.
     widget = '<script src="' + vendor.as_uri() + '"></script>\n' + widget.split("\n", 1)[1]
