@@ -20,7 +20,8 @@ maintenance. Content and business features are installed as modules.
 
 ## Core responsibilities
 
-- login, registration, recovery and authorization;
+- public login, CAPTCHA-protected registration, personal account and authorization
+  (see docs/ACCOUNTS.md; email-based password recovery remains planned);
 - users, groups and permissions;
 - admin dashboard and extension registry;
 - module discovery, dependencies, enable/disable/update lifecycle;

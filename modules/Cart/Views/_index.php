@@ -1,3 +1,16 @@
+<?php
+$accountCheckout = ['name' => '', 'phone' => '', 'email' => ''];
+if (auth()->loggedIn()) {
+    $accountCheckout['email'] = (string) (auth()->user()->email ?? '');
+    $accountRow = db_connect()->table('account_profiles')
+        ->select('full_name, phone')->where('user_id', (int) auth()->id())->get()->getRowArray();
+    $accountCheckout['name'] = trim((string) ($accountRow['full_name'] ?? ''));
+    if ($accountCheckout['name'] === '') {
+        $accountCheckout['name'] = (string) auth()->user()->username;
+    }
+    $accountCheckout['phone'] = (string) ($accountRow['phone'] ?? '');
+}
+?>
 <?= view('MCMS\\Modules\\Cart\\Views\\public_assets') ?>
 <section class="mcms-cart-page" data-cart-page>
     <header class="mcms-cart-heading">
@@ -150,15 +163,15 @@
                     <div class="mcms-cart-checkout-grid">
                         <label>
                             <span><?= esc(lang('Orders.name')) ?></span>
-                            <input class="form-control" name="name" required maxlength="190" autocomplete="name" value="<?= esc((string) old('name'), 'attr') ?>">
+                            <input class="form-control" name="name" required maxlength="190" autocomplete="name" value="<?= esc((string) (old('name') ?? $accountCheckout['name']), 'attr') ?>">
                         </label>
                         <label>
                             <span><?= esc(lang('Orders.phone')) ?></span>
-                            <input class="form-control" name="phone" required maxlength="64" autocomplete="tel" value="<?= esc((string) old('phone'), 'attr') ?>">
+                            <input class="form-control" name="phone" required maxlength="64" autocomplete="tel" value="<?= esc((string) (old('phone') ?? $accountCheckout['phone']), 'attr') ?>">
                         </label>
                         <label>
                             <span><?= esc(lang('Orders.email')) ?> <small>(<?= esc(lang('Orders.optional')) ?>)</small></span>
-                            <input class="form-control" type="email" name="email" maxlength="254" autocomplete="email" value="<?= esc((string) old('email'), 'attr') ?>">
+                            <input class="form-control" type="email" name="email" maxlength="254" autocomplete="email" value="<?= esc((string) (old('email') ?? $accountCheckout['email']), 'attr') ?>">
                         </label>
                         <label class="mcms-cart-checkout-comment">
                             <span><?= esc(lang('Orders.comment')) ?> <small>(<?= esc(lang('Orders.optional')) ?>)</small></span>

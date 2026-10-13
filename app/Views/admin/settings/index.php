@@ -35,6 +35,7 @@
                 <input class="form-check-input" type="checkbox" name="allow_registration" value="1" <?= $allowRegistration ? 'checked' : '' ?>>
                 <span class="form-check-label"><?= esc(lang('MCMS.settings.allowRegistration')) ?></span>
             </label>
+            <p class="form-hint mb-3"><?= esc(lang('MCMS.account.captchaRegistrationHint')) ?></p>
 
             <button class="btn btn-primary" type="submit"><?= esc(lang('MCMS.settings.save')) ?></button>
         </form>

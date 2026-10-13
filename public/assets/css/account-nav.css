@@ -1,0 +1,35 @@
+/* Shared public authentication entry points across bundled and third-party themes. */
+.mcms-account-access {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .5rem 1rem;
+    margin-left: auto;
+    padding: .35rem 0;
+    font-size: .9rem;
+    line-height: 1.4;
+}
+.mcms-account-access a,
+.mcms-account-access button {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: .2em;
+    white-space: nowrap;
+}
+.mcms-account-access a:hover,
+.mcms-account-access button:hover { opacity: .8; }
+.mcms-account-access .mcms-account-logout-form { margin: 0; }
+.mcms-account-access button {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+}
+.mcms-account-access :focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}
+@media (max-width: 767px) {
+    .mcms-account-access { width: 100%; justify-content: flex-end; }
+}

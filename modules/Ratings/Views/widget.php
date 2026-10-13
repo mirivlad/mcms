@@ -68,7 +68,12 @@ if ($ratingUser === null && $ratingGuestAllowed) {
             </div>
         </form>
     <?php else: ?>
-        <p class="text-secondary"><?= esc(lang('Ratings.Public.login')) ?></p>
+        <p class="text-secondary"><?= esc(lang('Ratings.Public.login')) ?>
+            <a href="<?= site_url('login') ?>"><?= esc(lang('MCMS.account.login')) ?></a>
+            <?php if ((bool) setting('Auth.allowRegistration')): ?>
+                · <a href="<?= site_url('register') ?>"><?= esc(lang('MCMS.account.register')) ?></a>
+            <?php endif ?>
+        </p>
     <?php endif ?>
 </section>
 <?php endif ?>

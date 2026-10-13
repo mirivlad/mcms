@@ -11,7 +11,17 @@ $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']
 $routes->get('_health', 'Health::index');
 $routes->get('search/results', 'Search::index');
 
-service('auth')->routes($routes);
+service('auth')->routes($routes, ['except' => ['register']]);
+$routes->get('register', 'Auth\\Register::registerView', ['as' => 'register']);
+$routes->post('register', 'Auth\\Register::registerAction');
+$routes->post('logout', 'Account::logout', ['filter' => 'session']);
+$routes->group('account', ['filter' => 'session'], static function (RouteCollection $routes): void {
+    $routes->get('/', 'Account::index', ['as' => 'account.index']);
+    $routes->post('profile', 'Account::saveProfile');
+    $routes->post('password', 'Account::changePassword');
+    $routes->get('orders', 'Account::orders');
+    $routes->get('orders/(:num)', 'Account::order/$1');
+});
 
 $routes->group('admin', ['filter' => 'session'], static function (RouteCollection $routes): void {
     $routes->get('/', 'Admin\Dashboard::index', ['as' => 'admin.dashboard']);
