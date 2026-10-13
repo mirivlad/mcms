@@ -115,6 +115,17 @@ try {
     controller.engine.moveCursorToEnd();
     controller.insertTable(2, 3);
     check(editor.querySelectorAll('table td').length === 6, 'insert a 2x3 HTML table');
+    controller.engine.setHTML('<p>Table dialog selection test</p>');
+    controller.engine.moveCursorToEnd();
+    document.getElementById('table-trigger').click();
+    const tableDialog = document.getElementById('mcms-insert-table-dialog');
+    check(tableDialog.open, 'table insertion dialog did not open');
+    const tableForm = tableDialog.querySelector('form');
+    tableForm.elements.namedItem('rows').value = '2';
+    tableForm.elements.namedItem('columns').value = '2';
+    tableForm.requestSubmit();
+    check(!tableDialog.open && editor.querySelectorAll('table td').length === 4,
+        'dialog did not insert 2x2 table');
     check(body.value.includes('<table'), 'table absent from canonical source');
     controller.engine.setHTML('<p>Click the link</p>');
     const linkSelection = document.createRange();
@@ -145,7 +156,8 @@ setTimeout(() => {
         '<style>.d-none{display:none!important}</style></head><body>'
         '<div id="container"><div id="toolbar">'
         '<button type="button" id="toggle" data-html-source-toggle>HTML</button>'
-        '<button type="button" id="format">Format</button></div>'
+        '<button type="button" id="format">Format</button>'
+        '<button type="button" id="table-trigger" data-insert-table>Table</button></div>'
         '<div id="visual" contenteditable="true">' + source + '</div>'
         '<textarea id="source" class="d-none">' + html.escape(source) + '</textarea>'
         '<p data-html-source-hint hidden>HTML source hint</p></div>'
