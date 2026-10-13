@@ -245,6 +245,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                         </button>
                         <?php endif ?>
                         <button class="btn btn-ghost-primary" type="button" data-insert-table title="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>"><i class="ti ti-table"></i></button>
+                        <button type="button" class="btn btn-ghost-primary" data-html-format hidden title="<?= esc(lang('MCMS.content.formatHtml'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.formatHtml'), 'attr') ?>"><i class="ti ti-code-dots"></i><span class="ms-1"><?= esc(lang('MCMS.content.formatHtml')) ?></span></button>
                         <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="page-editor page_body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
 
@@ -259,6 +260,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
                 <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?><p class="form-hint mt-2"><?= esc(lang('Pages.Admin.galleryHint')) ?></p><?php endif ?>
                 <textarea id="page_body" name="body" class="d-none form-control font-monospace mcms-editor-source" rows="20" spellcheck="false" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><?= esc($editorBody) ?></textarea>
+                <div id="page-html-code" class="mcms-html-code d-none" data-html-code aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"></div>
                 <p class="form-hint mt-2" data-html-source-hint hidden><?= esc(lang('MCMS.content.htmlSourceHint')) ?></p>
             </div>
 
