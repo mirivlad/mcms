@@ -393,8 +393,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
     const restoreSelection = () => {
         editor.focus();
-        if (! savedRange) return;
+        if (!savedRange || !editor.contains(savedRange.commonAncestorContainer)) return;
         const selection = window.getSelection();
+        if (!selection) return;
         selection.removeAllRanges();
         selection.addRange(savedRange);
     };
