@@ -57,10 +57,9 @@ The Ace source editor and its formatting action are shared too.
 * `python3 .github/scripts/html-source-editor-smoke.py` runs the actual Squire
   and Ace bundles in headless Chrome/Chromium and validates nested HTML formatting,
   Tab indentation, completions and automatic closing of quotes/tags.
-* The same regression also exercises
-  bundle and controller in headless Chrome/Chromium. It covers source round trips,
-  unsafe markup, formatting, images, shortcode insertion, tables, links, preview
-  sync, autosaving and revision restoration.
+* The same regression exercises source round trips, unsafe markup,
+  formatting, images, shortcode insertion, tables, links, preview sync,
+  autosaving and revision restoration.
 * `composer test` and GitHub clean-install CI remain part of routine checks.
 
 The initial upstream parser is a rendering convenience and is not a substitute
