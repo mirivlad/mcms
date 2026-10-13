@@ -126,8 +126,15 @@ try {
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source controls');
     editor.dispatchEvent(new Event('mcms:content-sync'));
     check(body.value === initial, 'preview sync changed untouched HTML');
+    // In a long admin form the viewport must not jump to the start of the
+    // rehydrated visual editor when we leave Ace source mode.
+    window.scrollTo(0, 1180);
+    const scrollBeforeVisual = window.scrollY;
+    check(scrollBeforeVisual > 900, 'scroll fixture is not tall enough');
     check(pretty.hidden === false && pretty.disabled === false, 'format action not available');
     toggle.click();
+    check(Math.abs(window.scrollY - scrollBeforeVisual) < 4,
+        'returning to visual editor jumped the document scroll');
     check(body.value === initial, 'visual round-trip changed untouched HTML');
     check(!toolbar.classList.contains('is-html-source'), 'visual toolbar mode not restored');
     check(getComputedStyle(format).display !== 'none' &&
@@ -237,6 +244,7 @@ setTimeout(() => {
         '.mcms-editor-toolbar{display:flex;gap:4px;padding:8px;width:300px;overflow-x:auto}' 
         '.mcms-editor-toolbar [data-html-source-toggle]{margin-left:auto}' 
         '</style></head><body>'
+        '<div style="height:1000px" aria-hidden="true"></div>'
         '<div id="container"><div id="toolbar" class="mcms-editor-toolbar">'
         '<button type="button" id="format">Format</button>'
         '<span id="divider" class="mcms-editor-toolbar-separator"></span>'
@@ -246,10 +254,11 @@ setTimeout(() => {
         'data-visual-label="Return to visual editor" data-visual-short="Visual" '
         'aria-label="Edit HTML source">'
         '<i class="ti ti-code"></i><span data-html-toggle-label>HTML</span></button></div>'
-        '<div id="visual" contenteditable="true">' + source + '</div>'
+        '<div id="visual" contenteditable="true" style="min-height:500px">' + source + '</div>'
         '<textarea id="source" class="d-none">' + html.escape(source) + '</textarea>'
         '<div id="code" data-html-code class="mcms-html-code d-none" style="height:500px"></div>'
         '<p data-html-source-hint hidden>HTML source hint</p></div>'
+        '<div style="height:1500px" aria-hidden="true"></div>'
         '<pre id="result">RUNNING</pre>' + widget + assertions + '</body></html>'
     )
     with tempfile.TemporaryDirectory(prefix="mcms-html-editor-") as temp:
