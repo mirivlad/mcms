@@ -22,8 +22,13 @@ def main() -> None:
     if chrome is None:
         raise SystemExit("HTML editor browser smoke requires Chrome/Chromium")
     widget = SOURCE.read_text(encoding="utf-8")
-    if not widget.startswith("<script>") or not widget.rstrip().endswith("</script>"):
-        raise SystemExit("Expected the production HTML editor script view")
+    vendor = ROOT / "public/assets/vendor/squire/squire.min.js"
+    if not vendor.exists() or "window.Squire" not in vendor.read_text(encoding="utf-8"):
+        raise SystemExit("Vendored Squire engine is missing")
+    if not widget.startswith('<script src=') or not widget.rstrip().endswith("</script>"):
+        raise SystemExit("Expected production HTML editor view with local Squire")
+    # PHP resolves base_url in production. In the browser fixture use file://.
+    widget = '<script src="' + vendor.as_uri() + '"></script>\n' + widget.split("\n", 1)[1]
 
     for filename in ("modules/Pages/Views/form.php", "modules/News/Views/form.php"):
         content = (ROOT / filename).read_text(encoding="utf-8")
@@ -48,6 +53,7 @@ try {
     const format = document.getElementById('format');
     const initial = body.value;
     const controller = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
+    document.execCommand = () => { throw Error('Deprecated execCommand called'); };
 
     toggle.click();
     check(body.value === initial, 'source-toggle changed initial HTML');
@@ -74,12 +80,12 @@ try {
 
     editor.innerHTML = '<p>Visual edit</p>';
     editor.dispatchEvent(new Event('input', {bubbles:true}));
-    check(body.value === '<p>Visual edit</p>', 'visual editing did not update canonical HTML');
+    check(body.value.includes('Visual edit'), 'visual editing did not update canonical HTML');
     let toolbarAutosaves = 0;
     body.addEventListener('input', () => { toolbarAutosaves++; });
     editor.innerHTML = '<p>Toolbar edit</p>';
     controller.changed();
-    check(body.value === '<p>Toolbar edit</p>', 'toolbar changed visual HTML but did not sync');
+    check(body.value.includes('Toolbar edit'), 'toolbar changed visual HTML but did not sync');
     check(toolbarAutosaves === 1, 'toolbar editing did not notify autosave');
 
     const restored = '<p class="old" data-raw="1">Restore</p>';
@@ -88,6 +94,20 @@ try {
     toggle.click();
     check(body.value === restored, 'recovered HTML changed on source switch');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source state after restore');
+    toggle.click();
+    controller.engine.setHTML('<p>format tests</p>');
+    controller.engine.moveCursorToStart();
+    const selection = document.createRange();
+    selection.selectNodeContents(editor.querySelector('p'));
+    controller.engine.setSelection(selection);
+    controller.format('bold');
+    check(/<(?:b|strong)>/i.test(editor.innerHTML), 'bold command did not format selection');
+    controller.formatBlock('h2');
+    check(editor.querySelector('h2') !== null, 'heading command did not create h2');
+    controller.formatBlock('p');
+    check(editor.querySelector('p') !== null, 'paragraph command did not restore p');
+    controller.format('insertUnorderedList');
+    check(editor.querySelector('ul') !== null, 'unordered list command');
 } catch (error) {
     errors.push(String(error.stack || error));
 }
