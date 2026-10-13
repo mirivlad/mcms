@@ -130,5 +130,15 @@ final class PublicAccountsTest extends CIUnitTestCase
         self::assertStringContainsString('visitor01', (string) $account->response()->getBody());
         $admin = $this->get('/admin');
         $admin->assertRedirect();
+        $updated = $this->withHeaders(['X-CSRF-TOKEN' => csrf_hash()])->post('/account/profile', [
+            'username' => 'visitor02',
+            'full_name' => 'Visitor Two',
+            'phone' => '+7 100 200',
+        ]);
+        $updated->assertRedirect();
+        $stored = $this->db->table('account_profiles')->get()->getRowArray();
+        self::assertSame('Visitor Two', $stored['full_name']);
+        self::assertSame('+7 100 200', $stored['phone']);
+        self::assertSame(1, $this->db->table('users')->where('username', 'visitor02')->countAllResults());
     }
 }
