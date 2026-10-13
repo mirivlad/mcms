@@ -1,3 +1,4 @@
+<script src="<?= base_url('assets/vendor/squire/squire.min.js') ?>"></script>
 <script>
 /* The textarea is the canonical HTML; the browser DOM is a visual representation. */
 window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
@@ -55,26 +56,118 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
         clean(template.content);
         return template.innerHTML;
     };
-    let sourceMode = false, visualDirty = false;
-    const sync = () => {
-        if (!sourceMode && visualDirty) body.value = editor.innerHTML;
+    let sourceMode = false;
+    let visualDirty = false;
+    let hydrating = false;
+    const safeFragment = html => {
+        const template = document.createElement('template');
+        template.innerHTML = safeVisualHtml(html);
+        return template.content;
     };
-    const changed = (fromEditorInput = false) => {
-        if (sourceMode) return;
+    const engine = new window.Squire(editor, {
+        blockTag: 'P',
+        // Never pass untrusted raw HTML directly to Squire or contenteditable.
+        sanitizeToDOMFragment: safeFragment,
+        addLinks: false
+    });
+    const hydrate = html => {
+        hydrating = true;
+        try {
+            engine.setHTML(html);
+            visualDirty = false;
+        } finally {
+            hydrating = false;
+        }
+    };
+    hydrate(body.value);
+    const sync = () => {
+        if (!sourceMode && visualDirty) body.value = engine.getHTML();
+    };
+    const changed = () => {
+        if (hydrating || sourceMode) return;
         visualDirty = true;
         sync();
-        // Toolbar commands and Media insertions do not reliably generate a
-        // native input event. Notify the draft workflow explicitly for them.
-        if (!fromEditorInput) body.dispatchEvent(new Event('input', {bubbles:true}));
+        // The draft workflow observes form input; not all editor commands emit
+        // a native, bubbling DOM input event.
+        body.dispatchEvent(new Event('input', {bubbles: true}));
     };
+    engine.addEventListener('input', changed);
+    // Other modules (Galleries picker) insert DOM nodes and dispatch a native event.
+    editor.addEventListener('input', changed);
+    editor.addEventListener('mcms:content-sync', sync);
     const restore = html => {
         body.value = html;
-        editor.innerHTML = safeVisualHtml(html);
-        visualDirty = false;
+        hydrate(html);
     };
-    editor.addEventListener('input', () => changed(true));
-    editor.addEventListener('mcms:content-sync', sync);
     editor.addEventListener('mcms:content-restore', event => restore(String(event.detail?.html ?? '')));
+
+    const format = command => {
+        if (sourceMode) return;
+        switch (command) {
+            case 'bold':
+                if (engine.hasFormat('B') || engine.hasFormat('STRONG')) engine.removeBold();
+                else engine.bold();
+                break;
+            case 'italic':
+                if (engine.hasFormat('I') || engine.hasFormat('EM')) engine.removeItalic();
+                else engine.italic();
+                break;
+            case 'insertUnorderedList':
+                if (engine.hasFormat('UL')) engine.removeList();
+                else engine.makeUnorderedList();
+                break;
+            case 'insertOrderedList':
+                if (engine.hasFormat('OL')) engine.removeList();
+                else engine.makeOrderedList();
+                break;
+            case 'removeFormat':
+                engine.removeAllFormatting();
+                break;
+            default:
+                throw new Error('Unknown rich-text command: ' + command);
+        }
+        changed();
+    };
+    const formatBlock = tag => {
+        if (sourceMode) return;
+        if (tag === 'blockquote') {
+            if (engine.hasFormat('BLOCKQUOTE')) engine.decreaseQuoteLevel();
+            else engine.increaseQuoteLevel();
+        } else if (['p', 'h2'].includes(tag)) {
+            const name = tag.toUpperCase();
+            engine.modifyBlocks(fragment => {
+                for (const block of Array.from(fragment.childNodes)) {
+                    if (block.nodeType !== Node.ELEMENT_NODE) continue;
+                    if (!/^(?:P|DIV|H[2-6])$/.test(block.nodeName)) continue;
+                    if (block.nodeName === name) continue;
+                    const replacement = document.createElement(name);
+                    while (block.firstChild) replacement.appendChild(block.firstChild);
+                    block.replaceWith(replacement);
+                }
+                return fragment;
+            });
+        }
+        changed();
+    };
+    const link = url => {
+        if (sourceMode || !url) return;
+        const value = url.trim();
+        if (!urlSafe(value, true)) return;
+        engine.makeLink(value);
+        changed();
+    };
+    const insertImage = item => {
+        if (sourceMode || !item || !urlSafe(String(item.url || '').trim(), false)) return;
+        const paragraph = document.createElement('p');
+        const img = document.createElement('img');
+        img.src = item.url;
+        img.alt = item.alt_text || item.title || item.original_name || '';
+        img.className = 'img-fluid';
+        paragraph.appendChild(img);
+        // Squire inserts structured HTML with proper undo state and selection.
+        engine.insertHTML(paragraph.outerHTML);
+        changed();
+    };
     toggle.addEventListener('click', () => {
         if (!sourceMode) {
             sync();
@@ -86,18 +179,17 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             if (hint) hint.hidden = false;
             body.focus();
         } else {
-            // Switching without visual edits does not serialize or rewrite HTML.
-            editor.innerHTML = safeVisualHtml(body.value);
-            visualDirty = false;
+            // Squire normalizes the *visual* DOM; the source is not rewritten.
+            hydrate(body.value);
             sourceMode = false;
             body.classList.add('d-none');
             editor.hidden = false;
             toggle.setAttribute('aria-pressed', 'false');
             buttons.forEach(b => { b.disabled = false; });
             if (hint) hint.hidden = true;
-            editor.focus();
+            engine.focus();
         }
     });
-    return {sync, changed, restore};
+    return {sync, changed, restore, format, formatBlock, link, insertImage, engine};
 };
 </script>
