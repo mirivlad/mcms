@@ -380,6 +380,18 @@ for theme in ('mcms-default', 'mcms-signature', 'mcms-depth', 'mcms-focus'):
             if script.strip(): subprocess.run(['node', '--check'], input=script, text=True, check=True, capture_output=True)
         post(form_path, fields)
 
+def normalize_public_csrf(body):
+    # Public site headers now include a CSRF-protected sign-out form for
+    # authenticated readers. POSTing an admin draft rotates the CSRF token
+    # without publishing any changed content, so compare stable HTML rather
+    # than the per-request security token.
+    return re.sub(
+        r'(<input\b[^>]*\bname="csrf_test_name"[^>]*\bvalue=")[^"]+(")',
+        r'\g<1>[csrf-token]\2',
+        body,
+    )
+
+
 # Personal autosave never changes live content. History returns fields for the editor only.
 for kind, fields, content_id, public_path in [('pages', page_fields, page_id, '/site-smoke-page-renamed'),
                                             ('news', news_fields, news_id, '/news/site-smoke-article')]:
@@ -390,11 +402,11 @@ for kind, fields, content_id, public_path in [('pages', page_fields, page_id, '/
     assert json.loads(saved)['saved']
     draft = json.loads(request('/admin/' + kind + '/draft?content_id=' + str(content_id))[0])['draft']
     assert draft['data']['title'] == '' and draft['data']['body'] == '<p>Incomplete autosave</p>'
-    assert before == request(public_path)[0]
+    assert normalize_public_csrf(before) == normalize_public_csrf(request(public_path)[0])
     history = json.loads(request('/admin/' + kind + '/' + str(content_id) + '/history')[0])
     assert history['count'] > 1 and history['items'][0]['created_by']
     restored = json.loads(request('/admin/' + kind + '/' + str(content_id) + '/history/' + str(history['items'][-1]['id']))[0])
-    assert restored['data']['title'] and before == request(public_path)[0]
+    assert restored['data']['title'] and normalize_public_csrf(before) == normalize_public_csrf(request(public_path)[0])
     expect_404('/admin/' + kind + '/999999/history/' + str(history['items'][0]['id']))
     post(form_path, fields)
     assert json.loads(request('/admin/' + kind + '/draft?content_id=' + str(content_id))[0])['draft'] is None
