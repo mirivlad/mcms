@@ -4,7 +4,10 @@ if (auth()->loggedIn()) {
     $accountCheckout['email'] = (string) (auth()->user()->email ?? '');
     $accountRow = db_connect()->table('account_profiles')
         ->select('full_name, phone')->where('user_id', (int) auth()->id())->get()->getRowArray();
-    $accountCheckout['name'] = (string) ($accountRow['full_name'] ?? auth()->user()->username);
+    $accountCheckout['name'] = trim((string) ($accountRow['full_name'] ?? ''));
+    if ($accountCheckout['name'] === '') {
+        $accountCheckout['name'] = (string) auth()->user()->username;
+    }
     $accountCheckout['phone'] = (string) ($accountRow['phone'] ?? '');
 }
 ?>
