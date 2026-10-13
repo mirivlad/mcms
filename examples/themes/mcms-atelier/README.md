@@ -1,6 +1,6 @@
 # mCMS Atelier — editorial sample theme
 
-**Atelier 01** is a self-contained *installable third-party ZIP theme*, not a built-in
+**Atelier 1.1** is a self-contained *installable third-party ZIP theme*, not a built-in
 theme. It demonstrates the external theme API using the same public module data
 as the bundled themes.
 
@@ -12,7 +12,13 @@ geometric SVG cover art and asymmetrical cards. No trackers, external fonts,
 network requests, JavaScript frameworks or third-party assets.
 
 The theme includes page, news, gallery, gallery embed, contact, search,
-catalogue and cart templates. Navigation supports assigned main/footer/legal
+catalogue and cart templates. Public login, registration, profiles, password
+changes and customer order history work inside the Atelier layout through Core
+account.* template fallbacks, as they do for built-in themes. The shared auth/nav
+widget provides login/registration for guests and account/logout actions for
+signed-in readers. No duplicate login forms are needed in theme ZIPs. Pages and news articles
+also mount the shared Comments and Ratings widgets when those modules are enabled,
+keeping guest comments and signed-in participation available. Navigation supports assigned main/footer/legal
 menus and falls back to enabled public sections when none are assigned. It
 honours the site logo, favicon and contact details, and provides editable Home
 text, optional hero image, buttons, news and gallery sections.
@@ -24,21 +30,22 @@ interface to customise them. Site content is always rendered from the CMS.
 
 ## Installation (do not place under the built-in `themes/` directory)
 
-1. Download `examples/packages/mcms-atelier-1.0.0.zip` from this repository.
+1. Download `examples/packages/mcms-atelier-1.1.0.zip` from this repository.
 2. Administration → Themes → **Install theme ZIP**.
 3. Upload and inspect the preview; confirm trust in the PHP templates.
 4. Install (initially inactive), then **activate Atelier** separately.
 5. Optionally edit Home content, logo, menus and appearance in Themes.
 
-An existing ZIP theme ID cannot currently be replaced by installing a second
-archive with the same ID. Use a fresh ID/namespace when forking, or follow the
-supported lifecycle in `docs/THEMES.md`.
+Existing packages cannot yet be upgraded in place by installing another ZIP
+with the same ID. If 1.0.0 was installed, remove that installed package after
+saving any important customisation, then install and activate 1.1.0.
+For forks, choose a unique theme ID and namespace. See docs/THEMES.md.
 
 ## Build your own ZIP
 
 From the mCMS repository root:
 
-    php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.0.0.zip
+    php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.0.zip
 
 `theme.json` must be **at the root of the ZIP**, not inside a parent folder.
 The official packer validates archive paths, file types, sizes and references.
@@ -48,7 +55,12 @@ avoid a built-in/external theme identity collision.
 ## Customisation
 
 - `theme.json`: package identity, Home settings and menu locations
-- `Views/layout.php`: accessible shared layout
+- `Views/layout.php`: accessible shared layout, menu locations and shared Core
+  auth/nav links, without duplicated account forms
+- Core account.* fallbacks render login, registration, profile and orders
+  inside Atelier; optional account.login, account.register, account.account,
+  account.orders or account.order template mappings allow an external theme to
+  replace one particular screen
 - `Views/home.php`: editorial landing page and dynamic cards
 - `Views/Text.php`: RU/EN presentation labels
 - `assets/css/theme.css`: layout and visual system; includes a proven responsive
