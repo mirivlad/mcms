@@ -66,8 +66,27 @@ try {
     const initial = body.value;
     const controller = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
     document.execCommand = () => { throw Error('Deprecated execCommand called'); };
+    // Headless Chrome doesn't always auto-scroll on Ace focus. Model the
+    // browser's real focus-driven scroll so the regression is deterministic.
+    const nativeAceEdit = window.ace.edit;
+    window.ace.edit = function(...args) {
+        const instance = nativeAceEdit.apply(this, args);
+        const nativeFocus = instance.focus.bind(instance);
+        instance.focus = function() {
+            nativeFocus();
+            window.scrollTo(0, 1000);
+        };
+        return instance;
+    };
 
+    // Regression for the opposite transition: Ace.focus() must not scroll a
+    // long admin page toward the beginning of the code editor.
+    window.scrollTo(0, 1240);
+    const scrollBeforeSource = window.scrollY;
+    check(scrollBeforeSource > 1100, 'source scroll fixture is not tall enough');
     toggle.click();
+    check(Math.abs(window.scrollY - scrollBeforeSource) < 4,
+        'entering HTML source editor jumped the document scroll');
     check(body.value === initial, 'source-toggle changed initial HTML');
     check(editor.hidden && body.classList.contains('d-none') && !codePanel.classList.contains('d-none'),
         'Ace source layout');
@@ -144,7 +163,11 @@ try {
     check(toggle.querySelector('[data-html-toggle-label]').textContent === 'HTML',
         'HTML entry button label not restored');
 
+    window.scrollTo(0, 1260);
+    const scrollBeforeSourceAgain = window.scrollY;
     toggle.click();
+    check(Math.abs(window.scrollY - scrollBeforeSourceAgain) < 4,
+        're-entering HTML source editor jumped the document scroll');
     const unsafe = '<p data-test="1">Second</p><img src="broken" onerror="window.xss = 1">'
         + '<script>window.xss = 1</' + 'script>';
     body.value = unsafe;
@@ -228,6 +251,23 @@ try {
     editor.appendChild(gallery);
     editor.dispatchEvent(new Event('input', {bubbles:true}));
     check(body.value.includes('[gallery id="17"]'), 'gallery DOM insertion not synced');
+
+    // Verify the viewport remains fixed *after* layout/scroll anchoring has
+    // settled, not only synchronously during the toggle click handler.
+    window.scrollTo(0, 1230);
+    const delayedSourcePosition = window.scrollY;
+    toggle.click();
+    setTimeout(() => {
+        check(Math.abs(window.scrollY - delayedSourcePosition) < 4,
+            'Ace source mode jumped the page after layout settled');
+        window.scrollTo(0, 1210);
+        const delayedVisualPosition = window.scrollY;
+        toggle.click();
+        setTimeout(() => {
+            check(Math.abs(window.scrollY - delayedVisualPosition) < 4,
+                'Squire visual mode jumped the page after layout settled');
+        }, 50);
+    }, 50);
 } catch (error) {
     errors.push(String(error.stack || error));
 }
