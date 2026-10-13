@@ -432,21 +432,21 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     };
 
     const restoreSelection = () => {
-        if (! savedRange) {
-            editor.focus();
-            return;
-        }
-
+        editor.focus();
+        if (!savedRange || !editor.contains(savedRange.commonAncestorContainer)) return;
         const selection = window.getSelection();
+        if (!selection) return;
         selection.removeAllRanges();
         selection.addRange(savedRange);
     };
 
-    document.getElementById('editor-toolbar').addEventListener('mousedown', rememberSelection);
+    editor.addEventListener('keyup', rememberSelection);
+    editor.addEventListener('mouseup', rememberSelection);
+    toolbar.addEventListener('mousedown', rememberSelection);
 
     document.querySelectorAll('[data-command]').forEach((button) => {
         button.addEventListener('click', () => {
-            editor.focus();
+            restoreSelection();
             htmlEditor.format(button.dataset.command);
             rememberSelection();
         });
@@ -454,7 +454,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
     document.querySelectorAll('[data-format]').forEach((button) => {
         button.addEventListener('click', () => {
-            editor.focus();
+            restoreSelection();
             htmlEditor.formatBlock(button.dataset.format);
             rememberSelection();
         });
