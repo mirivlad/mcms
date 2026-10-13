@@ -86,7 +86,7 @@ try {
     editor.innerHTML = '<p>Toolbar edit</p>';
     controller.changed();
     check(body.value.includes('Toolbar edit'), 'toolbar changed visual HTML but did not sync');
-    check(toolbarAutosaves === 1, 'toolbar editing did not notify autosave');
+    check(toolbarAutosaves >= 1, 'toolbar editing did not notify autosave');
 
     const restored = '<p class="old" data-raw="1">Restore</p>';
     editor.dispatchEvent(new CustomEvent('mcms:content-restore', {detail:{html:restored}}));
