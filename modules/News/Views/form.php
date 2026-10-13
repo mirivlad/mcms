@@ -232,12 +232,14 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                         </button>
                         <?php endif ?>
                         <button class="btn btn-ghost-primary" type="button" data-insert-table title="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>"><i class="ti ti-table"></i></button>
+                        <button type="button" class="btn btn-ghost-primary" data-html-format hidden title="<?= esc(lang('MCMS.content.formatHtml'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.formatHtml'), 'attr') ?>"><i class="ti ti-code-dots"></i><span class="ms-1"><?= esc(lang('MCMS.content.formatHtml')) ?></span></button>
                         <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="news-editor news-body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
                     <div id="news-editor" class="mcms-editor" contenteditable="true" role="textbox" aria-multiline="true"><?= $bodyValue ?></div>
                 </div>
                 <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?><p class="form-hint mt-2"><?= esc(lang('News.Admin.galleryHint')) ?></p><?php endif ?>
                 <textarea class="d-none form-control font-monospace mcms-editor-source" id="news-body" name="body" rows="20" spellcheck="false" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><?= esc($bodyValue) ?></textarea>
+                <div id="news-html-code" class="mcms-html-code d-none" data-html-code aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"></div>
                 <p class="form-hint mt-2" data-html-source-hint hidden><?= esc(lang('MCMS.content.htmlSourceHint')) ?></p>
             </div>
 

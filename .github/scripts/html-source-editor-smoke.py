@@ -25,10 +25,19 @@ def main() -> None:
     vendor = ROOT / "public/assets/vendor/squire/squire.min.js"
     if not vendor.exists() or "window.Squire" not in vendor.read_text(encoding="utf-8"):
         raise SystemExit("Vendored Squire engine is missing")
-    if not widget.startswith('<script src=') or "mcmsCreateHtmlSourceEditor" not in widget:
-        raise SystemExit("Expected production HTML editor view with local Squire")
-    # PHP resolves base_url in production. In the browser fixture use file://.
-    widget = '<script src="' + vendor.as_uri() + '"></script>\n' + widget.split("\n", 1)[1]
+    if "mcmsCreateHtmlSourceEditor" not in widget or "window.ace" not in widget:
+        raise SystemExit("Shared source controller and local Ace initialization are required")
+    # Use file:// for every locally vendored PHP asset; no CDN requests.
+    assets = ROOT / "public/assets/vendor"
+    asset_re = re.compile(r'<script src="<\?= base_url\(\'assets/vendor/([^\']+)\'\) \?>"></script>')
+    widget = asset_re.sub(lambda m: '<script src="' + (assets / m.group(1)).as_uri()
+                          + '"></script>', widget)
+    widget = widget.replace(
+        "<?= json_encode(base_url('assets/vendor/ace/'), JSON_UNESCAPED_SLASHES) ?>",
+        repr((assets / "ace").as_uri() + "/"),
+    )
+    if "<?=" in widget.split("<dialog", 1)[0]:
+        raise SystemExit("Browser fixture contains unresolved PHP placeholders")
 
     for filename in ("modules/Pages/Views/form.php", "modules/News/Views/form.php"):
         content = (ROOT / filename).read_text(encoding="utf-8")
@@ -40,7 +49,7 @@ def main() -> None:
     assert "mcms:content-restore" in workflow
     assert "mcms:content-sync" in workflow and "mcms:content-sync" in preview
 
-    source = '<p class="kept" data-other="preserve">A &amp; B</p>\n<!-- keep comment -->'
+    source = '<div class="kept" data-other="preserve"><h2>Heading</h2><p>A &amp; B</p></div>'
     assertions = r'''
 <script>
 const errors = [];
@@ -51,16 +60,59 @@ try {
     const toolbar = document.getElementById('toolbar');
     const toggle = document.getElementById('toggle');
     const format = document.getElementById('format');
+    const pretty = document.getElementById('pretty');
+    const codePanel = document.getElementById('code');
     const initial = body.value;
     const controller = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
     document.execCommand = () => { throw Error('Deprecated execCommand called'); };
 
     toggle.click();
     check(body.value === initial, 'source-toggle changed initial HTML');
-    check(editor.hidden && !body.classList.contains('d-none'), 'source layout');
+    check(editor.hidden && body.classList.contains('d-none') && !codePanel.classList.contains('d-none'),
+        'Ace source layout');
+    check(controller.codeEditor && controller.codeEditor.session.getMode().$id === 'ace/mode/html',
+        'Ace HTML mode not initialized');
+    check(controller.codeEditor.getValue().split(String.fromCharCode(10)).length > 1, 'HTML source not pretty-printed');
+    check(controller.codeEditor.getValue().includes(String.fromCharCode(9)),
+        'nested HTML has no tab indentation');
+    check(controller.codeEditor.getOption('enableBasicAutocompletion') === true,
+        'HTML completion disabled');
+    check(controller.codeEditor.getOption('useSoftTabs') === false,
+        'Tab indentation not enabled');
+    const attrCompletions = [];
+    const htmlCompleter = controller.codeEditor.completers[0];
+    controller.codeEditor.setValue('<img s', -1);
+    htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
+        {row:0,column:6}, 's', (e, results) => attrCompletions.push(...results));
+    check(attrCompletions.some(item => item.caption === 'src'), 'HTML attributes completion missing');
+    const tagCompletions = [];
+    controller.codeEditor.setValue('<di', -1);
+    htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
+        {row:0,column:3}, 'di', (e, results) => tagCompletions.push(...results));
+    check(tagCompletions.some(item => item.caption === 'div'), 'HTML tag completion missing');
+    const cssCompletions = [];
+    controller.codeEditor.setValue('<p style="col', -1);
+    htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
+        {row:0,column:13}, 'col', (e, results) => cssCompletions.push(...results));
+    check(cssCompletions.some(item => item.caption === 'color'), 'CSS properties completion missing');
+    controller.codeEditor.setValue('<a href=', -1);
+    controller.codeEditor.navigateFileEnd();
+    controller.codeEditor.onTextInput('"');
+    check(controller.codeEditor.getValue().includes('href=""'),
+        'quote auto-pairing is unavailable');
+    controller.codeEditor.setValue('<div', -1);
+    controller.codeEditor.navigateFileEnd();
+    controller.codeEditor.onTextInput('>');
+    check(controller.codeEditor.getValue().includes('</div>'),
+        'HTML tag auto-closing is unavailable');
+    // Changing Ace's buffer is a user edit. Restore canonical test text for the
+    // non-destructive view-switch assertions below.
+    controller.codeEditor.setValue(initial, -1);
+    check(body.value === initial, 'Ace changes did not sync canonical');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source controls');
     editor.dispatchEvent(new Event('mcms:content-sync'));
     check(body.value === initial, 'preview sync changed untouched HTML');
+    check(pretty.hidden === false && pretty.disabled === false, 'format action not available');
     toggle.click();
     check(body.value === initial, 'visual round-trip changed untouched HTML');
 
@@ -71,6 +123,7 @@ try {
     body.dispatchEvent(new Event('input', {bubbles:true}));
     editor.dispatchEvent(new Event('mcms:content-sync'));
     check(body.value === unsafe, 'source edit was overwritten');
+    check(controller.codeEditor.getValue().includes('kept'), 'Ace source not shown');
     toggle.click();
     check(body.value === unsafe, 'source-to-visual switch serialized HTML');
     check(!editor.innerHTML.includes('onerror') && !editor.innerHTML.includes('<script'),
@@ -93,8 +146,14 @@ try {
     check(body.value === restored, 'version recovery rewrote source');
     toggle.click();
     check(body.value === restored, 'recovered HTML changed on source switch');
+    check(controller.codeEditor.getValue().includes('Restore'), 'restored source not shown in Ace');
+    controller.codeEditor.setValue('<div><p>Changed from Ace</p></div>', -1);
+    check(body.value.includes('Changed from Ace'), 'Ace source edits not synced into canonical HTML');
+    editor.dispatchEvent(new Event('mcms:content-sync'));
+    check(body.value.includes('Changed from Ace'), 'preview sync clobbered Ace source edits');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source state after restore');
     toggle.click();
+    check(editor.innerHTML.includes('Changed from Ace'), 'Ace-to-visual view lost edited source');
     controller.engine.setHTML('<p>format tests</p>');
     controller.engine.moveCursorToStart();
     const selection = document.createRange();
@@ -157,9 +216,11 @@ setTimeout(() => {
         '<div id="container"><div id="toolbar">'
         '<button type="button" id="toggle" data-html-source-toggle>HTML</button>'
         '<button type="button" id="format">Format</button>'
+        '<button type="button" id="pretty" data-html-format hidden>Pretty</button>'
         '<button type="button" id="table-trigger" data-insert-table>Table</button></div>'
         '<div id="visual" contenteditable="true">' + source + '</div>'
         '<textarea id="source" class="d-none">' + html.escape(source) + '</textarea>'
+        '<div id="code" data-html-code class="mcms-html-code d-none" style="height:500px"></div>'
         '<p data-html-source-hint hidden>HTML source hint</p></div>'
         '<pre id="result">RUNNING</pre>' + widget + assertions + '</body></html>'
     )

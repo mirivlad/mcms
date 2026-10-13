@@ -272,6 +272,13 @@ jobs:
           grep -q '/assets/vendor/squire/squire.min.js' /tmp/page-create.html
           curl -fsS http://127.0.0.1:8080/assets/vendor/squire/squire.min.js -o /tmp/squire.js
           test "$(wc -c < /tmp/squire.js)" -gt 50000
+          grep -q 'data-html-code' /tmp/page-create.html
+          grep -q '/assets/vendor/ace/ace.js' /tmp/page-create.html
+          grep -q 'data-html-format' /tmp/page-create.html
+          for asset in ace.js mode-html.js mode-css.js mode-javascript.js theme-chrome.js ext-language_tools.js ext-beautify.js; do
+            curl -fsS "http://127.0.0.1:8080/assets/vendor/ace/$asset" -o "/tmp/ace-$asset"
+            test "$(wc -c < "/tmp/ace-$asset")" -gt 1000
+          done
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/page-create.html)"
 
