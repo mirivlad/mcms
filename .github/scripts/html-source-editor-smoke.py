@@ -108,6 +108,28 @@ try {
     check(editor.querySelector('p') !== null, 'paragraph command did not restore p');
     controller.format('insertUnorderedList');
     check(editor.querySelector('ul') !== null, 'unordered list command');
+    controller.engine.setHTML('<p>Media and tables</p>');
+    controller.engine.moveCursorToEnd();
+    controller.insertImage({url:'https://example.test/photo.jpg',alt_text:'test photograph'});
+    check(editor.querySelector('img[alt="test photograph"]') !== null, 'image picker insertion');
+    controller.engine.moveCursorToEnd();
+    controller.insertTable(2, 3);
+    check(editor.querySelectorAll('table td').length === 6, 'insert a 2x3 HTML table');
+    check(body.value.includes('<table'), 'table absent from canonical source');
+    controller.engine.setHTML('<p>Click the link</p>');
+    const linkSelection = document.createRange();
+    linkSelection.selectNodeContents(editor.querySelector('p'));
+    controller.engine.setSelection(linkSelection);
+    controller.link('https://example.test/link');
+    check(editor.querySelector('a[href="https://example.test/link"]') !== null, 'create link');
+    controller.engine.setHTML('<p>Safe</p>');
+    controller.engine.moveCursorToEnd();
+    controller.link('javascript:alert(1)');
+    check(!editor.querySelector('a[href^="javascript:"]'), 'dangerous link rejected');
+    const gallery = document.createTextNode('[gallery id="17"]');
+    editor.appendChild(gallery);
+    editor.dispatchEvent(new Event('input', {bubbles:true}));
+    check(body.value.includes('[gallery id="17"]'), 'gallery DOM insertion not synced');
 } catch (error) {
     errors.push(String(error.stack || error));
 }
