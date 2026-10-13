@@ -11,6 +11,16 @@
 .mcms-html-code .ace_content { font-variant-ligatures: none; }
 .mcms-editor-toolbar [data-html-format] { flex: 0 0 auto; width: auto; padding: 0 .65rem; }
 .mcms-editor-toolbar [data-html-format][hidden] { display: none !important; }
+/* Source mode is a separate two-button toolbar, not a disabled visual toolbar. */
+.mcms-editor-toolbar.is-html-source > :not([data-html-format]):not([data-html-source-toggle]) {
+    display: none !important;
+}
+.mcms-editor-toolbar.is-html-source [data-html-source-toggle] {
+    margin-left: 0;
+}
+.mcms-editor-toolbar.is-html-source [data-html-format] {
+    margin-left: 0;
+}
 @media (max-width: 600px) { .mcms-html-code { height: 60vh; min-height: 300px; } }
 </style>
 <script src="<?= base_url('assets/vendor/ace/ace.js') ?>"></script>
@@ -28,6 +38,23 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
     const hint = body.parentElement.querySelector('[data-html-source-hint]');
     const codeContainer = body.parentElement.querySelector('[data-html-code]');
     const formatButton = toolbar.querySelector('[data-html-format]');
+    const toggleLabel = toggle.querySelector('[data-html-toggle-label]');
+    const toggleIcon = toggle.querySelector('i');
+    const sourceLabel = toggle.getAttribute('aria-label') || 'HTML';
+    const visualLabel = toggle.dataset.visualLabel || 'Return to visual editor';
+    const visualShort = toggle.dataset.visualShort || 'Visual';
+    const setToolbarMode = active => {
+        toolbar.classList.toggle('is-html-source', active);
+        if (toggleLabel) toggleLabel.textContent = active ? visualShort : 'HTML';
+        toggle.title = active ? visualLabel : sourceLabel;
+        toggle.setAttribute('aria-label', active ? visualLabel : sourceLabel);
+        if (toggleIcon) {
+            toggleIcon.classList.toggle('ti-code', !active);
+            toggleIcon.classList.toggle('ti-arrow-left', active);
+        }
+        // The normal toolbar may have been horizontally scrolled.
+        toolbar.scrollLeft = 0;
+    };
     const tags = new Set(['p','br','h2','h3','h4','h5','h6','ul','ol','li','blockquote',
         'pre','code','strong','b','em','i','u','s','a','img','figure','figcaption',
         'hr','table','thead','tbody','tr','th','td','div','span']);
@@ -356,6 +383,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             editor.hidden = true;
             toggle.setAttribute('aria-pressed', 'true');
             buttons.forEach(b => { b.disabled = true; });
+            setToolbarMode(true);
             if (hint) hint.hidden = false;
             showSource();
         } else {
@@ -366,6 +394,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             editor.hidden = false;
             toggle.setAttribute('aria-pressed', 'false');
             buttons.forEach(b => { b.disabled = false; });
+            setToolbarMode(false);
             if (hint) hint.hidden = true;
             engine.focus();
         }
