@@ -79,6 +79,8 @@ return [
         'next' => 'Next',
     ],
     'content' => [
+        'htmlSource' => 'Edit HTML source',
+        'htmlSourceHint' => 'Switching views without visual edits preserves source HTML. Unsafe HTML is filtered on save or preview.',
         'tagsTooLong' => 'Combined tag names and separators must not exceed 1000 characters.',
         'autosave' => 'Personal draft',
         'saving' => 'Saving draft…',

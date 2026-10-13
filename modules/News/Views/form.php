@@ -45,6 +45,17 @@
     height: 2.25rem;
     padding: 0;
 }
+.mcms-editor-toolbar [data-html-source-toggle] {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0 .65rem;
+    margin-left: auto;
+}
+.mcms-editor-source {
+    min-height: 24rem;
+    resize: vertical;
+    tab-size: 4;
+}
 .mcms-editor-toolbar-separator {
     flex: 0 0 1px;
     width: 1px;
@@ -217,11 +228,13 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                             <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
                         </button>
                         <?php endif ?>
+                        <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="news-editor news-body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
                     <div id="news-editor" class="mcms-editor" contenteditable="true" role="textbox" aria-multiline="true"><?= $bodyValue ?></div>
                 </div>
                 <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?><p class="form-hint mt-2"><?= esc(lang('News.Admin.galleryHint')) ?></p><?php endif ?>
-                <textarea class="d-none" id="news-body" name="body"><?= esc($bodyValue) ?></textarea>
+                <textarea class="d-none form-control font-monospace mcms-editor-source" id="news-body" name="body" rows="20" spellcheck="false" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><?= esc($bodyValue) ?></textarea>
+                <p class="form-hint mt-2" data-html-source-hint hidden><?= esc(lang('MCMS.content.htmlSourceHint')) ?></p>
             </div>
 
             <div class="card mb-3"><div class="card-body">
@@ -340,6 +353,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     </div>
 </dialog>
 
+<?= view('admin/content/html_source') ?>
 <script>
 (() => {
     const form = document.getElementById('news-form');
@@ -362,9 +376,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     let pickerMode = 'inline';
     let savedRange = null;
 
-    const syncBody = () => {
-        body.value = editor.innerHTML;
-    };
+    const htmlEditor = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
+    const syncBody = htmlEditor.sync;
+    const visualChanged = htmlEditor.changed;
 
     const rememberSelection = () => {
         const selection = window.getSelection();
@@ -382,7 +396,6 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     };
 
     form.addEventListener('submit', syncBody);
-    editor.addEventListener('input', syncBody);
     editor.addEventListener('keyup', rememberSelection);
     editor.addEventListener('mouseup', rememberSelection);
     toolbar.addEventListener('mousedown', rememberSelection);
@@ -392,7 +405,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             restoreSelection();
             document.execCommand(button.dataset.command, false);
             rememberSelection();
-            syncBody();
+            visualChanged();
         });
     });
 
@@ -401,7 +414,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             restoreSelection();
             document.execCommand('formatBlock', false, button.dataset.format);
             rememberSelection();
-            syncBody();
+            visualChanged();
         });
     });
 
@@ -411,7 +424,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         if (! url) return;
         document.execCommand('createLink', false, url);
         rememberSelection();
-        syncBody();
+        visualChanged();
     });
 
     const setFeatured = (item) => {
@@ -443,7 +456,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             editor.appendChild(paragraph);
         }
         rememberSelection();
-        syncBody();
+        visualChanged();
     };
 
     const chooseItem = (item) => {

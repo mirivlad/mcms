@@ -35,6 +35,17 @@
     height: 2.25rem;
     padding: 0;
 }
+.mcms-editor-toolbar [data-html-source-toggle] {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 0 .65rem;
+    margin-left: auto;
+}
+.mcms-editor-source {
+    min-height: 24rem;
+    resize: vertical;
+    tab-size: 4;
+}
 .mcms-editor-toolbar .mcms-editor-toolbar-separator {
     flex: 0 0 1px;
     width: 1px;
@@ -230,6 +241,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                             <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
                         </button>
                         <?php endif ?>
+                        <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="page-editor page_body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
 
                     <div
@@ -242,7 +254,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                 </div>
 
                 <?php if (service('mcmsModuleServices')->has('galleries.shortcode')): ?><p class="form-hint mt-2"><?= esc(lang('Pages.Admin.galleryHint')) ?></p><?php endif ?>
-                <textarea id="page_body" name="body" class="d-none"><?= esc($editorBody) ?></textarea>
+                <textarea id="page_body" name="body" class="d-none form-control font-monospace mcms-editor-source" rows="20" spellcheck="false" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><?= esc($editorBody) ?></textarea>
+                <p class="form-hint mt-2" data-html-source-hint hidden><?= esc(lang('MCMS.content.htmlSourceHint')) ?></p>
             </div>
 
             <div class="card mb-3"><div class="card-body">
@@ -386,11 +399,13 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     </div>
 </dialog>
 
+<?= view('admin/content/html_source') ?>
 <script>
 (() => {
     const form = document.getElementById('page-form');
     const editor = document.getElementById('page-editor');
     const body = document.getElementById('page_body');
+    const toolbar = document.getElementById('editor-toolbar');
     const dialog = document.getElementById('media-dialog');
     const results = document.getElementById('media-results');
     const empty = document.getElementById('media-empty');
@@ -401,9 +416,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     const insertLabel = <?= json_encode(lang('Pages.Admin.insertImage'), JSON_UNESCAPED_UNICODE) ?>;
     let savedRange = null;
 
-    const syncBody = () => {
-        body.value = editor.innerHTML;
-    };
+    const htmlEditor = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
+    const syncBody = htmlEditor.sync;
+    const visualChanged = htmlEditor.changed;
 
     const rememberSelection = () => {
         const selection = window.getSelection();
@@ -430,7 +445,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             editor.focus();
             document.execCommand(button.dataset.command, false);
             rememberSelection();
-            syncBody();
+            visualChanged();
         });
     });
 
@@ -439,7 +454,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             editor.focus();
             document.execCommand('formatBlock', false, button.dataset.format);
             rememberSelection();
-            syncBody();
+            visualChanged();
         });
     });
 
@@ -448,7 +463,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         const url = window.prompt('URL');
         if (url) {
             document.execCommand('createLink', false, url);
-            syncBody();
+            visualChanged();
         }
     });
 
@@ -476,7 +491,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
             editor.appendChild(paragraph);
         }
 
-        syncBody();
+        visualChanged();
         dialog.close();
         editor.focus();
     };
@@ -580,7 +595,6 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         }
     });
 
-    editor.addEventListener('input', syncBody);
     form.addEventListener('submit', syncBody);
 })();
 </script>
