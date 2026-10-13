@@ -84,6 +84,8 @@ return [
         'insertTable' => 'Insert table',
         'tableRows' => 'Rows',
         'tableColumns' => 'Columns',
+        'visualMode' => 'Return to visual editor',
+        'visualModeShort' => 'Visual',
         'formatHtml' => 'Format HTML',
         'htmlSource' => 'Edit HTML source',
         'htmlSourceHint' => 'Switching views without visual edits preserves source HTML. Unsafe HTML is filtered on save or preview.',
