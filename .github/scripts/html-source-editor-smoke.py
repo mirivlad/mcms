@@ -59,7 +59,6 @@ try {
     const body = document.getElementById('source');
     const toolbar = document.getElementById('toolbar');
     const toggle = document.getElementById('toggle');
-    const toolbar = document.getElementById('toolbar');
     const separator = document.getElementById('divider');
     const format = document.getElementById('format');
     const pretty = document.getElementById('pretty');
