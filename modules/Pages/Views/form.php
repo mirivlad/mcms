@@ -197,6 +197,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
                 <div class="mcms-editor-shell">
                     <div class="mcms-editor-toolbar" id="editor-toolbar">
+                        <button class="btn btn-ghost-secondary" type="button" data-command="undo" title="<?= esc(lang('MCMS.content.undo'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.undo'), 'attr') ?>"><i class="ti ti-arrow-back-up"></i></button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="redo" title="<?= esc(lang('MCMS.content.redo'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.redo'), 'attr') ?>"><i class="ti ti-arrow-forward-up"></i></button>
+                        <span class="mcms-editor-toolbar-separator"></span>
                         <button class="btn btn-ghost-secondary" type="button" data-command="bold" title="<?= esc(lang('Pages.Admin.bold'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.bold'), 'attr') ?>">
                             <i class="ti ti-bold"></i>
                         </button>
@@ -241,6 +244,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                             <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
                         </button>
                         <?php endif ?>
+                        <button class="btn btn-ghost-primary" type="button" data-insert-table title="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>"><i class="ti ti-table"></i></button>
                         <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="page-editor page_body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
 
