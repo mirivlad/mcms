@@ -25,9 +25,8 @@ def main() -> None:
     vendor = ROOT / "public/assets/vendor/squire/squire.min.js"
     if not vendor.exists() or "window.Squire" not in vendor.read_text(encoding="utf-8"):
         raise SystemExit("Vendored Squire engine is missing")
-    if "mcmsCreateHtmlSourceEditor" not in widget or "data-html-code" not in widget:
-        # The code editor is attached to the form, not inside the controller.
-        assert "window.ace" in widget, "Ace source controller missing"
+    if "mcmsCreateHtmlSourceEditor" not in widget or "window.ace" not in widget:
+        raise SystemExit("Shared source controller and local Ace initialization are required")
     # Use file:// for every locally vendored PHP asset; no CDN requests.
     assets = ROOT / "public/assets/vendor"
     asset_re = re.compile(r'<script src="<\?= base_url\(\'assets/vendor/([^\']+)\'\) \?>"></script>')
