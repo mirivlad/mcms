@@ -210,6 +210,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                 <label class="form-label"><?= esc(lang('News.Admin.body')) ?></label>
                 <div class="mcms-editor-shell">
                     <div class="mcms-editor-toolbar" id="news-editor-toolbar">
+                        <button class="btn btn-ghost-secondary" type="button" data-command="undo" title="<?= esc(lang('MCMS.content.undo'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.undo'), 'attr') ?>"><i class="ti ti-arrow-back-up"></i></button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="redo" title="<?= esc(lang('MCMS.content.redo'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.redo'), 'attr') ?>"><i class="ti ti-arrow-forward-up"></i></button>
+                        <span class="mcms-editor-toolbar-separator"></span>
                         <button class="btn btn-ghost-secondary" type="button" data-command="bold" title="<?= esc(lang('News.Admin.bold'), 'attr') ?>" aria-label="<?= esc(lang('News.Admin.bold'), 'attr') ?>"><i class="ti ti-bold"></i></button>
                         <button class="btn btn-ghost-secondary" type="button" data-command="italic" title="<?= esc(lang('News.Admin.italic'), 'attr') ?>" aria-label="<?= esc(lang('News.Admin.italic'), 'attr') ?>"><i class="ti ti-italic"></i></button>
                         <span class="mcms-editor-toolbar-separator"></span>
@@ -228,6 +231,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                             <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
                         </button>
                         <?php endif ?>
+                        <button class="btn btn-ghost-primary" type="button" data-insert-table title="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>"><i class="ti ti-table"></i></button>
                         <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="news-editor news-body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
                     <div id="news-editor" class="mcms-editor" contenteditable="true" role="textbox" aria-multiline="true"><?= $bodyValue ?></div>
@@ -389,8 +393,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
     const restoreSelection = () => {
         editor.focus();
-        if (! savedRange) return;
+        if (!savedRange || !editor.contains(savedRange.commonAncestorContainer)) return;
         const selection = window.getSelection();
+        if (!selection) return;
         selection.removeAllRanges();
         selection.addRange(savedRange);
     };
@@ -403,18 +408,16 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     document.querySelectorAll('[data-command]').forEach((button) => {
         button.addEventListener('click', () => {
             restoreSelection();
-            document.execCommand(button.dataset.command, false);
+            htmlEditor.format(button.dataset.command);
             rememberSelection();
-            visualChanged();
         });
     });
 
     document.querySelectorAll('[data-format]').forEach((button) => {
         button.addEventListener('click', () => {
             restoreSelection();
-            document.execCommand('formatBlock', false, button.dataset.format);
+            htmlEditor.formatBlock(button.dataset.format);
             rememberSelection();
-            visualChanged();
         });
     });
 
@@ -422,9 +425,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         restoreSelection();
         const url = window.prompt('URL');
         if (! url) return;
-        document.execCommand('createLink', false, url);
+        htmlEditor.link(url);
         rememberSelection();
-        visualChanged();
     });
 
     const setFeatured = (item) => {
@@ -437,26 +439,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
     const insertInlineImage = (item) => {
         restoreSelection();
-        const image = document.createElement('img');
-        image.src = item.url;
-        image.alt = item.alt_text || item.title || item.original_name || '';
-        image.className = 'img-fluid';
-        const paragraph = document.createElement('p');
-        paragraph.appendChild(image);
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(paragraph);
-            range.setStartAfter(paragraph);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        } else {
-            editor.appendChild(paragraph);
-        }
+        htmlEditor.insertImage(item);
         rememberSelection();
-        visualChanged();
     };
 
     const chooseItem = (item) => {

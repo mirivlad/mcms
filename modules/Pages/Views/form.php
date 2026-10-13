@@ -197,6 +197,9 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
                 <div class="mcms-editor-shell">
                     <div class="mcms-editor-toolbar" id="editor-toolbar">
+                        <button class="btn btn-ghost-secondary" type="button" data-command="undo" title="<?= esc(lang('MCMS.content.undo'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.undo'), 'attr') ?>"><i class="ti ti-arrow-back-up"></i></button>
+                        <button class="btn btn-ghost-secondary" type="button" data-command="redo" title="<?= esc(lang('MCMS.content.redo'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.redo'), 'attr') ?>"><i class="ti ti-arrow-forward-up"></i></button>
+                        <span class="mcms-editor-toolbar-separator"></span>
                         <button class="btn btn-ghost-secondary" type="button" data-command="bold" title="<?= esc(lang('Pages.Admin.bold'), 'attr') ?>" aria-label="<?= esc(lang('Pages.Admin.bold'), 'attr') ?>">
                             <i class="ti ti-bold"></i>
                         </button>
@@ -241,6 +244,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
                             <i class="ti ti-photo"></i><span class="ms-1"><?= esc(lang('Galleries.Admin.galleryButton')) ?></span>
                         </button>
                         <?php endif ?>
+                        <button class="btn btn-ghost-primary" type="button" data-insert-table title="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.insertTable'), 'attr') ?>"><i class="ti ti-table"></i></button>
                         <button type="button" class="btn btn-ghost-primary" data-html-source-toggle aria-pressed="false" aria-controls="page-editor page_body" title="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>" aria-label="<?= esc(lang('MCMS.content.htmlSource'), 'attr') ?>"><i class="ti ti-code" aria-hidden="true"></i><span class="ms-1">HTML</span></button>
                     </div>
 
@@ -428,33 +432,31 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     };
 
     const restoreSelection = () => {
-        if (! savedRange) {
-            editor.focus();
-            return;
-        }
-
+        editor.focus();
+        if (!savedRange || !editor.contains(savedRange.commonAncestorContainer)) return;
         const selection = window.getSelection();
+        if (!selection) return;
         selection.removeAllRanges();
         selection.addRange(savedRange);
     };
 
-    document.getElementById('editor-toolbar').addEventListener('mousedown', rememberSelection);
+    editor.addEventListener('keyup', rememberSelection);
+    editor.addEventListener('mouseup', rememberSelection);
+    toolbar.addEventListener('mousedown', rememberSelection);
 
     document.querySelectorAll('[data-command]').forEach((button) => {
         button.addEventListener('click', () => {
-            editor.focus();
-            document.execCommand(button.dataset.command, false);
+            restoreSelection();
+            htmlEditor.format(button.dataset.command);
             rememberSelection();
-            visualChanged();
         });
     });
 
     document.querySelectorAll('[data-format]').forEach((button) => {
         button.addEventListener('click', () => {
-            editor.focus();
-            document.execCommand('formatBlock', false, button.dataset.format);
+            restoreSelection();
+            htmlEditor.formatBlock(button.dataset.format);
             rememberSelection();
-            visualChanged();
         });
     });
 
@@ -462,36 +464,13 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         restoreSelection();
         const url = window.prompt('URL');
         if (url) {
-            document.execCommand('createLink', false, url);
-            visualChanged();
+            htmlEditor.link(url);
         }
     });
 
     const insertImage = (item) => {
         restoreSelection();
-
-        const image = document.createElement('img');
-        image.src = item.url;
-        image.alt = item.alt_text || item.title || item.original_name || '';
-        image.className = 'img-fluid';
-
-        const paragraph = document.createElement('p');
-        paragraph.appendChild(image);
-
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(paragraph);
-            range.setStartAfter(paragraph);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        } else {
-            editor.appendChild(paragraph);
-        }
-
-        visualChanged();
+        htmlEditor.insertImage(item);
         dialog.close();
         editor.focus();
     };

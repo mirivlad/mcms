@@ -268,6 +268,10 @@ jobs:
 
           grep -q 'Create page' /tmp/page-create.html
           grep -q 'Insert image from Media' /tmp/page-create.html
+          grep -q 'data-html-source-toggle' /tmp/page-create.html
+          grep -q '/assets/vendor/squire/squire.min.js' /tmp/page-create.html
+          curl -fsS http://127.0.0.1:8080/assets/vendor/squire/squire.min.js -o /tmp/squire.js
+          test "$(wc -c < /tmp/squire.js)" -gt 50000
 
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/page-create.html)"
 

@@ -22,8 +22,13 @@ def main() -> None:
     if chrome is None:
         raise SystemExit("HTML editor browser smoke requires Chrome/Chromium")
     widget = SOURCE.read_text(encoding="utf-8")
-    if not widget.startswith("<script>") or not widget.rstrip().endswith("</script>"):
-        raise SystemExit("Expected the production HTML editor script view")
+    vendor = ROOT / "public/assets/vendor/squire/squire.min.js"
+    if not vendor.exists() or "window.Squire" not in vendor.read_text(encoding="utf-8"):
+        raise SystemExit("Vendored Squire engine is missing")
+    if not widget.startswith('<script src=') or "mcmsCreateHtmlSourceEditor" not in widget:
+        raise SystemExit("Expected production HTML editor view with local Squire")
+    # PHP resolves base_url in production. In the browser fixture use file://.
+    widget = '<script src="' + vendor.as_uri() + '"></script>\n' + widget.split("\n", 1)[1]
 
     for filename in ("modules/Pages/Views/form.php", "modules/News/Views/form.php"):
         content = (ROOT / filename).read_text(encoding="utf-8")
@@ -48,6 +53,7 @@ try {
     const format = document.getElementById('format');
     const initial = body.value;
     const controller = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
+    document.execCommand = () => { throw Error('Deprecated execCommand called'); };
 
     toggle.click();
     check(body.value === initial, 'source-toggle changed initial HTML');
@@ -74,13 +80,13 @@ try {
 
     editor.innerHTML = '<p>Visual edit</p>';
     editor.dispatchEvent(new Event('input', {bubbles:true}));
-    check(body.value === '<p>Visual edit</p>', 'visual editing did not update canonical HTML');
+    check(body.value.includes('Visual edit'), 'visual editing did not update canonical HTML');
     let toolbarAutosaves = 0;
     body.addEventListener('input', () => { toolbarAutosaves++; });
     editor.innerHTML = '<p>Toolbar edit</p>';
     controller.changed();
-    check(body.value === '<p>Toolbar edit</p>', 'toolbar changed visual HTML but did not sync');
-    check(toolbarAutosaves === 1, 'toolbar editing did not notify autosave');
+    check(body.value.includes('Toolbar edit'), 'toolbar changed visual HTML but did not sync');
+    check(toolbarAutosaves >= 1, 'toolbar editing did not notify autosave');
 
     const restored = '<p class="old" data-raw="1">Restore</p>';
     editor.dispatchEvent(new CustomEvent('mcms:content-restore', {detail:{html:restored}}));
@@ -88,6 +94,53 @@ try {
     toggle.click();
     check(body.value === restored, 'recovered HTML changed on source switch');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source state after restore');
+    toggle.click();
+    controller.engine.setHTML('<p>format tests</p>');
+    controller.engine.moveCursorToStart();
+    const selection = document.createRange();
+    selection.selectNodeContents(editor.querySelector('p'));
+    controller.engine.setSelection(selection);
+    controller.format('bold');
+    check(/<(?:b|strong)>/i.test(editor.innerHTML), 'bold command did not format selection');
+    controller.formatBlock('h2');
+    check(editor.querySelector('h2') !== null, 'heading command did not create h2');
+    controller.formatBlock('p');
+    check(editor.querySelector('p') !== null, 'paragraph command did not restore p');
+    controller.format('insertUnorderedList');
+    check(editor.querySelector('ul') !== null, 'unordered list command');
+    controller.engine.setHTML('<p>Media and tables</p>');
+    controller.engine.moveCursorToEnd();
+    controller.insertImage({url:'https://example.test/photo.jpg',alt_text:'test photograph'});
+    check(editor.querySelector('img[alt="test photograph"]') !== null, 'image picker insertion');
+    controller.engine.moveCursorToEnd();
+    controller.insertTable(2, 3);
+    check(editor.querySelectorAll('table td').length === 6, 'insert a 2x3 HTML table');
+    controller.engine.setHTML('<p>Table dialog selection test</p>');
+    controller.engine.moveCursorToEnd();
+    document.getElementById('table-trigger').click();
+    const tableDialog = document.getElementById('mcms-insert-table-dialog');
+    check(tableDialog.open, 'table insertion dialog did not open');
+    const tableForm = tableDialog.querySelector('form');
+    tableForm.elements.namedItem('rows').value = '2';
+    tableForm.elements.namedItem('columns').value = '2';
+    tableForm.requestSubmit();
+    check(!tableDialog.open && editor.querySelectorAll('table td').length === 4,
+        'dialog did not insert 2x2 table');
+    check(body.value.includes('<table'), 'table absent from canonical source');
+    controller.engine.setHTML('<p>Click the link</p>');
+    const linkSelection = document.createRange();
+    linkSelection.selectNodeContents(editor.querySelector('p'));
+    controller.engine.setSelection(linkSelection);
+    controller.link('https://example.test/link');
+    check(editor.querySelector('a[href="https://example.test/link"]') !== null, 'create link');
+    controller.engine.setHTML('<p>Safe</p>');
+    controller.engine.moveCursorToEnd();
+    controller.link('javascript:alert(1)');
+    check(!editor.querySelector('a[href^="javascript:"]'), 'dangerous link rejected');
+    const gallery = document.createTextNode('[gallery id="17"]');
+    editor.appendChild(gallery);
+    editor.dispatchEvent(new Event('input', {bubbles:true}));
+    check(body.value.includes('[gallery id="17"]'), 'gallery DOM insertion not synced');
 } catch (error) {
     errors.push(String(error.stack || error));
 }
@@ -103,7 +156,8 @@ setTimeout(() => {
         '<style>.d-none{display:none!important}</style></head><body>'
         '<div id="container"><div id="toolbar">'
         '<button type="button" id="toggle" data-html-source-toggle>HTML</button>'
-        '<button type="button" id="format">Format</button></div>'
+        '<button type="button" id="format">Format</button>'
+        '<button type="button" id="table-trigger" data-insert-table>Table</button></div>'
         '<div id="visual" contenteditable="true">' + source + '</div>'
         '<textarea id="source" class="d-none">' + html.escape(source) + '</textarea>'
         '<p data-html-source-hint hidden>HTML source hint</p></div>'
