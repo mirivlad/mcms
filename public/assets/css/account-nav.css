@@ -33,3 +33,28 @@
 @media (max-width: 767px) {
     .mcms-account-access { width: 100%; justify-content: flex-end; }
 }
+
+/* Account forms inherit the active theme's typography and colors. */
+.mcms-account-page {
+    width: min(100% - 2rem, 1080px);
+    margin: clamp(1.5rem, 4vw, 3.5rem) auto;
+    padding-bottom: clamp(1.5rem, 4vw, 3.5rem);
+}
+.mcms-account-content { max-width: 740px; margin: 0 auto; }
+.mcms-account-breadcrumbs {
+    display: flex; flex-wrap: wrap; gap: .65rem; align-items: center;
+    margin-bottom: 1.5rem; font-size: .9rem; opacity: .85;
+}
+.mcms-account-card {
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    border-radius: .8rem;
+    background: color-mix(in srgb, currentColor 3%, transparent);
+    color: inherit;
+}
+.mcms-account-card .form-label { color: inherit; }
+.mcms-account-card .table { color: inherit; }
+@media (max-width: 480px) {
+    .mcms-account-page { width: calc(100% - 1.25rem); }
+    .mcms-account-card { padding: 1rem; }
+}

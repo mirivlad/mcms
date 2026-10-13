@@ -523,3 +523,12 @@ form/navigation checks including a 390px viewport without horizontal overflow.
 - Accounts and contact data use a new Core migration; docs/ACCOUNTS.md lists
   security rules and deferred features (email recovery, saved addresses,
   order pagination).
+
+## Account pages integrated with themes — 2026-10-13
+
+- Public login, registration, account settings and order pages use the active
+  ThemeManager layout, including normal header/nav/footer and appearance data.
+- Shared Core fallback templates avoid duplicating forms in four themes.
+  Optional account.* theme manifest mappings allow theme-owned overrides.
+- Browser-response integration checks cover login and registration under all
+  four bundled themes; no standalone site shell is rendered.

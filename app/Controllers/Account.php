@@ -19,7 +19,7 @@ final class Account extends BaseController
     public function index(): string
     {
         $user = auth()->user();
-        return view('auth/account', [
+        return $this->renderAccountPage('account', [
             'user' => $user,
             'profile' => $this->profile((int) $user->id),
         ]);
@@ -100,7 +100,7 @@ final class Account extends BaseController
                 ->where('customer_user_id', (int) auth()->id())
                 ->orderBy('id', 'DESC')->limit(100)->get()->getResultArray();
         }
-        return view('auth/orders', ['orders' => $orders]);
+        return $this->renderAccountPage('orders', ['orders' => $orders]);
     }
 
     public function order(int $id): string
@@ -117,7 +117,23 @@ final class Account extends BaseController
         }
         $items = $db->table('order_items')->where('order_id', $id)
             ->orderBy('id')->get()->getResultArray();
-        return view('auth/order', ['order' => $order, 'items' => $items]);
+        return $this->renderAccountPage('order', ['order' => $order, 'items' => $items]);
+    }
+
+    private function renderAccountPage(string $page, array $data = []): string
+    {
+        $key = match ($page) {
+            'account' => 'title',
+            'order' => 'order',
+            'orders' => 'orders',
+        };
+        $title = lang('MCMS.account.' . $key);
+        return service('mcmsThemes')->render('account.' . $page, [
+            ...$data,
+            'accountPageTitle' => $title,
+            'metaTitle' => $title . ' · ' . (string) (setting('Core.siteName') ?? 'mCMS'),
+            'metaRobots' => 'noindex, nofollow',
+        ], 'auth/' . $page);
     }
 
     /** @return array{full_name:string,phone:string} */

@@ -52,6 +52,28 @@ final class PublicAccountsTest extends CIUnitTestCase
         self::assertTrue($account->isRedirect());
     }
 
+    public function testEveryBundledThemeWrapsLoginAndRegistrationInSiteLayout(): void
+    {
+        service('settings')->set('Auth.allowRegistration', true);
+
+        foreach (['mcms-default', 'mcms-depth', 'mcms-focus', 'mcms-signature'] as $theme) {
+            service('settings')->set('Core.theme', $theme);
+
+            foreach (['login', 'register'] as $path) {
+                $response = $this->get('/' . $path);
+                $response->assertOK();
+                $html = (string) $response->response()->getBody();
+
+                self::assertStringContainsString('data-theme="' . $theme . '"', $html, $path);
+                self::assertStringContainsString('<header', $html, $path);
+                self::assertStringContainsString('<footer', $html, $path);
+                self::assertStringContainsString('mcms-account-card', $html, $path);
+                self::assertStringContainsString('name="email"', $path === 'login' ? $html : file_get_contents(APPPATH . 'Views/auth/register.php'));
+                self::assertStringNotContainsString('background: #f5f7fb', $html);
+            }
+        }
+    }
+
     public function testRegistrationWithoutCaptchaDoesNotCreateAUser(): void
     {
         service('settings')->set('Auth.allowRegistration', true);
@@ -130,6 +152,9 @@ final class PublicAccountsTest extends CIUnitTestCase
         self::assertStringContainsString('visitor01', (string) $account->response()->getBody());
         $admin = $this->get('/admin');
         $admin->assertRedirect();
+        $orders = $this->get('/account/orders');
+        $orders->assertOK();
+        self::assertStringContainsString('mcms-account-card', (string) $orders->response()->getBody());
         $updated = $this->withHeaders(['X-CSRF-TOKEN' => csrf_hash()])->post('/account/profile', [
             'username' => 'visitor02',
             'full_name' => 'Visitor Two',
