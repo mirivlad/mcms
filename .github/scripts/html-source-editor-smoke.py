@@ -251,6 +251,23 @@ try {
     editor.appendChild(gallery);
     editor.dispatchEvent(new Event('input', {bubbles:true}));
     check(body.value.includes('[gallery id="17"]'), 'gallery DOM insertion not synced');
+
+    // Verify the viewport remains fixed *after* layout/scroll anchoring has
+    // settled, not only synchronously during the toggle click handler.
+    window.scrollTo(0, 1230);
+    const delayedSourcePosition = window.scrollY;
+    toggle.click();
+    setTimeout(() => {
+        check(Math.abs(window.scrollY - delayedSourcePosition) < 4,
+            'Ace source mode jumped the page after layout settled');
+        window.scrollTo(0, 1210);
+        const delayedVisualPosition = window.scrollY;
+        toggle.click();
+        setTimeout(() => {
+            check(Math.abs(window.scrollY - delayedVisualPosition) < 4,
+                'Squire visual mode jumped the page after layout settled');
+        }, 50);
+    }, 50);
 } catch (error) {
     errors.push(String(error.stack || error));
 }
