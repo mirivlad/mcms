@@ -50,7 +50,7 @@ def main() -> None:
     assert "mcms:content-restore" in workflow
     assert "mcms:content-sync" in workflow and "mcms:content-sync" in preview
 
-    source = '<p class="kept" data-other="preserve">A &amp; B</p>\n<!-- keep comment -->'
+    source = '<div class="kept" data-other="preserve"><h2>Heading</h2><p>A &amp; B</p></div>'
     assertions = r'''
 <script>
 const errors = [];
@@ -73,7 +73,7 @@ try {
         'Ace source layout');
     check(controller.codeEditor && controller.codeEditor.session.getMode().$id === 'ace/mode/html',
         'Ace HTML mode not initialized');
-    check(controller.codeEditor.getValue().includes('\\n'), 'HTML source not pretty-printed');
+    check(controller.codeEditor.getValue().split(String.fromCharCode(10)).length > 1, 'HTML source not pretty-printed');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source controls');
     editor.dispatchEvent(new Event('mcms:content-sync'));
     check(body.value === initial, 'preview sync changed untouched HTML');
