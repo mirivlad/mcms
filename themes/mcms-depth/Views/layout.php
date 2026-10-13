@@ -31,6 +31,7 @@ $version = rawurlencode($theme->version);
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
     <?php if (! empty($metaRobots)): ?><meta name="robots" content="<?= esc($metaRobots, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
+    <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css') ?>">
     <?= view('themes/appearance_head') ?>
 </head>
 <body class="<?= ! empty($isThemeHome) ? 'site-home' : 'site-inner' ?>">
@@ -39,6 +40,7 @@ $version = rawurlencode($theme->version);
     <a class="site-brand" href="<?= site_url('/') ?>"><?php if (! empty($themeAppearance['logo'])): ?><img class="mcms-brand-logo" src="<?= esc(site_url(ltrim($themeAppearance['logo']['url'], '/')), 'attr') ?>" alt=""><?php endif ?><span><?= esc($siteName) ?></span></a>
     <nav class="site-desktop-nav" aria-label="<?= esc(lang('Depth.navigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Depth\\Views\\_navigation', ['items' => $headerMenu]) ?></ul></nav>
     <details class="site-mobile-nav"><summary><?= esc(lang('Depth.menu')) ?><span aria-hidden="true">☰</span></summary><nav aria-label="<?= esc(lang('Depth.navigation'), 'attr') ?>"><ul><?= view('MCMS\\Themes\\Depth\\Views\\_navigation', ['items' => $headerMenu]) ?></ul></nav></details>
+<?= view('auth/nav') ?>
 </div></header>
 <main id="main-content" tabindex="-1"><?= $this->renderSection('content') ?></main>
 <footer class="site-footer"><div class="site-container">

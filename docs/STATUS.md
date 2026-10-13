@@ -510,3 +510,16 @@ form/navigation checks including a 390px viewport without horizontal overflow.
 - Actual browser forms were operated in the disposable local stack. EN/RU settings
   and notifications were checked at 390/1440px without document overflow. Server
   mail relay configuration and production deployment remain operator tasks.
+
+## Public accounts — 2026-10-13
+
+- Public sign-in and registration share CodeIgniter Shield with administrators.
+  Registration is CAPTCHA-protected and never grants administration permissions.
+- A dedicated /account area provides editable name/telephone/username, password
+  change and order history/details linked to the authenticated customer ID.
+- The four bundled themes expose login, register and profile/logout links.
+  Comments and Ratings point anonymous visitors to sign-in; Cart pre-fills the
+  checkout from the profile without removing guest checkout.
+- Accounts and contact data use a new Core migration; docs/ACCOUNTS.md lists
+  security rules and deferred features (email recovery, saved addresses,
+  order pagination).
