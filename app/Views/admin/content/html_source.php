@@ -1,10 +1,33 @@
 <script src="<?= base_url('assets/vendor/squire/squire.min.js') ?>"></script>
+<style>
+.mcms-html-code {
+    position: relative;
+    height: min(68vh, 700px);
+    min-height: 380px;
+    border: 1px solid var(--tblr-border-color);
+    border-radius: var(--tblr-border-radius);
+    font-size: 14px;
+}
+.mcms-html-code .ace_content { font-variant-ligatures: none; }
+.mcms-editor-toolbar [data-html-format] { flex: 0 0 auto; width: auto; padding: 0 .65rem; }
+.mcms-editor-toolbar [data-html-format][hidden] { display: none !important; }
+@media (max-width: 600px) { .mcms-html-code { height: 60vh; min-height: 300px; } }
+</style>
+<script src="<?= base_url('assets/vendor/ace/ace.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/ace/mode-html.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/ace/mode-css.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/ace/mode-javascript.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/ace/theme-chrome.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/ace/ext-language_tools.js') ?>"></script>
+<script src="<?= base_url('assets/vendor/ace/ext-beautify.js') ?>"></script>
 <script>
 /* The textarea is the canonical HTML; the browser DOM is a visual representation. */
 window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
     const toggle = toolbar.querySelector('[data-html-source-toggle]');
-    const buttons = Array.from(toolbar.querySelectorAll('button')).filter(b => b !== toggle);
+    const buttons = Array.from(toolbar.querySelectorAll('button')).filter(b => b !== toggle && !b.hasAttribute('data-html-format'));
     const hint = body.parentElement.querySelector('[data-html-source-hint]');
+    const codeContainer = body.parentElement.querySelector('[data-html-code]');
+    const formatButton = toolbar.querySelector('[data-html-format]');
     const tags = new Set(['p','br','h2','h3','h4','h5','h6','ul','ol','li','blockquote',
         'pre','code','strong','b','em','i','u','s','a','img','figure','figcaption',
         'hr','table','thead','tbody','tr','th','td','div','span']);
@@ -58,6 +81,132 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
     };
     let sourceMode = false;
     let visualDirty = false;
+    // ACE is lazily initialized when the user first enters HTML mode.
+    // Formatting the *displayed* source must not modify the canonical textarea.
+    let codeEditor = null;
+    let loadingSource = false;
+    let sourceEdited = false;
+    const cssProperties = [
+        'background','background-color','border','border-color','border-radius','border-style',
+        'border-width','box-shadow','color','display','flex','flex-direction','flex-wrap',
+        'font-family','font-size','font-style','font-weight','gap','grid-template-columns',
+        'height','justify-content','align-items','line-height','margin','margin-top',
+        'margin-bottom','max-width','min-height','opacity','overflow','padding','padding-top',
+        'position','text-align','text-decoration','transform','transition','width','z-index'
+    ];
+    const htmlTags = ['a','article','aside','b','blockquote','br','caption','code','dd',
+        'div','dl','dt','em','figcaption','figure','footer','h2','h3','h4','h5','h6',
+        'header','hr','i','img','li','main','nav','ol','p','pre','section','span','strong',
+        'table','tbody','td','th','thead','tr','u','ul'];
+    const commonAttrs = ['alt','aria-label','aria-hidden','class','colspan','height','href',
+        'id','lang','rel','role','rowspan','src','target','title','width'];
+    const attrMap = {
+        a:['href','target','rel','title','class'], img:['src','alt','width','height','class'],
+        table:['class'], td:['colspan','rowspan','class'], th:['colspan','rowspan','class']
+    };
+    const htmlCssCompleter = {
+        getCompletions(aceEditor, session, pos, prefix, callback) {
+            const before = session.getLine(pos.row).slice(0, pos.column);
+            // HTML mode can embed CSS (inside style= or <style>). Whether CSS
+            // persists is decided by the server-side allowlist.
+            const cssContext = /style\s*=\s*["'][^"']*$/i.test(before)
+                || (session.getLines(Math.max(0, pos.row - 40), pos.row).join('\n') + '\n' + before)
+                    .match(/<style\b[^>]*>(?:(?!<\/style>).)*$/is);
+            let choices = [];
+            if (cssContext) {
+                choices = cssProperties.map(x => ({caption:x, value:x, meta:'CSS', score:1200}));
+                choices.push(...['auto','block','flex','grid','inline','none','relative','absolute',
+                    'center','left','right','inherit','initial','transparent','solid'].map(x =>
+                    ({caption:x,value:x,meta:'CSS value',score:800})));
+            } else if (/<\/?[\w:-]*$/.test(before)) {
+                choices = htmlTags.map(x => ({caption:x,value:x,meta:'HTML tag',score:1100}));
+            } else {
+                const match = before.match(/<([a-z][\w:-]*)\b[^<>]*$/i);
+                if (match) {
+                    choices = [...new Set([...commonAttrs, ...(attrMap[match[1].toLowerCase()] || [])])]
+                        .map(x => ({caption:x,value:x + '=""',meta:'attribute',score:1100}));
+                }
+            }
+            callback(null, choices);
+        }
+    };
+    const loadCode = () => {
+        if (!codeContainer || !window.ace) return false;
+        if (codeEditor) return true;
+        const base = <?= json_encode(base_url('assets/vendor/ace/'), JSON_UNESCAPED_SLASHES) ?>;
+        window.ace.config.set('basePath', base);
+        codeEditor = window.ace.edit(codeContainer, {
+            mode: 'ace/mode/html',
+            theme: 'ace/theme/chrome',
+            useWorker: false,
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+            enableSnippets: false,
+            highlightActiveLine: true,
+            showPrintMargin: false,
+            tabSize: 4,
+            useSoftTabs: false,
+            wrap: true,
+            behavioursEnabled: true
+        });
+        codeEditor.completers.unshift(htmlCssCompleter);
+        codeEditor.commands.addCommand({
+            name: 'formatHTML', bindKey: {win:'Ctrl-Shift-F', mac:'Command-Shift-F'},
+            exec() { formatHtml(true); }, readOnly: false
+        });
+        codeEditor.session.on('change', () => {
+            if (!loadingSource && sourceMode) {
+                sourceEdited = true;
+                body.value = codeEditor.getValue();
+                body.dispatchEvent(new Event('input', {bubbles:true}));
+            }
+        });
+        return true;
+    };
+    const formatHtml = (intentional = false) => {
+        if (!codeEditor) return;
+        const previous = loadingSource;
+        loadingSource = !intentional;
+        try {
+            window.ace.require('ace/ext/beautify').beautify(codeEditor.session);
+        } finally {
+            loadingSource = previous;
+        }
+        if (intentional) {
+            sourceEdited = true;
+            body.value = codeEditor.getValue();
+            body.dispatchEvent(new Event('input', {bubbles:true}));
+        }
+    };
+    const showSource = () => {
+        sourceEdited = false;
+        const hasAce = loadCode();
+        if (hasAce) {
+            loadingSource = true;
+            try {
+                codeEditor.setValue(body.value, -1);
+                codeEditor.session.setUseWorker(false);
+                formatHtml();
+                codeEditor.session.getUndoManager().reset();
+            } finally {
+                loadingSource = false;
+            }
+            codeContainer.classList.remove('d-none');
+            codeEditor.resize();
+            codeEditor.focus();
+        } else {
+            body.classList.remove('d-none');
+            body.focus();
+        }
+        if (formatButton) formatButton.hidden = !hasAce;
+    };
+    const hideSource = () => {
+        if (codeContainer) codeContainer.classList.add('d-none');
+        body.classList.add('d-none');
+        if (formatButton) formatButton.hidden = true;
+    };
+    if (formatButton) formatButton.addEventListener('click', () => formatHtml(true));
+
     let hydrating = false;
     const safeFragment = html => {
         const template = document.createElement('template');
@@ -98,6 +247,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
     const restore = html => {
         body.value = html;
         hydrate(html);
+        if (sourceMode) showSource();
     };
     editor.addEventListener('mcms:content-restore', event => restore(String(event.detail?.html ?? '')));
 
@@ -204,16 +354,15 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             sync();
             sourceMode = true;
             editor.hidden = true;
-            body.classList.remove('d-none');
             toggle.setAttribute('aria-pressed', 'true');
             buttons.forEach(b => { b.disabled = true; });
             if (hint) hint.hidden = false;
-            body.focus();
+            showSource();
         } else {
             // Squire normalizes the *visual* DOM; the source is not rewritten.
             hydrate(body.value);
             sourceMode = false;
-            body.classList.add('d-none');
+            hideSource();
             editor.hidden = false;
             toggle.setAttribute('aria-pressed', 'false');
             buttons.forEach(b => { b.disabled = false; });
@@ -221,7 +370,8 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             engine.focus();
         }
     });
-    return {sync, changed, restore, format, formatBlock, link, insertImage, insertTable, engine};
+    return {sync, changed, restore, format, formatBlock, link, insertImage, insertTable, engine,
+        get codeEditor() { return codeEditor; }, formatHtml };
 };
 </script>
 <dialog id="mcms-insert-table-dialog" aria-labelledby="mcms-insert-table-label" class="rounded-3 border p-4" style="width:min(420px,94vw);background:var(--tblr-bg-surface);color:var(--tblr-body-color)">
