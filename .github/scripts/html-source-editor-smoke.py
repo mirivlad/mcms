@@ -96,6 +96,14 @@ try {
     htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
         {row:0,column:13}, 'col', (e, results) => cssCompletions.push(...results));
     check(cssCompletions.some(item => item.caption === 'color'), 'CSS properties completion missing');
+    controller.codeEditor.setValue('<a href=', -1);
+    controller.codeEditor.insert('"');
+    check(controller.codeEditor.getValue().includes('href=""'),
+        'quote auto-pairing is unavailable');
+    controller.codeEditor.setValue('<div', -1);
+    controller.codeEditor.insert('>');
+    check(controller.codeEditor.getValue().includes('</div>'),
+        'HTML tag auto-closing is unavailable');
     // Changing Ace's buffer is a user edit. Restore canonical test text for the
     // non-destructive view-switch assertions below.
     controller.codeEditor.setValue(initial, -1);
