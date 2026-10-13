@@ -403,18 +403,16 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
     document.querySelectorAll('[data-command]').forEach((button) => {
         button.addEventListener('click', () => {
             restoreSelection();
-            document.execCommand(button.dataset.command, false);
+            htmlEditor.format(button.dataset.command);
             rememberSelection();
-            visualChanged();
         });
     });
 
     document.querySelectorAll('[data-format]').forEach((button) => {
         button.addEventListener('click', () => {
             restoreSelection();
-            document.execCommand('formatBlock', false, button.dataset.format);
+            htmlEditor.formatBlock(button.dataset.format);
             rememberSelection();
-            visualChanged();
         });
     });
 
@@ -422,9 +420,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
         restoreSelection();
         const url = window.prompt('URL');
         if (! url) return;
-        document.execCommand('createLink', false, url);
+        htmlEditor.link(url);
         rememberSelection();
-        visualChanged();
     });
 
     const setFeatured = (item) => {
@@ -437,26 +434,8 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 
     const insertInlineImage = (item) => {
         restoreSelection();
-        const image = document.createElement('img');
-        image.src = item.url;
-        image.alt = item.alt_text || item.title || item.original_name || '';
-        image.className = 'img-fluid';
-        const paragraph = document.createElement('p');
-        paragraph.appendChild(image);
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0) {
-            const range = selection.getRangeAt(0);
-            range.deleteContents();
-            range.insertNode(paragraph);
-            range.setStartAfter(paragraph);
-            range.collapse(true);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        } else {
-            editor.appendChild(paragraph);
-        }
+        htmlEditor.insertImage(item);
         rememberSelection();
-        visualChanged();
     };
 
     const chooseItem = (item) => {
