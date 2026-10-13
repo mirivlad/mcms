@@ -66,6 +66,18 @@ try {
     const initial = body.value;
     const controller = window.mcmsCreateHtmlSourceEditor(editor, body, toolbar);
     document.execCommand = () => { throw Error('Deprecated execCommand called'); };
+    // Headless Chrome doesn't always auto-scroll on Ace focus. Model the
+    // browser's real focus-driven scroll so the regression is deterministic.
+    const nativeAceEdit = window.ace.edit;
+    window.ace.edit = function(...args) {
+        const instance = nativeAceEdit.apply(this, args);
+        const nativeFocus = instance.focus.bind(instance);
+        instance.focus = function() {
+            nativeFocus();
+            window.scrollTo(0, 1000);
+        };
+        return instance;
+    };
 
     // Regression for the opposite transition: Ace.focus() must not scroll a
     // long admin page toward the beginning of the code editor.
