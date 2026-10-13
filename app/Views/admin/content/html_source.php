@@ -376,6 +376,26 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             insertTable(rows, columns);
         });
     }
+    // Rehydrating Squire resets its selection to the first paragraph. Native
+    // focus on that selection scrolls long edit forms to the top of the editor.
+    // Preserve the document and any scrollable parent without changing the
+    // user's HTML, caret content or current viewport position.
+    const captureViewport = () => {
+        const x = window.scrollX, y = window.scrollY;
+        const scrollers = [];
+        for (let node = editor.parentElement; node; node = node.parentElement) {
+            if (node.scrollHeight > node.clientHeight || node.scrollWidth > node.clientWidth) {
+                scrollers.push([node, node.scrollLeft, node.scrollTop]);
+            }
+        }
+        return () => {
+            for (const [node, left, top] of scrollers) {
+                node.scrollLeft = left;
+                node.scrollTop = top;
+            }
+            window.scrollTo({left: x, top: y, behavior: 'instant'});
+        };
+    };
     toggle.addEventListener('click', () => {
         if (!sourceMode) {
             sync();
@@ -387,6 +407,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             if (hint) hint.hidden = false;
             showSource();
         } else {
+            const restoreViewport = captureViewport();
             // Squire normalizes the *visual* DOM; the source is not rewritten.
             hydrate(body.value);
             sourceMode = false;
@@ -396,7 +417,15 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             buttons.forEach(b => { b.disabled = false; });
             setToolbarMode(false);
             if (hint) hint.hidden = true;
-            engine.focus();
+            // Do not call engine.focus(): it scrolls to Squire's freshly reset
+            // first-paragraph selection. Native preventScroll keeps keyboard
+            // focus in the editor without moving the surrounding page.
+            editor.focus({preventScroll: true});
+            restoreViewport();
+            // Layout updates can shift scroll anchoring on the next frame.
+            requestAnimationFrame(() => {
+                if (!sourceMode) restoreViewport();
+            });
         }
     });
     return {sync, changed, restore, format, formatBlock, link, insertImage, insertTable, engine,
