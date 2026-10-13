@@ -59,6 +59,7 @@ try {
     const body = document.getElementById('source');
     const toolbar = document.getElementById('toolbar');
     const toggle = document.getElementById('toggle');
+    const separator = document.getElementById('divider');
     const format = document.getElementById('format');
     const pretty = document.getElementById('pretty');
     const codePanel = document.getElementById('code');
@@ -70,6 +71,19 @@ try {
     check(body.value === initial, 'source-toggle changed initial HTML');
     check(editor.hidden && body.classList.contains('d-none') && !codePanel.classList.contains('d-none'),
         'Ace source layout');
+    check(toolbar.classList.contains('is-html-source'), 'source toolbar mode not enabled');
+    check(getComputedStyle(format).display === 'none', 'visual buttons remain visible');
+    check(getComputedStyle(separator).display === 'none', 'visual toolbar separator remains');
+    check(getComputedStyle(pretty).display !== 'none' && getComputedStyle(toggle).display !== 'none',
+        'HTML source controls are hidden');
+    check(pretty.getBoundingClientRect().left < toggle.getBoundingClientRect().left,
+        'format button must appear before return button');
+    check(pretty.getBoundingClientRect().left < toolbar.getBoundingClientRect().left + 25,
+        'source controls did not move to the left');
+    check(toggle.querySelector('[data-html-toggle-label]').textContent === 'Visual',
+        'return-to-visual button label missing');
+    check(toggle.getAttribute('aria-label') === 'Return to visual editor',
+        'return-to-visual accessible label missing');
     check(controller.codeEditor && controller.codeEditor.session.getMode().$id === 'ace/mode/html',
         'Ace HTML mode not initialized');
     check(controller.codeEditor.getValue().split(String.fromCharCode(10)).length > 1, 'HTML source not pretty-printed');
@@ -115,6 +129,13 @@ try {
     check(pretty.hidden === false && pretty.disabled === false, 'format action not available');
     toggle.click();
     check(body.value === initial, 'visual round-trip changed untouched HTML');
+    check(!toolbar.classList.contains('is-html-source'), 'visual toolbar mode not restored');
+    check(getComputedStyle(format).display !== 'none' &&
+          getComputedStyle(separator).display !== 'none', 'visual tools not restored');
+    check(pretty.hidden && getComputedStyle(pretty).display === 'none',
+        'source formatting button still visible in visual mode');
+    check(toggle.querySelector('[data-html-toggle-label]').textContent === 'HTML',
+        'HTML entry button label not restored');
 
     toggle.click();
     const unsafe = '<p data-test="1">Second</p><img src="broken" onerror="window.xss = 1">'
@@ -212,12 +233,19 @@ setTimeout(() => {
 '''
     document = (
         '<!doctype html><html><head><meta charset="utf-8">'
-        '<style>.d-none{display:none!important}</style></head><body>'
-        '<div id="container"><div id="toolbar">'
-        '<button type="button" id="toggle" data-html-source-toggle>HTML</button>'
+        '<style>.d-none{display:none!important}' 
+        '.mcms-editor-toolbar{display:flex;gap:4px;padding:8px;width:300px;overflow-x:auto}' 
+        '.mcms-editor-toolbar [data-html-source-toggle]{margin-left:auto}' 
+        '</style></head><body>'
+        '<div id="container"><div id="toolbar" class="mcms-editor-toolbar">'
         '<button type="button" id="format">Format</button>'
+        '<span id="divider" class="mcms-editor-toolbar-separator"></span>'
+        '<button type="button" id="table-trigger" data-insert-table>Table</button>'
         '<button type="button" id="pretty" data-html-format hidden>Pretty</button>'
-        '<button type="button" id="table-trigger" data-insert-table>Table</button></div>'
+        '<button type="button" id="toggle" data-html-source-toggle '
+        'data-visual-label="Return to visual editor" data-visual-short="Visual" '
+        'aria-label="Edit HTML source">'
+        '<i class="ti ti-code"></i><span data-html-toggle-label>HTML</span></button></div>'
         '<div id="visual" contenteditable="true">' + source + '</div>'
         '<textarea id="source" class="d-none">' + html.escape(source) + '</textarea>'
         '<div id="code" data-html-code class="mcms-html-code d-none" style="height:500px"></div>'
