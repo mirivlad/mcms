@@ -189,6 +189,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
     if (tableDialog && tableTrigger) {
         const tableForm = tableDialog.querySelector('form');
         tableTrigger.addEventListener('click', () => tableDialog.showModal());
+        tableDialog.querySelector('[data-table-cancel]').addEventListener('click', () => tableDialog.close());
         tableForm.addEventListener('submit', event => {
             event.preventDefault();
             const rows = Number(tableForm.elements.namedItem('rows').value);
@@ -237,7 +238,7 @@ window.mcmsCreateHtmlSourceEditor = (editor, body, toolbar) => {
             </div>
         </div>
         <div class="d-flex justify-content-end gap-2 mt-4">
-            <button type="button" class="btn" onclick="this.closest('dialog').close()"><?= esc(lang('MCMS.common.cancel')) ?></button>
+            <button type="button" class="btn" data-table-cancel><?= esc(lang('MCMS.common.cancel')) ?></button>
             <button type="submit" class="btn btn-primary"><?= esc(lang('MCMS.content.insertTable')) ?></button>
         </div>
     </form>
