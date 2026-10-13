@@ -97,10 +97,12 @@ try {
         {row:0,column:13}, 'col', (e, results) => cssCompletions.push(...results));
     check(cssCompletions.some(item => item.caption === 'color'), 'CSS properties completion missing');
     controller.codeEditor.setValue('<a href=', -1);
+    controller.codeEditor.moveCursorToEnd();
     controller.codeEditor.onTextInput('"');
     check(controller.codeEditor.getValue().includes('href=""'),
         'quote auto-pairing is unavailable');
     controller.codeEditor.setValue('<div', -1);
+    controller.codeEditor.moveCursorToEnd();
     controller.codeEditor.onTextInput('>');
     check(controller.codeEditor.getValue().includes('</div>'),
         'HTML tag auto-closing is unavailable');
