@@ -74,6 +74,32 @@ try {
     check(controller.codeEditor && controller.codeEditor.session.getMode().$id === 'ace/mode/html',
         'Ace HTML mode not initialized');
     check(controller.codeEditor.getValue().split(String.fromCharCode(10)).length > 1, 'HTML source not pretty-printed');
+    check(controller.codeEditor.getValue().includes(String.fromCharCode(9)),
+        'nested HTML has no tab indentation');
+    check(controller.codeEditor.getOption('enableBasicAutocompletion') === true,
+        'HTML completion disabled');
+    check(controller.codeEditor.getOption('useSoftTabs') === false,
+        'Tab indentation not enabled');
+    const attrCompletions = [];
+    const htmlCompleter = controller.codeEditor.completers[0];
+    controller.codeEditor.setValue('<img s', -1);
+    htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
+        {row:0,column:6}, 's', (e, results) => attrCompletions.push(...results));
+    check(attrCompletions.some(item => item.caption === 'src'), 'HTML attributes completion missing');
+    const tagCompletions = [];
+    controller.codeEditor.setValue('<di', -1);
+    htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
+        {row:0,column:3}, 'di', (e, results) => tagCompletions.push(...results));
+    check(tagCompletions.some(item => item.caption === 'div'), 'HTML tag completion missing');
+    const cssCompletions = [];
+    controller.codeEditor.setValue('<p style="col', -1);
+    htmlCompleter.getCompletions(controller.codeEditor, controller.codeEditor.session,
+        {row:0,column:13}, 'col', (e, results) => cssCompletions.push(...results));
+    check(cssCompletions.some(item => item.caption === 'color'), 'CSS properties completion missing');
+    // Changing Ace's buffer is a user edit. Restore canonical test text for the
+    // non-destructive view-switch assertions below.
+    controller.codeEditor.setValue(initial, -1);
+    check(body.value === initial, 'Ace changes did not sync canonical');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source controls');
     editor.dispatchEvent(new Event('mcms:content-sync'));
     check(body.value === initial, 'preview sync changed untouched HTML');
@@ -118,6 +144,7 @@ try {
     check(body.value.includes('Changed from Ace'), 'preview sync clobbered Ace source edits');
     check(format.disabled && toggle.getAttribute('aria-pressed') === 'true', 'source state after restore');
     toggle.click();
+    check(editor.innerHTML.includes('Changed from Ace'), 'Ace-to-visual view lost edited source');
     controller.engine.setHTML('<p>format tests</p>');
     controller.engine.moveCursorToStart();
     const selection = document.createRange();
