@@ -12,9 +12,10 @@ $editTargets = [
 $target = $editTargets[(string) ($targetType ?? '')] ?? null;
 $materialId = filter_var($targetId ?? null, FILTER_VALIDATE_INT);
 $viewer = auth()->loggedIn() ? auth()->user() : null;
-$canEdit = $target !== null && $materialId !== false && $materialId > 0
+$canEdit = ($showEdit ?? true) && $target !== null && $materialId !== false && $materialId > 0
     && $viewer !== null && $viewer->can($target['permission'] . '.edit');
-$canManage = $target !== null && $viewer !== null && $viewer->can($target['permission'] . '.view');
+$canManage = ($showManage ?? true) && $target !== null && $viewer !== null
+    && $viewer->can($target['permission'] . '.view');
 ?>
 <?php if ($canEdit || $canManage): ?>
 <nav class="mcms-content-actions" aria-label="<?= esc(lang('MCMS.publicActions.label'), 'attr') ?>">

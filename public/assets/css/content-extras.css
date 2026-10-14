@@ -20,8 +20,37 @@
     opacity: .85;
 }
 .mcms-content-actions a:hover { opacity: 1; text-decoration: underline; }
-.news-card .mcms-content-actions, .site-story-card .mcms-content-actions,
-.sig-story-card .mcms-content-actions { margin: .7rem 0 0; justify-content: flex-start; }
+/* One collection-level management link beside the News heading. */
+.mcms-news-heading-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; }
+.mcms-news-heading-row > h1 { margin: 0 !important; }
+.mcms-news-heading-row > .mcms-content-actions {
+    width: auto;
+    max-width: none;
+    margin: 0;
+    justify-content: flex-start;
+}
+
+/* Equal-height cards keep edit shortcuts at the same bottom baseline. */
+.news-card, .site-story-card, .sig-story-card {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+.news-card-body { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; }
+.site-story-body, .sig-story-body { flex: 1 1 auto; min-width: 0; }
+.news-card .mcms-content-actions,
+.site-story-card > .mcms-content-actions,
+.sig-story-card > .mcms-content-actions {
+    position: relative;
+    z-index: 2; /* Signature overlays a full-card article link. Edit must remain clickable. */
+    width: auto;
+    max-width: none;
+    margin: auto 0 0;
+    padding-top: 1rem;
+    justify-content: flex-start;
+}
+.sig-story-card > .mcms-content-actions { margin: auto 26px 24px; }
+.sig-story-card .sig-story-body { padding-bottom: 0; }
 .mcms-product-card .mcms-content-actions { margin: .7rem 1rem; justify-content: flex-start; }
 .mcms-content-actions a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 .mcms-content-interactions {

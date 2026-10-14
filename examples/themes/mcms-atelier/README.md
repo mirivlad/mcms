@@ -37,7 +37,7 @@ interface to customise them. Site content is always rendered from the CMS.
 
 ## Installation (do not place under the built-in `themes/` directory)
 
-1. Download `examples/packages/mcms-atelier-1.1.1.zip` from this repository.
+1. Download `examples/packages/mcms-atelier-1.1.2.zip` from this repository.
 2. Administration → Themes → **Install theme ZIP**.
 3. Upload and inspect the preview; confirm trust in the PHP templates.
 4. Install (initially inactive), then **activate Atelier** separately.
@@ -45,14 +45,14 @@ interface to customise them. Site content is always rendered from the CMS.
 
 Existing packages cannot yet be upgraded in place by installing another ZIP
 with the same ID. If 1.0.0 was installed, remove that installed package after
-saving any important customisation, then install and activate 1.1.1.
+saving any important customisation, then install and activate 1.1.2.
 For forks, choose a unique theme ID and namespace. See docs/THEMES.md.
 
 ## Build your own ZIP
 
 From the mCMS repository root:
 
-    php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.1.zip
+    php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.2.zip
 
 `theme.json` must be **at the root of the ZIP**, not inside a parent folder.
 The official packer validates archive paths, file types, sizes and references.

@@ -48,6 +48,23 @@ final class PublicThemeCompositionTest extends TestCase
         );
     }
 
+    public function testNewsHasOneManageLinkNearHeadingAndEditOnlyInCards(): void
+    {
+        $themes = array_merge(glob(ROOTPATH . 'themes/mcms-*'), [ROOTPATH . 'examples/themes/mcms-atelier']);
+        foreach ($themes as $theme) {
+            $index = file_get_contents($theme . '/Views/news/index.php');
+            $cards = is_file($theme . '/Views/news/_cards.php')
+                ? file_get_contents($theme . '/Views/news/_cards.php') : $index;
+            self::assertStringContainsString('mcms-news-heading-row', $index, $theme);
+            self::assertSame(1, substr_count($index, "'showEdit' => false"), $theme);
+            self::assertSame(1, substr_count($cards, "'showManage' => false"), $theme);
+            self::assertStringNotContainsString("'showManage' => true", $cards, $theme);
+        }
+        $actions = file_get_contents(ROOTPATH . 'app/Views/themes/content_actions.php');
+        self::assertStringContainsString('($showManage ?? true)', $actions);
+        self::assertStringContainsString('($showEdit ?? true)', $actions);
+    }
+
     public function testCatalogueTemplatesExposeEditorActionsAndAlignedInteractions(): void
     {
         $detail = file_get_contents(ROOTPATH . 'modules/Catalogue/Views/_product.php');

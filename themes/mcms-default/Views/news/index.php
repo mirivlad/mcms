@@ -4,7 +4,10 @@
 <div class="container news-shell">
     <header class="news-heading">
         <div class="hero-kicker"><?= esc($siteName) ?></div>
-        <h1><?= esc(lang('News.Public.title')) ?></h1>
+        <div class="mcms-news-heading-row">
+            <h1><?= esc(lang('News.Public.title')) ?></h1>
+            <?= view('themes/content_actions', ['targetType' => 'news.article', 'showEdit' => false]) ?>
+        </div>
     </header>
 
     <?= view('MCMS\\Modules\\News\\Views\\public_filters') ?>
@@ -31,7 +34,7 @@
                         <a class="news-read-more" href="<?= esc(site_url(ltrim($article['url'], '/')), 'attr') ?>">
                             <?= esc(lang('News.Public.readMore')) ?> →
                         </a>
-                        <?= view('themes/content_actions', ['targetType' => 'news.article', 'targetId' => (string) $article['id']]) ?>
+                        <?= view('themes/content_actions', ['targetType' => 'news.article', 'targetId' => (string) $article['id'], 'showManage' => false]) ?>
                     </div>
                 </article>
             <?php endforeach ?>

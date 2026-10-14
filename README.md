@@ -91,7 +91,7 @@ customer data, routes or deployment assumptions.
 ### Third-party theme example
 
 [Atelier](examples/themes/mcms-atelier/README.md) is a complete independent
-editorial theme, available as a [ready-to-install ZIP](examples/packages/mcms-atelier-1.1.1.zip).
+editorial theme, available as a [ready-to-install ZIP](examples/packages/mcms-atelier-1.1.2.zip).
 Install it under Administration → Themes → Install theme ZIP; it remains
 inactive until explicitly activated. See [the package contract](docs/THEMES.md).
 

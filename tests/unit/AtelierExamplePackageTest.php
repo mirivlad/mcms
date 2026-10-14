@@ -30,7 +30,7 @@ final class AtelierExamplePackageTest extends TestCase
 
     public function testShippedAtelierArchiveMatchesSourceContract(): void
     {
-        $zip = ROOTPATH . 'examples/packages/mcms-atelier-1.1.1.zip';
+        $zip = ROOTPATH . 'examples/packages/mcms-atelier-1.1.2.zip';
         $example = ROOTPATH . 'examples/themes/mcms-atelier';
         self::assertFileExists($zip);
 
@@ -38,7 +38,7 @@ final class AtelierExamplePackageTest extends TestCase
         $manifest = $report['manifest'];
         self::assertSame('mcms-atelier', $manifest->id);
         self::assertSame('MCMS\\Themes\\Atelier', $manifest->namespace);
-        self::assertSame('1.1.1', $manifest->version);
+        self::assertSame('1.1.2', $manifest->version);
         self::assertTrue($manifest->external);
         self::assertCount(12, $manifest->templates);
         foreach ([

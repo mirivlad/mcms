@@ -117,7 +117,7 @@ first body paragraph. This happens only at render time; the editor/source text
 is preserved.
 
 The shared CSS also trims excessive content-page spacing while preserving
-theme-specific color and typography. The packaged Atelier v1.1.1 uses the same
+theme-specific color and typography. The packaged Atelier v1.1.2 uses the same
 Core components; existing installed ZIP themes are not automatically replaced
 by a Portainer redeploy.
 
@@ -144,7 +144,7 @@ No nginx mount or exposure of the private theme directory is required.
 The repository includes a full third-party example under
 [`examples/themes/mcms-atelier`](../examples/themes/mcms-atelier/README.md),
 with a ready-to-upload archive at
-[`examples/packages/mcms-atelier-1.1.1.zip`](../examples/packages/mcms-atelier-1.1.1.zip).
+[`examples/packages/mcms-atelier-1.1.2.zip`](../examples/packages/mcms-atelier-1.1.2.zip).
 
 Atelier illustrates how to support all current public templates, menu
 locations, editable Home content, shared login/registration/account links,
@@ -156,7 +156,7 @@ would prevent installing the ZIP due to duplicate identity checks.
 To recreate the ZIP from source, run:
 
 ```sh
-php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.1.zip
+php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.2.zip
 ```
 
 The installer requires a separate trust-confirmation and activation step.
