@@ -1,4 +1,4 @@
-<section class="container py-5" style="max-width:1000px">
+<section class="container mcms-public-spacing" style="max-width:1000px">
     <h1><?= esc(lang('MCMS.search.title')) ?></h1>
     <form method="get" action="<?= site_url('search/results') ?>" class="d-flex gap-2 my-4" role="search">
         <label class="visually-hidden" for="site-search-query"><?= esc(lang('MCMS.search.query')) ?></label>

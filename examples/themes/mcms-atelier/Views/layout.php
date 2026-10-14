@@ -33,6 +33,7 @@ $version = rawurlencode($theme->version);
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
     <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css') ?>">
     <?= view('themes/appearance_head') ?>
+    <?= view('themes/content_assets') ?>
 </head>
 <body class="<?= ! empty($isThemeHome) ? 'site-home' : 'site-inner' ?>">
 <a class="site-skip" href="#main-content"><?= esc(\MCMS\Themes\Atelier\Views\Text::get('skip')) ?></a>

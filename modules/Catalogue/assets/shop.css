@@ -1,4 +1,4 @@
-.mcms-shop{--shop-border:rgba(127,127,127,.25);--shop-surface:rgba(127,127,127,.07);padding:3rem 0 5rem;min-width:0}
+.mcms-shop{--shop-border:rgba(127,127,127,.25);--shop-surface:rgba(127,127,127,.07);padding:clamp(1.25rem,3vw,2.25rem) 0 clamp(2.5rem,5vw,4rem);min-width:0}
 .mcms-shop-heading{display:flex;align-items:end;justify-content:space-between;gap:1.5rem;margin-bottom:2rem}
 .mcms-shop h1{font-size:clamp(2rem,4vw,3.6rem);letter-spacing:-.04em;font-weight:750;margin:0;line-height:1.15;overflow-wrap:anywhere}
 .mcms-shop-eyebrow{font-size:.75rem;text-transform:uppercase;letter-spacing:.14em;opacity:.65;margin:0 0 .6rem}

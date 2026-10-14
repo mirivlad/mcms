@@ -96,6 +96,31 @@ The Catalogue's separate `/admin/catalogue/settings` also lets a store use
 a regular Menus tree as additional shop navigation, and controls the category
 tree display (full, collapsible or horizontal).
 
+## Consistent public content layout and editor shortcuts
+
+All built-in themes and the installable Atelier example include Core's
+`themes/content_assets` stylesheet in their layout and render
+`themes/content_actions` and `themes/content_interactions` on Pages and
+News articles. The shared components keep comment/rating widgets within the
+same reading column as the article and expose non-destructive Edit / Manage
+links for signed-in users with the corresponding module permission. The
+administration endpoints independently recheck those permissions.
+
+Catalogue product pages and public product cards use the same shortcuts.
+News cards do too. A theme that implements its own public resource templates
+should include these components itself and supply the stable resource ID.
+Comments/Ratings remain optional and are never inserted into private previews.
+
+`MCMS\Core\Content\PublicContent` suppresses an author-supplied leading H1
+when it exactly repeats the material title, and an excerpt when it repeats the
+first body paragraph. This happens only at render time; the editor/source text
+is preserved.
+
+The shared CSS also trims excessive content-page spacing while preserving
+theme-specific color and typography. The packaged Atelier v1.1.1 uses the same
+Core components; existing installed ZIP themes are not automatically replaced
+by a Portainer redeploy.
+
 ## Storage and lifecycle
 
 Preview archives are private in `writable/themes-data/pending`, expire after one hour,
@@ -119,7 +144,7 @@ No nginx mount or exposure of the private theme directory is required.
 The repository includes a full third-party example under
 [`examples/themes/mcms-atelier`](../examples/themes/mcms-atelier/README.md),
 with a ready-to-upload archive at
-[`examples/packages/mcms-atelier-1.1.0.zip`](../examples/packages/mcms-atelier-1.1.0.zip).
+[`examples/packages/mcms-atelier-1.1.1.zip`](../examples/packages/mcms-atelier-1.1.1.zip).
 
 Atelier illustrates how to support all current public templates, menu
 locations, editable Home content, shared login/registration/account links,
@@ -131,7 +156,7 @@ would prevent installing the ZIP due to duplicate identity checks.
 To recreate the ZIP from source, run:
 
 ```sh
-php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.0.zip
+php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.1.zip
 ```
 
 The installer requires a separate trust-confirmation and activation step.

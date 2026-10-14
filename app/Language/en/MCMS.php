@@ -44,6 +44,11 @@ return [
         'administration' => 'Open administration',
         'loggedOut' => 'You have signed out.',
     ],
+    'publicActions' => [
+        'label' => 'Material actions',
+        'edit' => 'Edit',
+        'manage' => 'Manage',
+    ],
     'backups' => [
         'delete' => 'Delete',
         'deleted' => 'Backup deleted.',

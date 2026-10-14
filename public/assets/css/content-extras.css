@@ -1,0 +1,67 @@
+/* Shared public reading and editorial controls, independent of the active theme. */
+.mcms-content-actions {
+    max-width: 940px;
+    margin: 0 auto 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .5rem 1rem;
+    font-size: .85rem;
+}
+.mcms-content-actions a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2rem;
+    padding: .25rem .65rem;
+    border: 1px solid currentColor;
+    border-radius: .4rem;
+    color: inherit;
+    text-decoration: none;
+    opacity: .85;
+}
+.mcms-content-actions a:hover { opacity: 1; text-decoration: underline; }
+.news-card .mcms-content-actions, .site-story-card .mcms-content-actions,
+.sig-story-card .mcms-content-actions { margin: .7rem 0 0; justify-content: flex-start; }
+.mcms-product-card .mcms-content-actions { margin: .7rem 1rem; justify-content: flex-start; }
+.mcms-content-actions a:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.mcms-content-interactions {
+    width: 100%;
+    max-width: 940px;
+    min-width: 0;
+    margin: 1.5rem auto 0;
+}
+.page-shell .mcms-content-actions,
+.page-shell .mcms-content-interactions,
+.page-shell .page-breadcrumbs { max-width: 980px; }
+.page-shell .article-card { box-sizing: border-box; max-width: 980px; }
+.mcms-content-interactions > .mcms-ratings { margin: 0 0 1.5rem !important; }
+.mcms-content-interactions > .mcms-comments { margin-top: 0 !important; }
+.mcms-content-interactions :is(.mcms-ratings, .mcms-comments) { max-width: 100%; min-width: 0; }
+.mcms-content-interactions :is(input, textarea, select) { max-width: 100%; }
+.mcms-content-interactions .mcms-comments article { max-width: 100%; box-sizing: border-box; }
+
+/* Restore a comfortable reading rhythm without the original oversized gaps. */
+.mcms-public-spacing { padding-block: clamp(1.5rem, 3vw, 2.5rem) clamp(2.5rem, 5vw, 4rem); }
+.page-shell { padding-block: clamp(1.5rem, 3vw, 2.75rem) clamp(2.5rem, 5vw, 4rem); }
+.page-shell .article-card { padding: clamp(1.25rem, 3vw, 2.5rem); }
+.page-shell .article-header { padding-bottom: 1rem; margin-bottom: 1.5rem; }
+.news-shell { padding-block: clamp(2rem, 4vw, 3rem) clamp(2.5rem, 5vw, 4rem); }
+.site-contact-shell, .sig-contact-shell {
+    padding-block: clamp(2rem, 4vw, 3.5rem) clamp(2.5rem, 5vw, 4rem);
+    gap: clamp(1.5rem, 3vw, 3rem);
+}
+.site-collection-shell .site-section-heading,
+.sig-collection-shell .sig-section-heading { margin-bottom: clamp(1.5rem, 3vw, 2.5rem); }
+.site-collection-shell .site-section-heading h1,
+.sig-collection-shell .sig-section-heading h1 { margin-bottom: 1rem; }
+
+.site-reading-shell, .sig-reading-shell { padding-block: clamp(1.25rem, 3vw, 2.25rem) clamp(2.5rem, 5vw, 4rem); }
+.site-collection-shell, .sig-collection-shell { padding-block: clamp(2rem, 4vw, 3.5rem) clamp(3rem, 6vw, 5rem); }
+.site-reading-shell .site-breadcrumbs, .sig-reading-shell .sig-breadcrumbs { margin-bottom: clamp(1.1rem, 2.5vw, 1.8rem); }
+.site-reading-shell .site-article-header, .sig-reading-shell .sig-article-header { padding-block: .5rem 1.25rem; }
+.site-reading-shell .site-article-header h1, .sig-reading-shell .sig-article-header h1 { margin-bottom: 1rem; }
+.site-reading-shell .site-article-cover, .sig-reading-shell .sig-article-cover { margin-bottom: clamp(1.25rem, 3vw, 2rem); }
+@media (max-width: 767px) {
+    .mcms-content-actions { justify-content: flex-start; margin-bottom: .75rem; }
+    .mcms-content-interactions { margin-top: 1.25rem; }
+}

@@ -23,6 +23,13 @@ menus and falls back to enabled public sections when none are assigned. It
 honours the site logo, favicon and contact details, and provides editable Home
 text, optional hero image, buttons, news and gallery sections.
 
+From version 1.1.1, Atelier uses the same Core public-content components as the
+bundled themes: optional Comments/Ratings below Pages and News, permission-gated
+Edit/Manage shortcuts on materials and news cards, and an aligned reading column.
+The shared CSS reduces oversized gaps without changing the editorial palette.
+The ZIP remains a standalone installable theme, but installation does not
+replace an already installed theme with the same ID.
+
 Presentation strings use `Views/Text.php` for Russian and English because mCMS
 intentionally **disallows `Language/` inside external ZIP themes**. `theme.json`
 uses plain-text Russian defaults; edit the Home fields in the administration
@@ -30,7 +37,7 @@ interface to customise them. Site content is always rendered from the CMS.
 
 ## Installation (do not place under the built-in `themes/` directory)
 
-1. Download `examples/packages/mcms-atelier-1.1.0.zip` from this repository.
+1. Download `examples/packages/mcms-atelier-1.1.1.zip` from this repository.
 2. Administration → Themes → **Install theme ZIP**.
 3. Upload and inspect the preview; confirm trust in the PHP templates.
 4. Install (initially inactive), then **activate Atelier** separately.
@@ -38,14 +45,14 @@ interface to customise them. Site content is always rendered from the CMS.
 
 Existing packages cannot yet be upgraded in place by installing another ZIP
 with the same ID. If 1.0.0 was installed, remove that installed package after
-saving any important customisation, then install and activate 1.1.0.
+saving any important customisation, then install and activate 1.1.1.
 For forks, choose a unique theme ID and namespace. See docs/THEMES.md.
 
 ## Build your own ZIP
 
 From the mCMS repository root:
 
-    php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.0.zip
+    php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.1.zip
 
 `theme.json` must be **at the root of the ZIP**, not inside a parent folder.
 The official packer validates archive paths, file types, sizes and references.

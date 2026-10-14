@@ -30,7 +30,7 @@ final class AtelierExamplePackageTest extends TestCase
 
     public function testShippedAtelierArchiveMatchesSourceContract(): void
     {
-        $zip = ROOTPATH . 'examples/packages/mcms-atelier-1.1.0.zip';
+        $zip = ROOTPATH . 'examples/packages/mcms-atelier-1.1.1.zip';
         $example = ROOTPATH . 'examples/themes/mcms-atelier';
         self::assertFileExists($zip);
 
@@ -38,7 +38,7 @@ final class AtelierExamplePackageTest extends TestCase
         $manifest = $report['manifest'];
         self::assertSame('mcms-atelier', $manifest->id);
         self::assertSame('MCMS\\Themes\\Atelier', $manifest->namespace);
-        self::assertSame('1.1.0', $manifest->version);
+        self::assertSame('1.1.1', $manifest->version);
         self::assertTrue($manifest->external);
         self::assertCount(12, $manifest->templates);
         foreach ([
@@ -57,9 +57,9 @@ final class AtelierExamplePackageTest extends TestCase
         foreach (['page.php' => 'pages.page', 'news/article.php' => 'news.article'] as $path => $target) {
             $view = file_get_contents($example . '/Views/' . $path);
             self::assertStringContainsString("'targetType' => '" . $target . "'", $view);
-            self::assertStringContainsString("has('comments.repository')", $view);
-            self::assertStringContainsString("has('ratings.repository')", $view);
-            self::assertStringContainsString('empty($isPreview)', $view);
+            self::assertStringContainsString("view('themes/content_interactions'", $view);
+            self::assertStringContainsString("view('themes/content_actions'", $view);
+            self::assertStringContainsString('$isPreview ?? false', $view);
         }
 
 

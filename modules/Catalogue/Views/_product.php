@@ -7,6 +7,7 @@
             <?= view('MCMS\\Modules\\Cart\\Views\\link', ['count' => $cartCount, 'class' => 'mcms-cart-link mcms-cart-shop-link']) ?>
         <?php endif ?>
     </div>
+    <?= view('themes/content_actions', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
     <div class="mcms-product-detail">
         <div class="mcms-product-photos">
             <?php if ($product['main_image'] !== null): ?>
@@ -43,15 +44,10 @@
                     <?php endforeach ?>
                 </section>
             <?php endif ?>
-            <?php if ($product['body'] !== ''): ?><div class="mcms-product-description"><h2><?= esc(lang('Catalogue.details')) ?></h2><div class="mcms-page-content"><?= $product['body'] ?></div></div><?php endif ?>
+            <?php if ($product['body'] !== ''): ?><div class="mcms-product-description"><h2><?= esc(lang('Catalogue.details')) ?></h2><div class="mcms-page-content"><?= \MCMS\Core\Content\PublicContent::body((string) $product['body'], (string) $product['title']) ?></div></div><?php endif ?>
         </div>
     </div>
     <dialog class="mcms-product-lightbox" data-photo-dialog aria-label="<?= esc($product['title'], 'attr') ?>"><button type="button" data-photo-close class="mcms-photo-close" aria-label="<?= esc(lang('Catalogue.close'), 'attr') ?>">×</button><img data-photo-full alt="<?= esc($product['title'], 'attr') ?>"><div class="mcms-photo-controls"><button type="button" data-photo-prev aria-label="<?= esc(lang('Catalogue.previous'), 'attr') ?>">←</button><span data-photo-counter></span><button type="button" data-photo-next aria-label="<?= esc(lang('Catalogue.next'), 'attr') ?>">→</button></div></dialog>
-<?php if (empty($isPreview) && service('mcmsModuleServices')->has('ratings.repository')): ?>
-<?= view('MCMS\\Modules\\Ratings\\Views\\widget', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
-<?php endif ?>
-<?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
-<?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
-<?php endif ?>
+    <?= view('themes/content_interactions', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id'], 'isPreview' => $isPreview ?? false]) ?>
 </article>
 <?= view('MCMS\\Modules\\Catalogue\\Views\\secondary_menu', ['menu' => $secondaryMenu ?? []]) ?>

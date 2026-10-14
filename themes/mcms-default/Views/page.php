@@ -7,20 +7,15 @@
         <span aria-hidden="true">/</span>
         <span><?= esc($page['title']) ?></span>
     </nav>
-
+    <?= view('themes/content_actions', ['targetType' => 'pages.page', 'targetId' => (string) $page['id']]) ?>
     <article class="content-card article-card">
         <header class="article-header">
             <h1><?= esc($page['title']) ?></h1>
         </header>
         <div class="mcms-page-content">
-            <?= $page['body'] ?>
+            <?= \MCMS\Core\Content\PublicContent::body((string) $page['body'], (string) $page['title']) ?>
         </div>
     </article>
-<?php if (empty($isPreview) && service('mcmsModuleServices')->has('ratings.repository')): ?>
-<?= view('MCMS\\Modules\\Ratings\\Views\\widget', ['targetType' => 'pages.page', 'targetId' => (string) $page['id']]) ?>
-<?php endif ?>
-<?php if (empty($isPreview) && service('mcmsModuleServices')->has('comments.repository')): ?>
-    <?= view('MCMS\\Modules\\Comments\\Views\\widget', ['targetType' => 'pages.page', 'targetId' => (string) $page['id']]) ?>
-<?php endif ?>
+    <?= view('themes/content_interactions', ['targetType' => 'pages.page', 'targetId' => (string) $page['id'], 'isPreview' => $isPreview ?? false]) ?>
 </div>
 <?= $this->endSection() ?>

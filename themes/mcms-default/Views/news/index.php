@@ -31,6 +31,7 @@
                         <a class="news-read-more" href="<?= esc(site_url(ltrim($article['url'], '/')), 'attr') ?>">
                             <?= esc(lang('News.Public.readMore')) ?> →
                         </a>
+                        <?= view('themes/content_actions', ['targetType' => 'news.article', 'targetId' => (string) $article['id']]) ?>
                     </div>
                 </article>
             <?php endforeach ?>

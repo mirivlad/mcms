@@ -35,6 +35,7 @@
                     ]) ?>
                 </div>
             <?php endif ?>
+            <?= view('themes/content_actions', ['targetType' => 'catalogue.product', 'targetId' => (string) $product['id']]) ?>
             <?php if ($canManageStock ?? false): ?>
                 <div class="mcms-stock-card-panel">
                     <?php if (count($product['variants']) > 1): ?><details><summary><?= esc(lang('Stock.title')) ?></summary><div class="mcms-stock-card-rows"><?php endif ?>

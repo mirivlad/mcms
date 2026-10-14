@@ -35,6 +35,7 @@ $menuUrl = static function (?string $url): ?string {
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
     <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css') ?>">
     <?= view('themes/appearance_head') ?>
+    <?= view('themes/content_assets') ?>
 </head>
 <body>
 <header class="site-header">
