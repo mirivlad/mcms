@@ -32,6 +32,22 @@ final class PublicThemeCompositionTest extends TestCase
         }
     }
 
+    public function testEditorialReadingColumnsAlignWithBreadcrumbs(): void
+    {
+        $css = file_get_contents(ROOTPATH . 'public/assets/css/content-extras.css');
+        self::assertIsString($css);
+        // A narrower reading measure must not center itself inside the wider
+        // page shell: article, editor actions and reactions share its left edge.
+        self::assertMatchesRegularExpression(
+            '/\.site-reading-shell\s*>\s*\.site-article\s*,\s*\.sig-reading-shell\s*>\s*\.sig-article\s*\{[^}]*margin-left:\s*0\s*;/s',
+            $css,
+        );
+        self::assertMatchesRegularExpression(
+            '/\.site-reading-shell\s*>\s*\.mcms-content-actions\s*,\s*\.site-reading-shell\s*>\s*\.mcms-content-interactions\s*,[^}]*margin-left:\s*0\s*;/s',
+            $css,
+        );
+    }
+
     public function testCatalogueTemplatesExposeEditorActionsAndAlignedInteractions(): void
     {
         $detail = file_get_contents(ROOTPATH . 'modules/Catalogue/Views/_product.php');

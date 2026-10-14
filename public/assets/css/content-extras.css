@@ -34,6 +34,21 @@
 .page-shell .mcms-content-interactions,
 .page-shell .page-breadcrumbs { max-width: 980px; }
 .page-shell .article-card { box-sizing: border-box; max-width: 980px; }
+
+/* Reading pages share the same left baseline as breadcrumbs and index headings.
+   Keep their narrower reading width, but do not center that width in the wide shell. */
+.site-reading-shell > .site-article,
+.sig-reading-shell > .sig-article {
+    margin-left: 0;
+    margin-right: 0;
+}
+.site-reading-shell > .mcms-content-actions,
+.site-reading-shell > .mcms-content-interactions,
+.sig-reading-shell > .mcms-content-actions,
+.sig-reading-shell > .mcms-content-interactions {
+    margin-left: 0;
+    margin-right: 0;
+}
 .mcms-content-interactions > .mcms-ratings { margin: 0 0 1.5rem !important; }
 .mcms-content-interactions > .mcms-comments { margin-top: 0 !important; }
 .mcms-content-interactions :is(.mcms-ratings, .mcms-comments) { max-width: 100%; min-width: 0; }
