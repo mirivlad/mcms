@@ -112,6 +112,7 @@ final class ThemePackages
         if (! Semver::satisfies(Version::VERSION, $manifest->mcms)) {
             throw new RuntimeException('Theme requires mCMS ' . $manifest->mcms . '.');
         }
+        $this->themes->refresh();
         $catalog = $this->themes->catalog();
         // The manager may have cached the catalog before another installation.
         foreach (glob($this->root . '/installed/*/theme.json') ?: [] as $path) {
@@ -125,6 +126,10 @@ final class ThemePackages
                 || ! \Composer\Semver\Comparator::greaterThan($manifest->version, $installed->version)) {
                 throw new RuntimeException('Update requires the same external theme id/namespace and a strictly newer version.');
             }
+        }
+        $retained = \MCMS\Core\Packages\PackageState::read($this->root . '/retained/' . $manifest->id . '.json');
+        if ($replacingId === null && $retained !== null && $retained['namespace'] !== $manifest->namespace) {
+            throw new RuntimeException('Theme namespace differs from the retained package.');
         }
         foreach ($catalog as $current) {
             if ($current->id === $replacingId) {
@@ -170,6 +175,8 @@ final class ThemePackages
             if (! rename($stage, $destination)) {
                 throw new RuntimeException('Cannot publish theme directory.');
             }
+            $this->themes->refresh();
+            \MCMS\Core\Packages\PackageState::remove($this->root . '/retained/' . $manifest->id . '.json');
             unlink($path);
             return ThemeManifest::fromFile($destination . '/theme.json', true);
         } finally {

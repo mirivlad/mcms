@@ -17,7 +17,7 @@
 
 <?php if ($maintenance !== null): ?>
 <div class="alert alert-warning"><strong><?= esc(lang('MCMS.modules.maintenance')) ?></strong>
-<a href="<?= site_url('admin/modules/' . rawurlencode($maintenance['id']) . '/update') ?>"><?= esc(lang('MCMS.modules.openRecovery')) ?></a></div>
+<a href="<?= site_url(($maintenance['action'] ?? '') === 'remove' ? 'admin/extensions/recovery' : 'admin/modules/' . rawurlencode($maintenance['id']) . '/update') ?>"><?= esc(lang('MCMS.modules.openRecovery')) ?></a></div>
 <?php endif ?>
 <div class="card">
     <div class="table-responsive">
@@ -71,6 +71,9 @@
                             <a class="btn btn-outline-secondary btn-sm btn-icon admin-icon-action" href="<?= site_url('admin/modules/' . rawurlencode($id) . '/update') ?>" aria-label="<?= esc(lang('MCMS.modules.update'), 'attr') ?>" title="<?= esc(lang('MCMS.modules.update'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-refresh" aria-hidden="true"></i></a>
                         <?php endif ?>
                         <?php if ($maintenance === null): ?>
+                        <?php if (str_starts_with($module->path, WRITEPATH . 'modules-data/installed/')): ?>
+                            <a class="btn btn-outline-danger btn-sm btn-icon" href="<?= site_url('admin/extensions/module/' . rawurlencode($id) . '/remove') ?>" title="<?= esc(lang('Extensions.remove'), 'attr') ?>" aria-label="<?= esc(lang('Extensions.remove'), 'attr') ?>" data-bs-toggle="tooltip"><i class="ti ti-trash" aria-hidden="true"></i></a>
+                        <?php endif ?>
                         <?php if ($enabled): ?>
                             <form method="post" action="<?= site_url('admin/modules/' . rawurlencode($id) . '/disable') ?>">
                                 <?= csrf_field() ?>

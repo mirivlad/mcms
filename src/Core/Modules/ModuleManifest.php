@@ -25,6 +25,7 @@ final class ModuleManifest
         public readonly string $path = '',
         public readonly array $publicPaths = [],
         public readonly array $dataProviders = [],
+        public readonly array $cleanup = [],
     ) {
     }
 
@@ -123,6 +124,7 @@ final class ModuleManifest
             path: $path,
             publicPaths: array_values(array_unique($publicPaths)),
             dataProviders: $dataProviders,
+            cleanup: is_array($data['cleanup'] ?? null) ? $data['cleanup'] : [],
         );
     }
 }

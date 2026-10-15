@@ -47,6 +47,9 @@ final class ModulePackages
         try {
             $preview = self::inspectArchive($path);
             $this->checkCompatibility($preview['manifest'], $replaceId);
+            if ($replaceId === null) {
+                $this->checkRetained($preview, $path);
+            }
             return [...$preview, 'token' => $token];
         } catch (Throwable $e) {
             unlink($path);
@@ -83,6 +86,7 @@ final class ModulePackages
             $preview = self::inspectArchive($path);
             $manifest = $preview['manifest'];
             $this->checkCompatibility($manifest);
+            $this->checkRetained($preview, $path);
             $folder = substr($manifest->namespace, strlen('MCMS\\Modules\\'));
             $destination = $this->root . '/installed/' . $folder;
             if (file_exists($destination) || is_link($destination)) {
@@ -112,6 +116,8 @@ final class ModulePackages
             if (! rename($stage, $destination)) {
                 throw new RuntimeException('Cannot publish module directory.');
             }
+            $this->modules->refresh();
+            \MCMS\Core\Packages\PackageState::remove($this->root . '/retained/' . $manifest->id . '.json');
             unlink($path);
             return ModuleManifest::fromFile($destination . '/module.json');
         } finally {
@@ -126,6 +132,34 @@ final class ModulePackages
         }
     }
 
+    private function checkRetained(array $preview, string $archive): void
+    {
+        $manifest = $preview['manifest'];
+        $retained = \MCMS\Core\Packages\PackageState::read($this->root . '/retained/' . $manifest->id . '.json');
+        if ($retained === null) {
+            return;
+        }
+        if ($manifest->namespace !== $retained['namespace'] || $manifest->provider !== $retained['provider']
+            || \Composer\Semver\Comparator::lessThan($manifest->version, $retained['schema_version'])) {
+            throw new RuntimeException('Package is incompatible with retained module identity/schema version.');
+        }
+        if ($this->modules->migrationFingerprint($manifest->namespace) !== $retained['history']) {
+            throw new RuntimeException('Retained migration history changed. Restore or review the saved data first.');
+        }
+        $zip = new ZipArchive();
+        $zip->open($archive, ZipArchive::RDONLY);
+        try {
+            foreach ($retained['migrations'] as $name => $hash) {
+                $bytes = $zip->getFromName($name);
+                if ($bytes === false || ! hash_equals($hash, hash('sha256', $bytes))) {
+                    throw new RuntimeException('Retained migrations must be preserved unchanged: ' . $name);
+                }
+            }
+        } finally {
+            $zip->close();
+        }
+    }
+
     public static function inspectArchive(string $path): array
     {
         $preview = ZipPackage::inspectArchive($path, 'module.json');
@@ -134,7 +168,7 @@ final class ModulePackages
         }
         $data = $preview['data'];
         $files = $preview['files'];
-        foreach (['requires', 'settings', 'permissions', 'grants', 'public_paths', 'data_providers'] as $field) {
+        foreach (['requires', 'settings', 'permissions', 'grants', 'public_paths', 'data_providers', 'cleanup'] as $field) {
             if (isset($data[$field]) && ! is_array($data[$field])) {
                 throw new RuntimeException('Manifest field must be an array or map: ' . $field);
             }
@@ -143,6 +177,7 @@ final class ModulePackages
             throw new RuntimeException('Module description must be a string.');
         }
         $manifest = ModuleManifest::fromArray($data);
+        ModuleResources::contract($manifest);
         if ($manifest->id === 'core' || preg_match('/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/D', $manifest->version) !== 1) {
             throw new RuntimeException('Package needs a non-Core id and a semantic release version.');
         }
@@ -173,6 +208,7 @@ final class ModulePackages
 
     public function checkCompatibility(ModuleManifest $manifest, ?string $replaceId = null): void
     {
+        $this->modules->refresh();
         $catalog = $this->modules->catalog();
         // Re-read package manifests inside the installation lock, even if the
         // request's module catalog was populated before another upload finished.

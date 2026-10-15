@@ -33,6 +33,8 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->get('access', 'Admin\Access::index', ['as' => 'admin.access']);
     $routes->post('access/group', 'Admin\Access::saveGroup');
     $routes->post('access/group/delete', 'Admin\Access::deleteGroup');
+    $routes->match(['get', 'post'], 'extensions/recovery', 'Admin\ExtensionRemoval::recovery');
+    $routes->match(['get', 'post'], 'extensions/(:segment)/(:segment)/remove', 'Admin\ExtensionRemoval::index/$1/$2');
     $routes->get('modules', 'Admin\Modules::index', ['as' => 'admin.modules']);
     $routes->get('modules/package', 'Admin\Modules::package');
     $routes->post('modules/package', 'Admin\Modules::uploadPackage');

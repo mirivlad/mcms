@@ -35,7 +35,12 @@ Events::on('pre_system', static function (): void {
         if (is_file(WRITEPATH . 'backups/restore-active.json')) {
             return;
         }
-        if ($runtime->maintenance() !== null) {
+        try {
+            service('mcmsExtensionRemoval')->recover();
+        } catch (\Throwable $e) {
+            log_message('error', 'Extension removal recovery: {message}', ['message' => $e->getMessage()]);
+        }
+        if ($runtime->maintenance() !== null && ($runtime->maintenance()['action'] ?? '') !== 'remove') {
             service('mcmsModuleUpdates')->finalize();
         }
         if ($runtime->maintenance() === null) {

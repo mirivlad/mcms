@@ -73,6 +73,11 @@ final class ModuleManager
         return $this->catalog;
     }
 
+    public function refresh(): void
+    {
+        $this->catalog = [];
+    }
+
     public function states(): array
     {
         if (! $this->registryAvailable()) {
@@ -175,9 +180,9 @@ final class ModuleManager
         }
         $this->runtime?->assertAvailable();
         foreach ($this->enabledManifests() as $manifest) {
-            Services::migrations()
+            ModuleResources::migrate($this->db, $manifest, $this->packagesPath, fn () => Services::migrations()
                 ->setNamespace($manifest->namespace)
-                ->latest();
+                ->latest());
 
             $this->registerPermissions($manifest, service('settings'));
 
@@ -294,9 +299,9 @@ final class ModuleManager
 
         // Migrations are scoped to this module namespace. Core startup never
         // runs --all, so disabled/uninstalled modules cannot migrate themselves.
-        Services::migrations()
+        ModuleResources::migrate($this->db, $manifest, $this->packagesPath, fn () => Services::migrations()
             ->setNamespace($manifest->namespace)
-            ->latest();
+            ->latest());
 
         $settings = service('settings');
         $this->registerPermissions($manifest, $settings);
@@ -352,7 +357,7 @@ final class ModuleManager
             throw new RuntimeException('Invalid module provider.');
         }
         $runner = Services::migrations()->setNamespace($manifest->namespace)->setSilent(false);
-        if (! $runner->latest()) {
+        if (! ModuleResources::migrate($this->db, $manifest, $this->packagesPath, fn () => $runner->latest())) {
             throw new RuntimeException('Module migrations failed.');
         }
         // CI can report success when its migration lock was unavailable.

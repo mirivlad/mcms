@@ -124,6 +124,15 @@ class Services extends BaseService
         );
     }
 
+    public static function mcmsExtensionRemoval(bool $getShared = true): \MCMS\Core\Packages\ExtensionRemoval
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsExtensionRemoval');
+        }
+        return new \MCMS\Core\Packages\ExtensionRemoval(db_connect(), static::mcmsModules(), static::mcmsThemes(),
+            static::mcmsModuleRuntime(), WRITEPATH . 'modules-data', WRITEPATH . 'themes-data');
+    }
+
     public static function mcmsModulePackages(bool $getShared = true): ModulePackages
     {
         if ($getShared) {

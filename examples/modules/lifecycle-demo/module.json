@@ -1,0 +1,12 @@
+{
+  "id": "lifecycle-demo",
+  "name": "Lifecycle demo",
+  "description": "A small external module with persistent notes for package lifecycle verification.",
+  "version": "1.0.0",
+  "namespace": "MCMS\\Modules\\LifecycleDemo",
+  "provider": "MCMS\\Modules\\LifecycleDemo\\Module",
+  "mcms": "^0.1",
+  "requires": [],
+  "settings": {"greeting": "Hello"},
+  "cleanup": {"schema": 1, "complete": true, "tables": ["lifecycle_demo_notes"]}
+}
