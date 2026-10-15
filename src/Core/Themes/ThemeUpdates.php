@@ -53,32 +53,37 @@ final class ThemeUpdates
             $preview = ThemePackages::inspectArchive($archive);
             $this->packages->checkCompatibility($preview['manifest'], $id);
             $stage = $this->root . '/pending/' . $token;
-            ZipPackage::extractArchive($archive, $stage, ThemePackages::inspectArchive(...));
-            // Lint compiles templates without executing uploaded PHP.
-            foreach ($preview['files'] as $file) {
-                if (! str_ends_with($file, '.php')) {
-                    continue;
+            $this->removeStage($stage);
+            try {
+                ZipPackage::extractArchive($archive, $stage, ThemePackages::inspectArchive(...));
+                // Lint compiles templates without executing uploaded PHP.
+                foreach ($preview['files'] as $file) {
+                    if (! str_ends_with($file, '.php')) {
+                        continue;
+                    }
+                    $process = proc_open([PHP_BINDIR . '/php', '-l', $stage . '/' . $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+                    if (! is_resource($process)) {
+                        throw new RuntimeException('Cannot validate theme PHP syntax.');
+                    }
+                    $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
+                    fclose($pipes[1]);
+                    fclose($pipes[2]);
+                    if (proc_close($process) !== 0) {
+                        throw new RuntimeException('Invalid PHP template: ' . $file . ' ' . $output);
+                    }
                 }
-                $process = proc_open([PHP_BINDIR . '/php', '-l', $stage . '/' . $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
-                if (! is_resource($process)) {
-                    throw new RuntimeException('Cannot validate theme PHP syntax.');
+                $candidateHash = ModulePackages::fingerprint($stage);
+                foreach (glob($this->root . '/history/' . $id . '/*/theme.json') ?: [] as $path) {
+                    if (ThemeManifest::fromFile($path, true)->version === $preview['manifest']->version
+                        && ! hash_equals($candidateHash, ModulePackages::fingerprint(dirname($path)))) {
+                        throw new RuntimeException('A retained version already has different bytes. Increase the theme version.');
+                    }
                 }
-                $output = stream_get_contents($pipes[1]) . stream_get_contents($pipes[2]);
-                fclose($pipes[1]);
-                fclose($pipes[2]);
-                if (proc_close($process) !== 0) {
-                    throw new RuntimeException('Invalid PHP template: ' . $file . ' ' . $output);
-                }
+                $this->swap($id, $stage, $source, $preview['manifest']->version);
+                unlink($archive);
+            } finally {
+                $this->removeStage($stage);
             }
-            $candidateHash = ModulePackages::fingerprint($stage);
-            foreach (glob($this->root . '/history/' . $id . '/*/theme.json') ?: [] as $path) {
-                if (ThemeManifest::fromFile($path, true)->version === $preview['manifest']->version
-                    && ! hash_equals($candidateHash, ModulePackages::fingerprint(dirname($path)))) {
-                    throw new RuntimeException('A retained version already has different bytes. Increase the theme version.');
-                }
-            }
-            $this->swap($id, $stage, $source, $preview['manifest']->version);
-            unlink($archive);
         });
     }
 
@@ -135,12 +140,16 @@ final class ThemeUpdates
             return;
         }
         $this->runtime->exclusive(function (): void {
+            clearstatcache(true);
             foreach (glob($this->root . '/transactions/*.json') ?: [] as $journal) {
                 $state = $this->read($journal);
                 if (is_dir($state['previous'])) {
                     if (is_dir($state['installed'])) {
-                        // Keep candidate bytes private, including their versioned assets.
-                        $failed = $this->root . '/history/' . $state['id'] . '/' . bin2hex(random_bytes(16));
+                        // Rollback candidates came from history. Restore that exact
+                        // path so the previous receipt remains valid after recovery.
+                        $failed = ! file_exists($state['stage']) && ! is_link($state['stage'])
+                            ? $state['stage']
+                            : $this->root . '/history/' . $state['id'] . '/' . bin2hex(random_bytes(16));
                         if (! rename($state['installed'], $failed)) {
                             throw new RuntimeException('Cannot retain interrupted theme candidate.');
                         }
@@ -200,6 +209,20 @@ final class ThemeUpdates
         if (preg_match('/^[a-z][a-z0-9-]*$/D', $id) !== 1) {
             throw new RuntimeException('Invalid theme id.');
         }
+    }
+
+    private function removeStage(string $path): void
+    {
+        if (is_link($path)) {
+            throw new RuntimeException('Theme staging path is a link.');
+        }
+        if (! is_dir($path)) {
+            return;
+        }
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS), \RecursiveIteratorIterator::CHILD_FIRST) as $file) {
+            $file->isDir() && ! $file->isLink() ? rmdir($file->getPathname()) : unlink($file->getPathname());
+        }
+        rmdir($path);
     }
 
     private function invalidate(string $path): void

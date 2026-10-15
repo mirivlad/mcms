@@ -553,13 +553,15 @@ form/navigation checks including a 390px viewport without horizontal overflow.
 - Menus 2.0 assignments have no fixed extra-slot count, support per-resource
   conditions, public provider search and keyboard/touch sorting. Arbitrary external
   theme positions may declare their own limit. Legacy assignments are retained.
-- 288 PHPUnit tests / 2061 assertions passed locally. Reusable HTTP scenarios:
+- 290 PHPUnit tests / 2066 assertions passed locally. Reusable HTTP scenarios:
   `theme-updates-smoke.py`, `resource-options-smoke.py`,
   `captcha-policies-smoke.py` and `theme-resource-menus-smoke.py`.
 - Actual browser checks covered Default, Depth, Focus, Signature and Atelier at
   390/768/1440px, public interactions, CAPTCHA keyboard/accessibility-tree behavior
   and menu assignment/search/reordering. No document overflow or repeated H1 was
   observed in the checked material views. Human screen-reader testing was not run.
+- Interrupted rollback was also injected into the live disposable filesystem;
+  the next web request restored the site and retained a usable rollback snapshot.
 - GitHub Actions was not used: the account has exhausted its monthly minute budget.
   No production deployment or separate application release was performed. Atelier
   source/ZIP stays at 1.1.2 because its existing shared components support the new
