@@ -12,7 +12,7 @@ final class ThemeManifest
 {
     /**
      * @param array<string, string> $templates
-     * @param array<string, array{label:string,description:?string,max_depth:?int}> $menuLocations
+     * @param array<string, array{label:string,description:?string,max_depth:?int,max_extra_menus:?int}> $menuLocations
      */
     private function __construct(
         public readonly string $id,
@@ -223,7 +223,7 @@ final class ThemeManifest
     }
 
     /**
-     * @return array<string, array{label:string,description:?string,max_depth:?int}>
+     * @return array<string, array{label:string,description:?string,max_depth:?int,max_extra_menus:?int}>
      */
     private static function menuLocations(mixed $raw): array
     {
@@ -256,10 +256,16 @@ final class ThemeManifest
                 }
             }
 
+            $maxExtras = $definition['max_extra_menus'] ?? null;
+            if ($maxExtras !== null && (! is_int($maxExtras) || $maxExtras < 0)) {
+                throw new InvalidArgumentException('Theme max_extra_menus must be null or a non-negative integer.');
+            }
+
             $locations[$id] = [
                 'label' => trim($label),
                 'description' => $description,
                 'max_depth' => $maxDepth,
+                'max_extra_menus' => $maxExtras,
             ];
         }
 

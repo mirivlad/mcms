@@ -204,12 +204,38 @@ final class ThemePackagesTest extends CIUnitTestCase
         self::assertNull($updates->previous('theme-probe'));
     }
 
+    public function testInstalledThemeCustomLocationAcceptsExtrasAndEnforcesDeclaredLimit(): void
+    {
+        $source = new class implements \MCMS\Core\Themes\DynamicMenuSourceInterface {
+            public function id(): string { return 'external.sidebar'; }
+            public function label(): string { return 'Sidebar links'; }
+            public function tree(): array { return [['label' => 'Custom sidebar item', 'url' => '/side', 'children' => []]]; }
+        };
+        service('mcmsModuleServices')->register('test.external.sidebar', $source);
+        $preview = $this->packages->prepare($this->archive(['menu_locations' => [
+            'aside.links' => ['label' => 'Custom sidebar', 'max_depth' => 1, 'max_extra_menus' => 1],
+        ]]));
+        $theme = $this->packages->install($preview['token'], $preview['sha256']);
+        $manager = $this->manager();
+        $entry = ['source' => 'dynamic:external.sidebar', 'visibility' => 'all'];
+        $manager->saveExtraMenuAssignments('theme-probe', ['aside.links' => [$entry]]);
+        self::assertSame(['Custom sidebar item'], array_column($manager->menuTrees($theme, 'page')['aside.links'], 'label'));
+        try {
+            $manager->saveExtraMenuAssignments('theme-probe', ['aside.links' => [$entry, [...$entry, 'visibility' => 'pages']]]);
+            self::fail('Theme position limit ignored');
+        } catch (InvalidArgumentException) {
+        }
+        self::assertCount(1, $manager->extraMenuAssignments($theme)['aside.links']);
+    }
+
     public static function invalidPackages(): array
     {
         return [
             [['id' => 'package'], []], [['id' => 'images'], []], [['id' => 'alpha'], []], [['mcms' => null], []], [['mcms' => '^999'], []],
             [['namespace' => 'App\\Controllers'], []], [['version' => '1.2'], []],
             [['templates' => []], []], [['templates' => ['home' => 'missing']], []],
+            [['menu_locations' => ['aside' => ['label' => 'Aside', 'max_extra_menus' => -1]]], []],
+            [['menu_locations' => ['aside' => ['label' => 'Aside', 'max_extra_menus' => 'many']]], []],
             [['screenshot' => 'missing.svg'], []], [['screenshot' => 'style.css'], []],
             [['name' => '@MCMS.themes.title'], []], [['description' => []], []],
             [[], ['../escape.php' => '']], [[], ['Config/Routes.php' => '']],

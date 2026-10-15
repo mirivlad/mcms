@@ -15,6 +15,13 @@ final class ThemeExtraMenusTest extends CIUnitTestCase
     protected $refresh = true;
     protected $namespace = ['App', 'CodeIgniter\Settings'];
 
+    protected function tearDown(): void
+    {
+        service('settings')->forgetMany(['Core.theme', 'Core.themeExtraMenus', 'Core.themeMenuAssignments']);
+        \Config\Services::resetSingle('mcmsModuleServices');
+        parent::tearDown();
+    }
+
     private function manager(): ThemeManager
     {
         $services = service('mcmsModuleServices');
@@ -113,4 +120,76 @@ final class ThemeExtraMenusTest extends CIUnitTestCase
             $manager->extraMenuAssignments()['header.primary'][0]);
         self::assertSame([], $manager->menuTrees(null, 'catalogue.index')['header.primary']);
     }
+    public function testMoreThanTwoExtrasKeepTheirOrderAndPrimaryMenu(): void
+    {
+        $manager = $this->manager();
+        $manager->saveMenuAssignments('alpha', ['header.primary' => 7]);
+        $entries = [];
+        foreach (range(1, 5) as $n) {
+            $source = new class($n) implements DynamicMenuSourceInterface {
+                public function __construct(private int $n) {}
+                public function id(): string { return 'extra.source' . $this->n; }
+                public function label(): string { return 'Extra ' . $this->n; }
+                public function tree(): array { return [['label' => $this->label(), 'url' => '/extra-' . $this->n, 'children' => []]]; }
+            };
+            service('mcmsModuleServices')->register('test-extra-' . $n, $source);
+            $entries[] = ['source' => 'dynamic:' . $source->id(), 'visibility' => 'all'];
+        }
+        $manager->saveNavigationAssignments('alpha', ['header.primary' => 7], ['header.primary' => array_reverse($entries)]);
+        self::assertSame(['About us', 'Extra 5', 'Extra 4', 'Extra 3', 'Extra 2', 'Extra 1'], array_column($manager->menuTrees(null, 'page')['header.primary'], 'label'));
+        self::assertSame(7, $manager->menuAssignments()['header.primary']);
+        try {
+            $manager->saveNavigationAssignments('alpha', [], ['header.primary' => [['source' => 'invalid', 'visibility' => 'all']]]);
+            self::fail('Invalid extras accepted');
+        } catch (InvalidArgumentException) {
+        }
+        self::assertSame(7, $manager->menuAssignments()['header.primary']);
+        self::assertCount(5, $manager->extraMenuAssignments()['header.primary']);
+    }
+
+    public function testResourceConditionsUseRegistryAndSurviveUnavailableTargets(): void
+    {
+        $manager = $this->manager();
+        $navigation = new \MCMS\Core\Navigation\NavigableResourceRegistry();
+        $provider = new class implements \MCMS\Core\Navigation\NavigableResourceProviderInterface {
+            public bool $published = true;
+            public function id(): string { return 'external.material'; }
+            public function label(): string { return 'External materials'; }
+            public function search(string $query = '', int $limit = 50): array { return []; }
+            public function resolve(string $resourceId): ?array {
+                return $this->published && in_array($resourceId, ['one', 'two'], true)
+                    ? ['id' => $resourceId, 'label' => 'Material ' . $resourceId, 'url' => '/material/' . $resourceId] : null;
+            }
+        };
+        $navigation->register($provider);
+        \Config\Services::injectMock('mcmsNavigation', $navigation);
+        try {
+            $manager->saveMenuAssignments('alpha', []);
+            $entries = [];
+            foreach (['one', 'two'] as $id) {
+                $entries[] = ['source' => 'menu:7', 'visibility' => 'resource', 'target_type' => $provider->id(), 'target_id' => $id];
+            }
+            $manager->saveExtraMenuAssignments('alpha', ['footer' => $entries]);
+            self::assertSame([], $manager->menuTrees(null, 'page')['footer']);
+            self::assertSame(['About us'], array_column($manager->menuTrees(null, 'page', ['type' => $provider->id(), 'id' => 'one'])['footer'], 'label'));
+            self::assertSame(['About us'], array_column($manager->menuTrees(null, 'page', ['type' => $provider->id(), 'id' => 'two'])['footer'], 'label'));
+            $provider->published = false;
+            self::assertSame([], $manager->menuTrees(null, 'page', ['type' => $provider->id(), 'id' => 'one'])['footer']);
+            $manager->saveExtraMenuAssignments('alpha', ['footer' => $entries]);
+            self::assertSame($entries, $manager->extraMenuAssignments()['footer']);
+            try {
+                $manager->saveExtraMenuAssignments('alpha', ['footer' => [[...$entries[0], 'target_id' => 'unpublished']]]);
+                self::fail('Unavailable new target accepted');
+            } catch (InvalidArgumentException) {
+            }
+            \Config\Services::injectMock('mcmsNavigation', new \MCMS\Core\Navigation\NavigableResourceRegistry());
+            self::assertSame([], $manager->menuTrees(null, 'page', ['type' => $provider->id(), 'id' => 'one'])['footer']);
+            \Config\Services::injectMock('mcmsNavigation', $navigation);
+            $provider->published = true;
+            self::assertCount(1, $manager->menuTrees(null, 'page', ['type' => $provider->id(), 'id' => 'one'])['footer']);
+        } finally {
+            \Config\Services::resetSingle('mcmsNavigation');
+        }
+    }
+
 }

@@ -113,10 +113,10 @@ final class Admin extends BaseAdminController
                 'open_in_new' => $this->request->getPost('open_in_new') !== null,
             ]);
 
-            return redirect()->to('/admin/menus/' . $menuId . '/edit?item=' . $item['id'] . '#menu-item-form')
+            return redirect()->to(site_url('admin/menus/' . $menuId . '/edit') . '?item=' . $item['id'] . '#menu-item-form')
                 ->with('message', lang('Menus.Messages.itemSaved'));
         } catch (\Throwable $e) {
-            return redirect()->to('/admin/menus/' . $menuId . '/edit' . ($itemId === null ? '' : '?item=' . $itemId) . '#menu-item-form')
+            return redirect()->to(site_url('admin/menus/' . $menuId . '/edit') . ($itemId === null ? '' : '?item=' . $itemId) . '#menu-item-form')
                 ->withInput()
                 ->with('error', $e->getMessage());
         }

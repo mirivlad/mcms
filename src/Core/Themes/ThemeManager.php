@@ -348,7 +348,7 @@ final class ThemeManager
      * @param array<string, mixed> $assignments
      * @return array<string, int|null>
      */
-    public function saveMenuAssignments(string $themeId, array $assignments): array
+    private function normalizeMenuAssignments(string $themeId, array $assignments): array
     {
         $theme = $this->find($themeId);
         if ($theme === null) {
@@ -374,18 +374,22 @@ final class ThemeManager
                 throw new RuntimeException(lang('MCMS.errors.themeMenusUnavailable'));
             }
 
-            if ($source->findMenu($menuId) === null) {
+            if ($source->findMenu($menuId) === null && ($this->menuAssignments($theme)[$locationId] ?? null) !== $menuId) {
                 throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
             }
 
             $normalized[$locationId] = $menuId;
         }
 
-        $all = $this->settings->get('Core.themeMenuAssignments');
-        $all = is_array($all) ? $all : [];
-        $all[$theme->id] = $normalized;
-        $this->settings->set('Core.themeMenuAssignments', $all);
+        return $normalized;
+    }
 
+    public function saveMenuAssignments(string $themeId, array $assignments): array
+    {
+        $normalized = $this->normalizeMenuAssignments($themeId, $assignments);
+        $all = (array) $this->settings->get('Core.themeMenuAssignments');
+        $all[$themeId] = $normalized;
+        $this->settings->set('Core.themeMenuAssignments', $all);
         return $normalized;
     }
 
@@ -393,7 +397,7 @@ final class ThemeManager
      * Optional generated menus and secondary Menus trees.
      * Entries are specific to a theme location, without changing the existing primary assignment.
      *
-     * @return array<string, list<array{source:string,visibility:string}>>
+     * @return array<string, list<array{source:string,visibility:string,target_type?:string,target_id?:string}>>
      */
     public function extraMenuAssignments(?ThemeManifest $theme = null): array
     {
@@ -430,8 +434,8 @@ final class ThemeManager
         return $choices;
     }
 
-    /** @param array<string, list<array{source:string,visibility:string}>> $input */
-    public function saveExtraMenuAssignments(string $themeId, array $input): void
+    /** @param array<string, list<array{source:string,visibility:string,target_type?:string,target_id?:string}>> $input */
+    private function normalizeExtraMenuAssignments(string $themeId, array $input): array
     {
         $theme = $this->find($themeId);
         if ($theme === null) {
@@ -440,16 +444,16 @@ final class ThemeManager
         $available = $this->availableExtraMenuSources();
         $existing = $this->extraMenuAssignments($theme);
         $normalized = [];
-        $visibilityOptions = ['all', 'shop', 'pages', 'news', 'products'];
+        $visibilityOptions = ['all', 'shop', 'pages', 'news', 'products', 'resource'];
         foreach ($theme->menuLocations as $locationId => $_definition) {
             $normalized[$locationId] = [];
             $seen = [];
             $rows = $input[$locationId] ?? [];
-            if (! is_array($rows) || count($rows) > 3) {
+            if (! is_array($rows)) {
                 throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
             }
             foreach ($rows as $row) {
-                if (! is_array($row)) {
+                if (! is_array($row) || ! is_string($row['source'] ?? '') || ! is_string($row['visibility'] ?? 'all')) {
                     throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
                 }
                 $source = trim((string) ($row['source'] ?? ''));
@@ -458,8 +462,7 @@ final class ThemeManager
                 }
                 $visibility = (string) ($row['visibility'] ?? 'all');
                 if (! in_array($visibility, $visibilityOptions, true)
-                    || ! preg_match('/^(menu:[1-9][0-9]*|dynamic:[a-z][a-z0-9._-]*)$/D', $source)
-                    || isset($seen[$source])) {
+                    || ! preg_match('/^(menu:[1-9][0-9]*|dynamic:[a-z][a-z0-9._-]*)$/D', $source)) {
                     throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
                 }
                 // Preserve references to temporarily disabled providers, but do not
@@ -468,14 +471,74 @@ final class ThemeManager
                 if (! isset($available[$source]) && ! $wasSaved) {
                     throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
                 }
-                $seen[$source] = true;
-                $normalized[$locationId][] = ['source' => $source, 'visibility' => $visibility];
+                $entry = ['source' => $source, 'visibility' => $visibility];
+                if ($visibility === 'resource') {
+                    $type = $row['target_type'] ?? '';
+                    $id = $row['target_id'] ?? '';
+                    if (! is_string($type) || ! is_string($id)
+                        || preg_match('/^[a-z][a-z0-9._-]{0,31}$/D', $type) !== 1
+                        || preg_match('/^[a-zA-Z0-9._:-]{1,128}$/D', $id) !== 1) {
+                        throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+                    }
+                    $entry += ['target_type' => $type, 'target_id' => $id];
+                    $wasTargetSaved = false;
+                    foreach ($existing[$locationId] ?? [] as $saved) {
+                        if (($saved['target_type'] ?? null) === $type && ($saved['target_id'] ?? null) === $id) {
+                            $wasTargetSaved = true;
+                        }
+                    }
+                    if (service('mcmsNavigation')->resolve($type, $id) === null && ! $wasTargetSaved) {
+                        throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+                    }
+                }
+                $identity = json_encode($entry, JSON_THROW_ON_ERROR);
+                if (isset($seen[$identity])) {
+                    throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+                }
+                $seen[$identity] = true;
+                $normalized[$locationId][] = $entry;
             }
         }
-        $all = $this->settings->get('Core.themeExtraMenus');
-        $all = is_array($all) ? $all : [];
+        foreach ($theme->menuLocations as $locationId => $definition) {
+            $limit = $definition['max_extra_menus'] ?? null;
+            if ($limit !== null && count($normalized[$locationId]) > $limit) {
+                throw new InvalidArgumentException(lang('MCMS.errors.themeMenuInvalid'));
+            }
+        }
+        return $normalized;
+    }
+
+    public function saveExtraMenuAssignments(string $themeId, array $input): void
+    {
+        $normalized = $this->normalizeExtraMenuAssignments($themeId, $input);
+        $all = (array) $this->settings->get('Core.themeExtraMenus');
         $all[$themeId] = $normalized;
         $this->settings->set('Core.themeExtraMenus', $all);
+    }
+
+    public function saveNavigationAssignments(string $themeId, ?array $primary, array $extras): void
+    {
+        $normalizedPrimary = $primary === null ? null : $this->normalizeMenuAssignments($themeId, $primary);
+        $normalizedExtras = $this->normalizeExtraMenuAssignments($themeId, $extras);
+        $db = db_connect();
+        $db->transBegin();
+        try {
+            if ($normalizedPrimary !== null) {
+                $all = (array) $this->settings->get('Core.themeMenuAssignments');
+                $all[$themeId] = $normalizedPrimary;
+                $this->settings->set('Core.themeMenuAssignments', $all);
+            }
+            $all = (array) $this->settings->get('Core.themeExtraMenus');
+            $all[$themeId] = $normalizedExtras;
+            $this->settings->set('Core.themeExtraMenus', $all);
+            if (! $db->transStatus()) {
+                throw new RuntimeException(lang('MCMS.errors.themeMenuInvalid'));
+            }
+            $db->transCommit();
+        } catch (Throwable $e) {
+            $db->transRollback();
+            throw $e;
+        }
     }
 
     /** @return array<string, DynamicMenuSourceInterface> */
@@ -505,7 +568,7 @@ final class ThemeManager
     /**
      * @return array<string, array>
      */
-    public function menuTrees(?ThemeManifest $theme = null, ?string $logicalTemplate = null): array
+    public function menuTrees(?ThemeManifest $theme = null, ?string $logicalTemplate = null, ?array $resource = null): array
     {
         $theme ??= $this->active();
         if ($theme === null) {
@@ -533,13 +596,19 @@ final class ThemeManager
         // Append optional, independently scoped sources after the primary menu.
         // This preserves the old themeMenus shape expected by existing themes.
         $dynamic = $this->dynamicMenuSources();
+        $resource = $this->publicMenuResource($resource);
         foreach ($this->extraMenuAssignments($theme) as $locationId => $entries) {
             $depth = $theme->menuLocations[$locationId]['max_depth'] ?? null;
-            foreach ($entries as $entry) {
-                if (! self::visibleExtraMenu($entry['visibility'], $logicalTemplate)) {
+            $used = [];
+            foreach (array_slice($entries, 0, $theme->menuLocations[$locationId]['max_extra_menus'] ?? null) as $entry) {
+                $visible = $entry['visibility'] === 'resource'
+                    ? ($resource !== null && ($entry['target_type'] ?? null) === $resource['type'] && ($entry['target_id'] ?? null) === $resource['id'])
+                    : self::visibleExtraMenu($entry['visibility'], $logicalTemplate);
+                if (! $visible || isset($used[$entry['source']])) {
                     continue;
                 }
                 $ref = $entry['source'];
+                $used[$ref] = true;
                 $items = [];
                 if (str_starts_with($ref, 'menu:') && $source !== null) {
                     $id = (int) substr($ref, 5);
@@ -557,6 +626,14 @@ final class ThemeManager
         }
 
         return $trees;
+    }
+
+    private function publicMenuResource(?array $resource): ?array
+    {
+        if (! is_string($resource['type'] ?? null) || ! is_string($resource['id'] ?? null)) {
+            return null;
+        }
+        return service('mcmsNavigation')->resolve($resource['type'], $resource['id']) !== null ? $resource : null;
     }
 
     private function decorateViewData(array $data, ?ThemeManifest $theme, string $logicalTemplate): array
@@ -582,7 +659,7 @@ final class ThemeManager
 
         if ($theme !== null) {
             $data['themeAssets'] = site_url($theme->assetBaseUrl());
-            $data['themeMenus'] = $this->menuTrees($theme, $logicalTemplate);
+            $data['themeMenus'] = $this->menuTrees($theme, $logicalTemplate, ! empty($data['isPreview']) ? null : ($data['navigationResource'] ?? null));
         } else {
             $data['themeMenus'] = [];
         }

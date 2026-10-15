@@ -28,6 +28,7 @@ final class News extends BaseController
         return service('mcmsThemes')->render(
             'news.index',
             [
+                'navigationResource' => ['type' => 'news.archive', 'id' => 'index'],
                 'articles' => $news->listPublished($query, $perPage, ($page - 1) * $perPage, $categoryId, $tag),
                 'page' => $page,
                 'lastPage' => $lastPage,
@@ -56,6 +57,7 @@ final class News extends BaseController
         return service('mcmsThemes')->render(
             'news.article',
             [
+                'navigationResource' => ['type' => 'news.article', 'id' => (string) $article['id']],
                 'article' => $article,
                 'siteName' => $siteName,
                 'metaTitle' => $title . ' · ' . $siteName,

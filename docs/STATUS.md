@@ -1,10 +1,10 @@
-# Current baseline — 2026-10-09
+# Current baseline — 2026-10-15
 
 This document records the current known-good mCMS implementation checkpoint.
 
 ## Core
 
-- Core version 0.1.6 with optional Home, public-resource and path-conflict provider contracts.
+- Core version 0.1.8 with optional Home, public-resource and path-conflict provider contracts.
 - CodeIgniter 4.7.4, Shield 1.4.x and Settings 2.4.x.
 - Database-backed module discovery, dependency resolution and lifecycle.
 - Namespace-scoped module migrations; Core never runs `migrate --all`.
@@ -69,7 +69,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Cached proportional previews, image-only browsing and administration pagination.
 - Separate used-file deletion confirmation listing references from installed content modules, including disabled ones.
 
-### Pages 0.6.1
+### Pages 0.6.2
 
 - Draft/published static pages with sanitized rich text, including nested unknown HTML wrappers.
 - Tags and manual keywords; private unsaved preview through the active theme without database writes.
@@ -80,7 +80,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Published pages register as generic navigable resources through provider `pages.page`.
 - Public pages render through the active theme's logical `page` template with a module fallback.
 
-### News 0.6.1
+### News 0.6.2
 
 - Draft and published news articles with optional future publication time.
 - Tags and manual keywords; private unsaved preview with featured image and shortcode rendering.
@@ -92,7 +92,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Public rendering through logical `news.index` / `news.article` theme templates with module fallbacks.
 - Administration includes paginated article browsing and a searchable Media picker for featured and inline images.
 
-### Menus 0.1.0
+### Menus 0.2.0
 
 - Named reusable menus with stable handles.
 - Arbitrarily nested items, ordering, enabled state and new-window links.
@@ -102,7 +102,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Menu items support custom URLs or generic provider-backed internal resources without depending on Pages/News classes.
 - Provider-backed targets survive provider/module disablement and resolve again after re-enable.
 
-### Galleries 0.3.0
+### Galleries 0.3.1
 
 - Draft/published albums with captions, ordering and optional cover.
 - Paginated image picker using Media API; album removal preserves files.
@@ -113,7 +113,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Shared display assets in all first-party themes and Pages/News fallbacks; independent slider state, keyboard controls and responsive layouts.
 - Disabled albums preserve data and remain visible to Media usage inspection.
 
-### Feedback 0.1.0
+### Feedback 0.1.1
 
 - Public contact form with CSRF, honeypot, throttling and server validation.
 - Private paginated inbox with read/delete permissions; disable preserves messages.
@@ -132,7 +132,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Manual local 301 redirect creation/editing/deletion, duplicate/live/system-source and cycle validation; chains resolve in one response.
 - Redirect administration and disable/re-enable persistence; manual published-content targets follow stable resource IDs.
 
-### ProductImages 0.1.0 / Catalogue 0.2.4
+### ProductImages 0.1.0 / Catalogue 0.2.6
 
 - Catalogue depends only on ProductImages; Media/Galleries are independent.
 - Private persistent originals and generated WebP revisions, validated uploads,
@@ -189,7 +189,7 @@ This document records the current known-good mCMS implementation checkpoint.
 - Separate `orders.export` permission in addition to `orders.view`; reports and
   exports do not modify orders, inventory, reservations or the cart.
 
-### Notifications 0.1.0
+### Notifications 0.2.0
 
 - Optional Orders-dependent module; delivery is off by default.
 - One manager recipient, selected order events, plain-text templates and a test email.
@@ -532,3 +532,35 @@ form/navigation checks including a 390px viewport without horizontal overflow.
   Optional account.* theme manifest mappings allow theme-owned overrides.
 - Browser-response integration checks cover login and registration under all
   four bundled themes; no standalone site shell is rendered.
+
+
+## Functional completion — 2026-10-15 (local verification)
+
+- Core 0.1.8 adds external theme update/rollback, reader draining, durable swap
+  recovery, retained immutable assets and identity/version/source checks. Atelier
+  1.1.1 → 1.1.2 and rollback were exercised through HTTP and the browser with
+  preserved active selection, Home, appearance and menu/data settings.
+- Comments/Ratings 0.2 own independent per-material inherit/allow/deny policies.
+  Pages/News/Catalogue save optional editor extensions in their content transactions.
+  Public writes and widgets enforce the same policy. Thread ordering, parent links
+  and reply controls preserve mobile reading space.
+- Notifications 0.2 accepts optional comment events into a durable snapshot queue.
+  Pending alerts are moderation-only; publication mail checks live eligibility.
+  SMTP failures retain messages; rejection/deletion cancels stale public alerts.
+- Captcha 0.2 includes readable text tasks, optional visual tasks, labelled numeric
+  inputs, per-form policies/difficulty/expiry and atomic IP/session buckets.
+  Daily aggregate metrics expose success/failure/expiry/limiting without raw IPs.
+- Menus 2.0 assignments have no fixed extra-slot count, support per-resource
+  conditions, public provider search and keyboard/touch sorting. Arbitrary external
+  theme positions may declare their own limit. Legacy assignments are retained.
+- 288 PHPUnit tests / 2061 assertions passed locally. Reusable HTTP scenarios:
+  `theme-updates-smoke.py`, `resource-options-smoke.py`,
+  `captcha-policies-smoke.py` and `theme-resource-menus-smoke.py`.
+- Actual browser checks covered Default, Depth, Focus, Signature and Atelier at
+  390/768/1440px, public interactions, CAPTCHA keyboard/accessibility-tree behavior
+  and menu assignment/search/reordering. No document overflow or repeated H1 was
+  observed in the checked material views. Human screen-reader testing was not run.
+- GitHub Actions was not used: the account has exhausted its monthly minute budget.
+  No production deployment or separate application release was performed. Atelier
+  source/ZIP stays at 1.1.2 because its existing shared components support the new
+  Core behavior without template changes.

@@ -35,8 +35,8 @@ resource ID as `target`. Providers implement Core's
 `NavigableResourceRegistry`. Menus never reads another module's tables and
 does not know provider-specific classes.
 
-Pages currently registers `pages.page`; future modules such as News can add
-their own providers without changing Menus. If a provider is disabled or the
+Pages, News, Catalogue, Galleries and Feedback register their own providers
+without changing Menus. If a provider is disabled or the
 resource disappears, the stored target is preserved and renders as unavailable
 instead of being converted into a stale URL. Re-enabling the provider restores
 resolution automatically.
@@ -48,3 +48,16 @@ window and drag-and-drop ordering on desktop. The parent selector remains
 available as a non-drag alternative and for mobile administration.
 
 Disabling the module preserves both menus and items.
+
+## Menus 2.0 assignments
+
+Themes → Configure supports ordered additional menus in every declared theme
+position, without the former two-slot limit. Add/remove and Up/Down controls work
+with keyboard, touch and desktop. Visibility may cover a type of page or one stable
+registered resource; the picker searches published provider resources. Different
+pages, news articles, categories and external resource types can have different
+menus. A theme can declare `max_extra_menus` per position; existing themes need no
+migration. See [Theme API](../../docs/THEMES.md#resource-visibility-and-ordered-additional-menus-core-018).
+Primary assignments and unavailable provider references survive. Saved conditions
+are checked against public resource resolution on each render; drafts/deleted
+resources and disabled modules do not activate their assignments.

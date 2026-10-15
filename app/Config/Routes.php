@@ -57,6 +57,7 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
         $routes->match(['get', 'post'], $themePrefix . '/(:segment)/update', 'Admin\Themes::update/$1');
         $routes->post($themePrefix . '/(:segment)/update/apply', 'Admin\Themes::applyUpdate/$1');
         $routes->post($themePrefix . '/(:segment)/rollback', 'Admin\Themes::rollback/$1');
+        $routes->get($themePrefix . '/package/resources', 'Admin\Themes::resources');
         $routes->get($themePrefix . '/images', 'Admin\Themes::images');
         $routes->post($themePrefix . '/(:segment)/appearance', 'Admin\Themes::appearance/$1');
         $routes->post($themePrefix . '/(:segment)/home', 'Admin\Themes::home/$1');

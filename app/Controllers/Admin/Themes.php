@@ -233,6 +233,8 @@ final class Themes extends BaseAdminController
             $extraLocations = $this->request->getPost('extra_location');
             $extraSources = $this->request->getPost('extra_source');
             $extraVisibility = $this->request->getPost('extra_visibility');
+            $extraTypes = $this->request->getPost('extra_target_type');
+            $extraIds = $this->request->getPost('extra_target_id');
             if (is_array($extraLocations) && is_array($extraSources) && is_array($extraVisibility)) {
                 foreach ($extraLocations as $index => $locationId) {
                     if (! is_string($locationId) || ! isset($theme->menuLocations[$locationId])) {
@@ -241,14 +243,16 @@ final class Themes extends BaseAdminController
                     $extraAssignments[$locationId][] = [
                         'source' => is_string($extraSources[$index] ?? null) ? $extraSources[$index] : '',
                         'visibility' => is_string($extraVisibility[$index] ?? null) ? $extraVisibility[$index] : 'all',
+                        'target_type' => is_array($extraTypes) && is_string($extraTypes[$index] ?? null) ? $extraTypes[$index] : '',
+                        'target_id' => is_array($extraIds) && is_string($extraIds[$index] ?? null) ? $extraIds[$index] : '',
                     ];
                 }
             }
             try {
-                $manager->saveExtraMenuAssignments($theme->id, $extraAssignments);
-                if ($manager->menusAvailable()) {
-                    $manager->saveMenuAssignments($theme->id, $assignments);
+                if ($this->request->getPost('menu_form_version') === '2' && $this->request->getPost('menu_form_complete') !== '1') {
+                    throw new \RuntimeException(lang('MCMS.themes.menuFormTruncated'));
                 }
+                $manager->saveNavigationAssignments($theme->id, $manager->menusAvailable() ? $assignments : null, $extraAssignments);
 
                 return redirect()->to($this->settingsPath('/admin/themes/' . $theme->id))->with(
                     'message',
@@ -270,6 +274,7 @@ final class Themes extends BaseAdminController
             'menus' => $manager->availableMenus(),
             'assignments' => $manager->menuAssignments($theme),
             'extraSources' => $manager->availableExtraMenuSources(),
+            'navigationProviders' => service('mcmsNavigation')->choices(),
             'extraAssignments' => $manager->extraMenuAssignments($theme),
             'appearance' => $manager->appearance($theme),
             'homeContent' => $manager->homeContent($theme),
@@ -288,6 +293,22 @@ final class Themes extends BaseAdminController
         } catch (\Throwable $e) {
             return redirect()->back()->withInput()->with('error', $e->getMessage());
         }
+    }
+
+    public function resources(): ResponseInterface
+    {
+        $this->response->setHeader('Cache-Control', 'private, no-store');
+        if (! $this->can('core.themes')) {
+            return $this->response->setStatusCode(403)->setJSON(['items' => []]);
+        }
+        $registry = service('mcmsNavigation');
+        $type = (string) $this->request->getGet('provider');
+        if (! $registry->has($type)) {
+            return $this->response->setStatusCode(404)->setJSON(['items' => []]);
+        }
+        return $this->response->setJSON(['items' => $registry->get($type)->search(
+            mb_substr(trim((string) $this->request->getGet('q')), 0, 100), 100,
+        )]);
     }
 
     public function images(): ResponseInterface

@@ -59,8 +59,8 @@ it does not execute or certify the PHP template code.
 
 The mCMS 0.1.x Theme API keeps its original
 `Core.themeMenuAssignments` contract: every theme location still accepts one
-primary Menus menu. It additionally supports **up to two ordered extra menus
-per location**, configured under Administration → Themes → Configure. Extras
+primary Menus menu. It additionally supports **ordered extra menus without a fixed
+slot count**, configured under Administration → Themes → Configure. Extras
 are stored separately in `Core.themeExtraMenus`; switching themes preserves
 each theme's assignments and existing theme ZIPs require no migration.
 
@@ -69,9 +69,10 @@ Each extra entry selects a source and visibility rule:
 - `menu:<id>` refers to a normal Menus tree (it stays editable in Menus).
 - `dynamic:catalogue.categories` follows live public Catalogue categories
   without copying category records into Menus.
-- Visibility rules: all pages, shop pages, pages, news or product pages.
-  Conditions are evaluated against the logical template while rendering,
-  not against the visitor-controlled URL or query string.
+- Visibility rules: all pages, shop pages, pages, news, product pages or one
+  specific registered resource. Type scopes use the logical template; concrete
+  resource conditions use a publisher-supplied stable type/ID rechecked through
+  the public navigation registry, never an arbitrary visitor query parameter.
 
 Existing custom themes continue to receive the same `themeMenus` array by
 location. The additional trees are appended to the old primary tree in
@@ -190,3 +191,48 @@ ship a new version instead. Arbitrary trusted PHP behavior cannot be certified b
 ZIP/syntax checks: keep a known working theme and use rollback if its behavior is
 unsuitable. Recovery covers interrupted filesystem swaps, not a lost storage
 volume or arbitrary external side effects of trusted theme PHP.
+
+## Resource visibility and ordered additional menus (Core 0.1.8)
+
+The original primary `Core.themeMenuAssignments` values and old two-row
+`Core.themeExtraMenus` data require no migration. Extra assignments are an ordered
+list per theme/location. Add/remove and keyboard/touch Up/Down buttons edit that
+list before saving. Manual and generated sources can be mixed. The same source may
+have different resource rules; if several rules match, that extra tree appears only
+once. Primary assignment behavior is unchanged.
+
+A resource-scoped entry stores source, visibility=`resource`, target_type and
+opaque target_id. Choose a provider and search its public resources in the same
+form; `core.themes` guards both search and saves. A newly selected unavailable,
+unpublished or deleted target is rejected. Existing missing targets/sources stay
+saved and editable, render nothing and resolve again if restored/re-enabled.
+No direct Menus dependencies on Pages, News or Catalogue were added.
+
+Third-party themes may declare arbitrary location IDs and optionally limit extras:
+
+```json
+"menu_locations": {
+  "aside.related": {"label": "Related links", "max_depth": 2, "max_extra_menus": 4},
+  "footer.partners": {"label": "Partners", "max_extra_menus": null}
+}
+```
+
+A missing/null `max_extra_menus` allows any number of additional assignments;
+zero permits only a primary menu; a positive integer sets the theme-specific limit.
+The theme must render its declared `themeMenus[locationId]` in an appropriate
+responsive layout. Existing themes continue receiving the same merged array.
+A large admin submission remains subject to PHP `max_input_vars`/request limits;
+modern forms have an end marker and reject truncation without changing settings.
+Primary and extra assignments are validated together and saved transactionally.
+
+A publisher using `ThemeManager::render()` identifies the current registered resource:
+
+```php
+'navigationResource' => ['type' => 'my-module.record', 'id' => (string) $record['id']]
+```
+
+Pages (including a selected Pages Home), News articles/archives, Catalogue
+products/categories/archive, Galleries and Feedback supply this context. Core
+rechecks it through `NavigableResourceRegistry::resolve`. Unknown, draft and
+preview resources cannot activate resource-scoped extras. Future providers use the
+same contract; the Theme API never needs their models or schema.

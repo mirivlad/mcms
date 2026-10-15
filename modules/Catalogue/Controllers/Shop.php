@@ -48,6 +48,9 @@ final class Shop extends BaseController
             'categoryMenuTree' => service('mcmsModuleServices')->get('catalogue.menu')->tree(),
             'categoryMenuStyle' => (string) (setting('catalogue.category_menu_style') ?? 'tree'),
             'secondaryMenu' => $this->secondaryMenu(),
+            'navigationResource' => $selectedCategory !== null
+                ? ['type' => 'catalogue.category', 'id' => (string) $selectedCategory['id']]
+                : ['type' => 'catalogue.archive', 'id' => 'index'],
             'selectedCategory' => $selectedCategory,
             'count' => $count,
             'page' => $page,
@@ -74,6 +77,7 @@ final class Shop extends BaseController
         $levels = ($canManageStock || $cartEnabled) && $stock !== null ? $stock->levels($variantIds) : [];
 
         return service('mcmsThemes')->render('catalogue.product', [
+            'navigationResource' => ['type' => 'catalogue.product', 'id' => (string) $product['id']],
             'product' => $product,
             'metaTitle' => $product['title'] . ' · ' . setting('Core.siteName'),
             'metaDescription' => $product['summary'],

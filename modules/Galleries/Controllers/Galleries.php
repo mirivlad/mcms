@@ -37,6 +37,7 @@ final class Galleries extends BaseController
         return service('mcmsThemes')->render(
             'galleries.index',
             [
+                'navigationResource' => ['type' => 'galleries.archive', 'id' => 'index'],
                 'albums' => $galleries->listPublished('', $perPage, ($page - 1) * $perPage),
                 'page' => $page,
                 'lastPage' => $lastPage,
@@ -61,6 +62,7 @@ final class Galleries extends BaseController
         return service('mcmsThemes')->render(
             'galleries.album',
             [
+                'navigationResource' => ['type' => 'galleries.album', 'id' => (string) $album['id']],
                 'album' => $album,
                 'siteName' => $siteName,
                 'metaTitle' => $title . ' · ' . $siteName,

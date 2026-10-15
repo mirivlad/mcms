@@ -26,6 +26,7 @@ final class Page extends BaseController
         return service('mcmsThemes')->render(
             'page',
             [
+                'navigationResource' => ['type' => 'pages.page', 'id' => (string) $page['id']],
                 'page' => $page,
                 'siteName' => $siteName,
                 'metaTitle' => $pageTitle . ' · ' . $siteName,

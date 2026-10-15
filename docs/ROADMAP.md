@@ -82,7 +82,7 @@
 - [x] Ratings: independent per-resource inherit/allow/deny policies enforced by public vote endpoints.
 - [ ] Ratings follow-up: suspicious-vote analytics, verified purchase badges and stronger guest deduplication.
 - [x] Menus 2.0 foundation: dynamic menu sources, page-type visibility conditions and two ordered secondary menus per existing theme location without altering primary assignments.
-- [ ] Menus 2.0 follow-up: per-resource visibility, admin ordering beyond two slots and richer custom theme locations.
+- [x] Menus 2.0: per-resource visibility through the navigation registry, unlimited ordered extras, keyboard/touch assignment controls and optional limits for arbitrary third-party theme positions.
 - [x] Catalogue navigation v0.2.5: full category tree (default), collapsible first-level tree and horizontal dropdown with responsive controls, plus optional shop secondary menu and Theme API integration.
 
 ## Reference policy

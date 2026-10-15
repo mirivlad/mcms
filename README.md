@@ -44,7 +44,7 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-The 2026-10-06 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
+The 2026-10-15 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
 Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue, Stock, Cart, Orders and Delivery are implemented as reusable modules and covered by
 module/integration checks.
 

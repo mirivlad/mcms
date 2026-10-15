@@ -58,6 +58,7 @@ final class Contact extends BaseController
         }
 
         return service('mcmsThemes')->render('feedback.form', [
+            'navigationResource' => ['type' => 'feedback.contact', 'id' => 'index'],
             'metaTitle' => lang('Feedback.Public.title'), 'values' => $values, 'error' => $error,
             'sent' => (bool) session()->getFlashdata('feedback_sent'),
             'captchaChallenge' => $challenge,

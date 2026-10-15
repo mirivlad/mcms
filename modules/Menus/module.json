@@ -1,7 +1,7 @@
 {
   "id": "menus",
   "name": "@Menus.Admin.menuLabel",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "namespace": "MCMS\\Modules\\Menus",
   "provider": "MCMS\\Modules\\Menus\\Module",
   "mcms": "^0.1",

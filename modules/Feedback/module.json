@@ -1,7 +1,7 @@
 {
   "id": "feedback",
   "name": "@Feedback.Admin.title",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "namespace": "MCMS\\Modules\\Feedback",
   "provider": "MCMS\\Modules\\Feedback\\Module",
   "mcms": "^0.1.1",
