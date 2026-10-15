@@ -82,7 +82,7 @@ final class ThemePackages
         return ['manifest' => $manifest, 'files' => $preview['files'], 'bytes' => $preview['bytes'], 'sha256' => $preview['sha256']];
     }
 
-    public function prepare(string $archive): array
+    public function prepare(string $archive, ?string $replacingId = null): array
     {
         $this->runtime?->assertAvailable();
         $this->directory($this->root . '/pending');
@@ -99,7 +99,7 @@ final class ThemePackages
         chmod($path, 0600);
         try {
             $preview = self::inspectArchive($path);
-            $this->checkCompatibility($preview['manifest']);
+            $this->checkCompatibility($preview['manifest'], $replacingId);
             return [...$preview, 'token' => $token];
         } catch (Throwable $e) {
             unlink($path);
@@ -107,7 +107,7 @@ final class ThemePackages
         }
     }
 
-    public function checkCompatibility(ThemeManifest $manifest): void
+    public function checkCompatibility(ThemeManifest $manifest, ?string $replacingId = null): void
     {
         if (! Semver::satisfies(Version::VERSION, $manifest->mcms)) {
             throw new RuntimeException('Theme requires mCMS ' . $manifest->mcms . '.');
@@ -118,7 +118,18 @@ final class ThemePackages
             $current = ThemeManifest::fromFile($path, true);
             $catalog[$current->id] = $current;
         }
+        if ($replacingId !== null) {
+            $installed = $catalog[$replacingId] ?? null;
+            if ($installed === null || ! $installed->external || $installed->id !== $manifest->id
+                || $installed->namespace !== $manifest->namespace
+                || ! \Composer\Semver\Comparator::greaterThan($manifest->version, $installed->version)) {
+                throw new RuntimeException('Update requires the same external theme id/namespace and a strictly newer version.');
+            }
+        }
         foreach ($catalog as $current) {
+            if ($current->id === $replacingId) {
+                continue;
+            }
             if ($current->id === $manifest->id || strcasecmp($current->namespace, $manifest->namespace) === 0) {
                 throw new RuntimeException('Theme id or namespace already exists. Package replacement is not supported.');
             }

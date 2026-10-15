@@ -63,6 +63,11 @@ final class ThemeManager
         return $this->catalog;
     }
 
+    public function refresh(): void
+    {
+        $this->catalog = [];
+    }
+
     public function find(string $id): ?ThemeManifest
     {
         $id = trim($id);

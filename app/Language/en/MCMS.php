@@ -220,6 +220,14 @@ return [
         'save' => 'Save settings',
     ],
     'themes' => [
+        'update' => 'Update theme',
+        'updated' => 'Theme code changed. Settings and active theme were preserved.',
+        'updateHint' => 'Upload a newer ZIP with the same ID and namespace. Settings and theme data are preserved. The previous version remains available for rollback.',
+        'updatePreview' => 'Review theme update',
+        'updateTrust' => 'I trust this PHP theme and confirm replacing its code.',
+        'rollback' => 'Restore previous version',
+        'rollbackTrust' => 'I confirm restoring the previous theme code, keeping current settings and data.',
+
         'installPackage' => 'Install theme ZIP',
         'archive' => 'Theme ZIP archive',
         'archiveHint' => 'ZIP up to 20 MiB with theme.json at its root. Uploading only inspects the files.',

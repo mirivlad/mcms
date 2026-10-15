@@ -141,6 +141,14 @@ class Services extends BaseService
         return new ModuleUpdates(static::mcmsModules(), static::mcmsModulePackages(), static::mcmsModuleRuntime(), WRITEPATH . 'modules-data');
     }
 
+    public static function mcmsThemeUpdates(bool $getShared = true): \MCMS\Core\Themes\ThemeUpdates
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsThemeUpdates');
+        }
+        return new \MCMS\Core\Themes\ThemeUpdates(static::mcmsThemes(), static::mcmsThemePackages(), static::mcmsModuleRuntime(), WRITEPATH . 'themes-data');
+    }
+
     public static function mcmsThemePackages(bool $getShared = true): ThemePackages
     {
         if ($getShared) {

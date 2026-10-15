@@ -26,6 +26,7 @@ final class Themes extends BaseAdminController
             'themes' => $manager->catalog(),
             'activeId' => $manager->activeId(),
             'manager' => $manager,
+            'updates' => service('mcmsThemeUpdates'),
         ]);
     }
 
@@ -119,6 +120,86 @@ final class Themes extends BaseAdminController
         }
 
         return redirect()->to($this->settingsPath('/admin/themes/package'));
+    }
+
+    public function update(string $id): string|RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+        $theme = service('mcmsThemes')->find($id);
+        if ($theme === null || ! $theme->external) {
+            throw PageNotFoundException::forPageNotFound();
+        }
+        if ($this->request->getMethod() === 'POST') {
+            try {
+                $file = $this->request->getFile('package');
+                if ($file === null || ! $file->isValid()) {
+                    throw new \RuntimeException(lang('MCMS.themes.uploadInvalid'));
+                }
+                $preview = service('mcmsThemeUpdates')->prepare($id, $file->getTempName());
+                $old = session()->get('theme_update_preview');
+                if (is_array($old) && ($old['owner'] ?? null) === auth()->id()) {
+                    service('mcmsThemePackages')->cancel($old['token']);
+                }
+                session()->set('theme_update_preview', [
+                    'owner' => auth()->id(), 'id' => $id, 'token' => $preview['token'],
+                    'sha256' => $preview['sha256'], 'source' => $preview['source'],
+                    'current' => $preview['current'], 'version' => $preview['manifest']->version,
+                    'description' => $preview['manifest']->description,
+                ]);
+                return redirect()->to($this->settingsPath('/admin/themes/' . $id . '/update'));
+            } catch (Throwable $e) {
+                return redirect()->to($this->settingsPath('/admin/themes/' . $id . '/update'))->with('error', $e->getMessage());
+            }
+        }
+        $preview = session()->get('theme_update_preview');
+        if (! is_array($preview) || ($preview['owner'] ?? null) !== auth()->id() || ($preview['id'] ?? null) !== $id) {
+            $preview = null;
+        }
+        return view('admin/themes/update', [
+            'adminMenu' => $this->adminMenu(), 'theme' => $theme, 'preview' => $preview,
+            'previous' => service('mcmsThemeUpdates')->previous($id),
+            'source' => \MCMS\Core\Modules\ModulePackages::fingerprint($theme->path),
+        ]);
+    }
+
+    public function applyUpdate(string $id): RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+        $preview = session()->get('theme_update_preview');
+        try {
+            if (! is_array($preview) || ($preview['owner'] ?? null) !== auth()->id() || ($preview['id'] ?? null) !== $id
+                || ! is_string($this->request->getPost('token'))
+                || ! hash_equals($preview['token'], $this->request->getPost('token'))
+                || $this->request->getPost('trusted') !== '1') {
+                throw new \RuntimeException(lang('MCMS.themes.confirmRequired'));
+            }
+            service('mcmsThemeUpdates')->apply($id, $preview['token'], $preview['sha256'], $preview['source']);
+            session()->remove('theme_update_preview');
+            return redirect()->to($this->settingsPath('/admin/themes'))->with('message', lang('MCMS.themes.updated'));
+        } catch (Throwable $e) {
+            return redirect()->to($this->settingsPath('/admin/themes/' . $id . '/update'))->with('error', $e->getMessage());
+        }
+    }
+
+    public function rollback(string $id): RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+        try {
+            if ($this->request->getPost('trusted') !== '1') {
+                throw new \RuntimeException(lang('MCMS.themes.confirmRequired'));
+            }
+            service('mcmsThemeUpdates')->rollback($id, (string) $this->request->getPost('source'));
+            session()->remove('theme_update_preview');
+            return redirect()->to($this->settingsPath('/admin/themes'))->with('message', lang('MCMS.themes.updated'));
+        } catch (Throwable $e) {
+            return redirect()->to($this->settingsPath('/admin/themes/' . $id . '/update'))->with('error', $e->getMessage());
+        }
     }
 
     public function configure(string $id): string|RedirectResponse

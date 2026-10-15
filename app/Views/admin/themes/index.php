@@ -92,6 +92,9 @@
                                         <i class="ti ti-check me-1"></i><?= esc(lang('MCMS.themes.active')) ?>
                                     </button>
                                 <?php endif ?>
+                                <?php if ($theme->external): ?>
+                                    <a class="btn btn-outline-secondary" href="<?= $settingsUrl('admin/themes/' . $theme->id . '/update') ?>"><i class="ti ti-refresh me-1" aria-hidden="true"></i><?= esc(lang('MCMS.themes.update')) ?></a>
+                                <?php endif ?>
                                 <a class="btn btn-outline-secondary btn-icon admin-icon-action" href="<?= $settingsUrl('admin/themes/' . $theme->id) ?>" aria-label="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" title="<?= esc(lang('MCMS.themes.configure'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-adjustments" aria-hidden="true"></i></a>
                             </div>
                         </div>

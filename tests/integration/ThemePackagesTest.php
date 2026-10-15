@@ -110,6 +110,100 @@ final class ThemePackagesTest extends CIUnitTestCase
         ThemePackages::pack($this->dir . '/source', $this->dir . '/packed.zip');
     }
 
+    private function updates(): \MCMS\Core\Themes\ThemeUpdates
+    {
+        return new \MCMS\Core\Themes\ThemeUpdates($this->manager(), $this->packages,
+            new \MCMS\Core\Modules\ModuleRuntime($this->dir . '/runtime'), $this->dir . '/packages');
+    }
+
+    public function testActiveThemeUpdateAndRollbackPreserveSettingsDataAndOldAssets(): void
+    {
+        $first = $this->packages->prepare($this->archive(['home_defaults' => ['title' => 'Original']]));
+        $this->packages->install($first['token'], $first['sha256']);
+        $manager = $this->manager();
+        $manager->activate('theme-probe');
+        service('settings')->set('Core.themeMenuAssignments', ['theme-probe' => ['header.primary' => 77]]);
+        $manager->saveHomeContent('theme-probe', ['title' => 'My home']);
+        $manager->saveAppearance('theme-probe', ['accent' => '#123456', 'phone' => '123']);
+        mkdir($this->dir . '/packages/data/theme-probe', 0755, true);
+        file_put_contents($this->dir . '/packages/data/theme-probe/user.txt', 'Keep me');
+        $updates = $this->updates();
+        $preview = $updates->prepare('theme-probe', $this->archive(['version' => '1.1.0', 'home_defaults' => ['title' => 'New default']], ['assets/style.css' => 'new bytes']));
+        $updates->apply('theme-probe', $preview['token'], $preview['sha256'], $preview['source']);
+        $manager = $this->manager();
+        self::assertSame('1.1.0', $manager->active()->version);
+        self::assertSame(['theme-probe' => ['header.primary' => 77]], service('settings')->get('Core.themeMenuAssignments'));
+        self::assertSame('My home', $manager->homeContent()['title']);
+        self::assertSame('123', $manager->appearance()['phone']);
+        self::assertSame('Keep me', file_get_contents($this->dir . '/packages/data/theme-probe/user.txt'));
+        self::assertSame('body { color: #123456; }', file_get_contents($updates->assetTheme('theme-probe', '1.0.0')->path . '/assets/style.css'));
+        $source = \MCMS\Core\Modules\ModulePackages::fingerprint($manager->active()->path);
+        $updates->rollback('theme-probe', $source);
+        self::assertSame('1.0.0', $this->manager()->active()->version);
+        self::assertSame('new bytes', file_get_contents($updates->assetTheme('theme-probe', '1.1.0')->path . '/assets/style.css'));
+        self::assertSame('My home', $this->manager()->homeContent()['title']);
+    }
+
+    public function testUpdateRejectsIdentityOlderVersionChangedArchiveAndStaleSource(): void
+    {
+        $first = $this->packages->prepare($this->archive());
+        $this->packages->install($first['token'], $first['sha256']);
+        $updates = $this->updates();
+        foreach ([['version' => '1.0.0'], ['id' => 'different', 'version' => '2.0.0'],
+            ['namespace' => 'MCMS\\Themes\\Different', 'version' => '2.0.0'], ['mcms' => '^999', 'version' => '2.0.0']] as $changes) {
+            try {
+                $updates->prepare('theme-probe', $this->archive($changes));
+                self::fail('Invalid update accepted');
+            } catch (RuntimeException) {
+            }
+        }
+        $preview = $updates->prepare('theme-probe', $this->archive(['version' => '2.0.0']));
+        file_put_contents($this->dir . '/packages/installed/theme-probe/assets/style.css', 'concurrent edit');
+        try {
+            $updates->apply('theme-probe', $preview['token'], $preview['sha256'], $preview['source']);
+            self::fail('Stale source accepted');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('changed', $e->getMessage());
+        }
+        self::assertSame('1.0.0', $this->manager()->find('theme-probe')->version);
+    }
+
+    public function testInterruptedSwapIsRecoveredBeforeDiscoveryAndRecoveryIsIdempotent(): void
+    {
+        $first = $this->packages->prepare($this->archive());
+        $theme = $this->packages->install($first['token'], $first['sha256']);
+        $root = $this->dir . '/packages';
+        mkdir($root . '/history/theme-probe', 0755, true);
+        mkdir($root . '/transactions');
+        $previous = $root . '/history/theme-probe/interrupted';
+        rename($theme->path, $previous);
+        file_put_contents($root . '/transactions/theme-probe.json', json_encode([
+            'id' => 'theme-probe', 'installed' => $theme->path, 'previous' => $previous,
+            'stage' => $root . '/pending/stage', 'receipt' => null,
+        ]));
+        $this->updates()->recover();
+        $this->updates()->recover();
+        self::assertSame('1.0.0', $this->manager()->find('theme-probe')->version);
+        self::assertSame([], glob($root . '/transactions/*.json'));
+    }
+
+    public function testSyntaxFailureDoesNotReplaceThemeOrActiveSelection(): void
+    {
+        $first = $this->packages->prepare($this->archive());
+        $this->packages->install($first['token'], $first['sha256']);
+        $this->manager()->activate('theme-probe');
+        $updates = $this->updates();
+        $preview = $updates->prepare('theme-probe', $this->archive(['version' => '2.0.0'], ['Views/home.php' => '<?php syntax error !']));
+        try {
+            $updates->apply('theme-probe', $preview['token'], $preview['sha256'], $preview['source']);
+            self::fail('Broken PHP accepted');
+        } catch (RuntimeException $e) {
+            self::assertStringContainsString('Invalid PHP template', $e->getMessage());
+        }
+        self::assertSame('1.0.0', $this->manager()->active()->version);
+        self::assertNull($updates->previous('theme-probe'));
+    }
+
     public static function invalidPackages(): array
     {
         return [

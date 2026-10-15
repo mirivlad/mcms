@@ -14,7 +14,7 @@ final class ThemeAssets extends BaseController
     public function show(string $id, string $version, string ...$segments): ResponseInterface
     {
         $path = implode('/', $segments);
-        $theme = service('mcmsThemes')->find($id);
+        $theme = service('mcmsThemeUpdates')->assetTheme($id, $version);
         $mime = ThemePackages::ASSET_TYPES[pathinfo($path, PATHINFO_EXTENSION)] ?? null;
         try {
             ZipPackage::validatePath($path);

@@ -127,8 +127,8 @@ Preview archives are private in `writable/themes-data/pending`, expire after one
 and are bound to the uploading session/user. Installation checks SHA-256 again
 and rechecks Core compatibility and ID/namespace collisions under a lock.
 Files are staged and atomically published to `writable/themes-data/installed/<id>`.
-An existing theme cannot be overwritten; package updates/removal are outside this
-workflow. Activation checks Core compatibility independently.
+An existing theme cannot be overwritten by installation. Use its separate Update
+action to review a strictly newer version. Activation checks Core compatibility independently.
 
 Compose and Portainer persist the private directory in `themes_data`,
 mounted only in the application. Include it in backups alongside the database
@@ -162,3 +162,31 @@ php spark mcms:theme:pack examples/themes/mcms-atelier /tmp/mcms-atelier-1.1.2.z
 The installer requires a separate trust-confirmation and activation step.
 
 Per-theme persistent files, when needed, must use `service('mcmsThemeStorage', '<theme-id>')` within `themes_data/data/<theme-id>`; themes never require another Docker mount.
+
+## Updating and rolling back external themes
+
+Themes → Update accepts the same safe ZIP contract as installation. The installed
+external ID and namespace must match exactly, Core compatibility must hold and the
+version must be strictly newer. The review shows both versions, the package's
+plain-text description and SHA-256. Applying requires explicit trust confirmation
+and `core.themes`; the preview belongs to the current user/session and expires in
+one hour. PHP is never executed during inspection; apply lints templates with the
+CLI before publishing them. First-party image themes cannot be replaced here.
+
+The shared runtime writer lock drains all current web requests before replacing
+code, including an active theme. A journal is saved before renaming directories;
+after a process interruption the next web request restores the old directory
+before discovering/rendering themes. No DB migrations, active-theme changes or
+settings writes are involved. `themes_data/data/<id>` is never touched. Home,
+appearance, menu assignments and user files therefore survive update and rollback.
+Concurrent changes to installed code or staged ZIP bytes invalidate the review.
+
+The Update screen offers a separately confirmed rollback to the previous code
+snapshot. Rollback preserves **current** settings/data, and can itself be undone.
+Snapshots live privately in `themes_data/history`; retain them with the volume
+backup. Their static assets remain available at the original immutable versioned
+URLs for old pages. Reusing a retained version with different bytes is rejected;
+ship a new version instead. Arbitrary trusted PHP behavior cannot be certified by
+ZIP/syntax checks: keep a known working theme and use rollback if its behavior is
+unsuitable. Recovery covers interrupted filesystem swaps, not a lost storage
+volume or arbitrary external side effects of trusted theme PHP.

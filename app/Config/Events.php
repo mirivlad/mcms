@@ -40,6 +40,7 @@ Events::on('pre_system', static function (): void {
         }
         if ($runtime->maintenance() === null) {
             $runtime->readLock();
+            service('mcmsThemeUpdates')->recover();
         }
         // PHP closes the lock resource after shutdown callbacks. Releasing in
         // an early shutdown callback would let migrations overlap later writes.
