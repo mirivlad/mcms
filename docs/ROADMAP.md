@@ -74,7 +74,7 @@
 ## Stage 4 — public interaction and flexible navigation (approved 2026-10-12)
 
 - [x] Captcha foundation: first-party PNG counting challenge, session/form-bound single-use tokens, server verification, expiry, throttles and Feedback guest integration.
-- [ ] Captcha follow-up: accessible nonvisual verification, configurable policies/difficulty and abuse metrics before forcing it on all forms.
+- [x] Captcha: readable nonvisual tasks, keyboard/screen-reader labels, per-form guest/all/off policies, difficulty/expiry, atomic IP/session limits and aggregate abuse metrics.
 - [x] Comments v0.1: guests with Captcha, registered users, reply depth, central moderation queue, reports, and module-type enablement for Pages/News/Catalogue.
 - [x] Comments: independent per-resource policies, threaded reply UI and optional transactional Notifications with live eligibility checks.
 - [ ] Comments follow-up: further moderation refinements.

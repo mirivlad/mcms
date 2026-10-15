@@ -33,13 +33,14 @@ final class PublicRatings extends BaseController
             if (! (bool) setting('ratings.allow_guests')) {
                 return redirect()->to($returnTo)->with('ratings_error', lang('Ratings.Public.login'));
             }
-            if (! service('mcmsModuleServices')->get('captcha.verifier')->verify(
+        }
+        $captcha = service('mcmsModuleServices')->get('captcha.verifier');
+        if ((method_exists($captcha, 'required') ? $captcha->required('ratings.vote', $userId !== null) : $userId === null) && ! $captcha->verify(
                 'ratings.vote', session_id(),
                 (string) $this->request->getPost('captcha_token'),
                 (string) $this->request->getPost('captcha_answer'),
-            )) {
-                return redirect()->to($returnTo)->with('ratings_error', lang('Captcha.Public.invalid'));
-            }
+        )) {
+            return redirect()->to($returnTo)->with('ratings_error', lang('Captcha.Public.invalid'));
         }
         $rating = (string) $this->request->getPost('stars');
         try {

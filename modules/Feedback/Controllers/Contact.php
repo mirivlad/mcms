@@ -17,9 +17,11 @@ final class Contact extends BaseController
         $error = null;
         $values = [];
         $services = service('mcmsModuleServices');
-        $captcha = ! auth()->loggedIn() && $services->has('captcha.verifier')
-            ? $services->get('captcha.verifier') : null;
         $purpose = 'feedback.contact';
+        $captcha = $services->has('captcha.verifier') ? $services->get('captcha.verifier') : null;
+        if ($captcha !== null && (method_exists($captcha, 'required') ? ! $captcha->required($purpose, auth()->loggedIn()) : auth()->loggedIn())) {
+            $captcha = null;
+        }
         session();
         $sessionId = session_id();
         if ($this->request->getMethod() === 'POST') {

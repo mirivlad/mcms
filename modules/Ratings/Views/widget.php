@@ -11,7 +11,9 @@ $ratingGuestAllowed = (bool) setting('ratings.allow_guests');
 $myRating = $ratingRepository->userRating((string) $targetType, (string) $targetId, $ratingUser, session_id());
 $ratingChallenge = null;
 $ratingCaptchaUnavailable = false;
-if ($ratingUser === null && $ratingGuestAllowed) {
+$ratingCaptcha = service('mcmsModuleServices')->get('captcha.verifier');
+$ratingCaptchaRequired = ($ratingUser !== null || $ratingGuestAllowed) && (method_exists($ratingCaptcha, 'required') ? $ratingCaptcha->required('ratings.vote', $ratingUser !== null) : $ratingUser === null);
+if ($ratingCaptchaRequired) {
     try {
         $ratingChallenge = service('mcmsModuleServices')->get('captcha.verifier')->issue('ratings.vote', session_id());
     } catch (RuntimeException) {
@@ -59,7 +61,7 @@ if ($ratingUser === null && $ratingGuestAllowed) {
                 <?php for ($score = 1; $score <= 5; $score++): ?>
                     <button type="submit" class="btn btn-sm btn-outline-secondary"
                         name="stars" value="<?= $score ?>"
-                        <?= $ratingUser === null && $ratingChallenge === null ? 'disabled' : '' ?>
+                        <?= $ratingCaptchaRequired && $ratingChallenge === null ? 'disabled' : '' ?>
                         aria-label="<?= $score ?> / 5" title="<?= $score ?> / 5"
                         style="font-size:1.35rem;color:<?= $myRating !== null && $score <= $myRating ? '#c58b1a' : 'inherit' ?>">
                         ★

@@ -35,13 +35,14 @@ final class PublicComments extends BaseController
             if (! (bool) setting('comments.allow_guests')) {
                 return redirect()->to($url)->with('comments_error', lang('Comments.Public.login'));
             }
-            if (! service('mcmsModuleServices')->get('captcha.verifier')->verify(
+        }
+        $captcha = service('mcmsModuleServices')->get('captcha.verifier');
+        if ((method_exists($captcha, 'required') ? $captcha->required('comments.create', $userId !== null) : $userId === null) && ! $captcha->verify(
                 'comments.create', session_id(),
                 (string) $this->request->getPost('captcha_token'),
                 (string) $this->request->getPost('captcha_answer'),
-            )) {
-                return redirect()->to($url)->withInput()->with('comments_error', lang('Captcha.Public.invalid'));
-            }
+        )) {
+            return redirect()->to($url)->withInput()->with('comments_error', lang('Captcha.Public.invalid'));
         }
         $parent = $this->request->getPost('parent_id');
         $parentId = is_scalar($parent) && ctype_digit((string) $parent) && (int) $parent > 0

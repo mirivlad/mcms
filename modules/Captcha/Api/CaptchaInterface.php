@@ -8,7 +8,7 @@ interface CaptchaInterface
 {
     /**
      * Issue a single-use challenge tied to a specific form purpose and session.
-     * @return array{token:string,question:string,image_url:string,expires_in:int}
+     * @return array{token:string,question:string,image_url:string,expires_in:int,text_question?:string}
      */
     public function issue(string $purpose, string $sessionId): array;
 

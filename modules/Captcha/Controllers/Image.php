@@ -16,6 +16,8 @@ final class Image extends BaseController
             ->setHeader('X-Content-Type-Options', 'nosniff')
             ->setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
         if (! service('throttler')->check('captcha-image-' . hash('sha256', $this->request->getIPAddress()), 60, 60)) {
+            $service = service('mcmsModuleServices')->get('captcha.verifier');
+            $service->recordImageLimit();
             return $this->response->setStatusCode(429);
         }
         $service = service('mcmsModuleServices')->get('captcha.verifier');

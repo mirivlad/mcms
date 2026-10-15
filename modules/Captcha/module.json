@@ -1,13 +1,19 @@
 {
   "id": "captcha",
   "name": "@Captcha.Admin.name",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "namespace": "MCMS\\Modules\\Captcha",
   "provider": "MCMS\\Modules\\Captcha\\Module",
-  "mcms": "^0.1.1",
+  "mcms": "^0.1.7",
   "description": "@Captcha.Admin.description",
   "requires": [],
   "settings": {},
-  "permissions": {},
-  "grants": {}
+  "permissions": {
+    "captcha.manage": "@Captcha.Settings.permission"
+  },
+  "grants": {
+    "admin": [
+      "captcha.manage"
+    ]
+  }
 }

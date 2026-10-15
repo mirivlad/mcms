@@ -23,7 +23,7 @@
         <label class="form-label" for="register-password-confirm"><?= esc(lang('MCMS.account.confirmPassword')) ?></label>
         <input class="form-control" type="password" name="password_confirm" id="register-password-confirm" autocomplete="new-password" required>
     </div>
-    <?= view('MCMS\Modules\Captcha\Views\widget', ['challenge' => $challenge]) ?>
+    <?php if ($challenge !== null): ?><?= view('MCMS\Modules\Captcha\Views\widget', ['challenge' => $challenge]) ?><?php endif ?>
     <button class="btn btn-primary" type="submit"><?= esc(lang('MCMS.account.register')) ?></button>
 </form>
 <?php endif ?>

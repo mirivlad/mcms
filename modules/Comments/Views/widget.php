@@ -10,7 +10,9 @@ $commentUser = auth()->loggedIn();
 $guestAllowed = (bool) setting('comments.allow_guests');
 $commentChallenge = null;
 $commentChallengeError = false;
-if (! $commentUser && $guestAllowed) {
+$commentCaptcha = $commentServices->get('captcha.verifier');
+$commentCaptchaRequired = ($commentUser || $guestAllowed) && (method_exists($commentCaptcha, 'required') ? $commentCaptcha->required('comments.create', $commentUser) : ! $commentUser);
+if ($commentCaptchaRequired) {
     session();
     try {
         $commentChallenge = $commentServices->get('captcha.verifier')->issue('comments.create', session_id());
@@ -88,7 +90,7 @@ if (! $commentUser && $guestAllowed) {
                 <?php if ($commentChallenge !== null): ?>
                     <?= view('MCMS\\Modules\\Captcha\\Views\\widget', ['challenge' => $commentChallenge]) ?>
                 <?php endif ?>
-                <button class="btn btn-primary" type="submit" <?= ! $commentUser && $commentChallenge === null ? 'disabled' : '' ?>><?= esc(lang('Comments.Public.submit')) ?></button>
+                <button class="btn btn-primary" type="submit" <?= $commentCaptchaRequired && $commentChallenge === null ? 'disabled' : '' ?>><?= esc(lang('Comments.Public.submit')) ?></button>
             </form>
         </div>
     </div>

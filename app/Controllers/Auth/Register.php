@@ -29,6 +29,9 @@ final class Register extends RegisterController
             return $this->renderRegistration(['challenge' => null, 'captchaUnavailable' => true]);
         }
 
+        if (method_exists($captcha, 'required') && ! $captcha->required('auth.register', false)) {
+            return $this->renderRegistration(['challenge' => null, 'captchaUnavailable' => false]);
+        }
         session();
         try {
             $challenge = $captcha->issue('auth.register', session_id());
@@ -55,11 +58,11 @@ final class Register extends RegisterController
 
         session();
         $captcha = $this->captcha();
-        if ($captcha === null || ! $captcha->verify(
+        if ($captcha === null || ((! method_exists($captcha, 'required') || $captcha->required('auth.register', false)) && ! $captcha->verify(
             'auth.register', session_id(),
             (string) $this->request->getPost('captcha_token'),
             (string) $this->request->getPost('captcha_answer'),
-        )) {
+        ))) {
             return redirect()->to('/register')->withInput()
                 ->with('error', lang('MCMS.account.captchaInvalid'));
         }
