@@ -137,8 +137,13 @@ final class Notifications
     public function sendPending(?int $orderId = null, int $limit = 20): array
     {
         $result = ['sent' => 0, 'failed' => 0];
+        $limit = max(1, min(100, $limit));
         if ($this->db->transDepth === 0 && $orderId === null && $this->commentPreferences()['enabled']) {
             $result = $this->messageOutbox()->sendPending($limit);
+            $limit -= $result['sent'] + $result['failed'];
+            if ($limit === 0) {
+                return $result;
+            }
         }
         if ($this->db->transDepth !== 0 || ! $this->preferences()['enabled']) {
             return $result;

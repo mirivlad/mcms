@@ -105,6 +105,32 @@ final class NotificationsModuleTest extends CIUnitTestCase
         self::assertSame('cancelled', $this->db->table('notifications_messages')->where('event', 'comments.published')->get()->getRowArray()['status']);
     }
 
+    public function testWorkerLimitIsSharedByOrderAndCommentQueues(): void
+    {
+        $this->configure();
+        $this->deliver = false;
+        $this->checkout();
+        $this->deliver = true;
+        $this->sent = [];
+        $registry = new ModuleServiceRegistry();
+        $registry->register('test.budget-source', new class implements \MCMS\Core\Events\NotificationEventSourceInterface {
+            public function supportsNotification(string $event): bool { return true; }
+            public function notificationCurrent(string $key): bool { return true; }
+        });
+        \Config\Services::injectMock('mcmsModuleServices', $registry);
+        try {
+            $this->mail->saveCommentPreferences(['enabled' => '1', 'recipient' => 'moderator@example.test', 'events' => ['pending']]);
+            $this->mail->recordComment(['key' => 'comment:2:pending', 'id' => 2, 'event' => 'pending', 'author' => 'Guest', 'body' => 'Waiting', 'url' => '/admin/comments']);
+            self::assertSame(['sent' => 1, 'failed' => 0], $this->mail->sendPending(null, 1));
+            self::assertSame(1, $this->mail->pendingCount());
+            self::assertCount(1, $this->sent);
+            self::assertSame(['sent' => 1, 'failed' => 0], $this->mail->sendPending(null, 1));
+            self::assertSame(0, $this->mail->pendingCount());
+        } finally {
+            \Config\Services::resetSingle('mcmsModuleServices');
+        }
+    }
+
     private function configure(array $changes = []): void
     {
         $this->mail->save(array_replace([

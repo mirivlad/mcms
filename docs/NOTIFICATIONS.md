@@ -1,13 +1,13 @@
-# Order notifications
+# Notifications
 
-Notifications 0.1.0 is an optional module depending on Orders >=0.3.2 <0.4 and Core
-^0.1.6. It has no public routes. `notifications.manage` controls all settings,
+Notifications 0.2.0 is an optional module depending on Orders >=0.3.2 <0.4 and Core
+^0.1.7. It has no public routes. `notifications.manage` controls all settings,
 test-email and retry actions; every write uses the site's session/CSRF protection.
 
 ## Configure
 
-Enable Notifications in Modules. Commerce → Order notifications and Settings →
-Order notifications are two entry points to the same settings and queue.
+Enable Notifications in Modules. Commerce → Notifications and Settings →
+Notifications are two entry points to the same settings and queue.
 
 - Notifications are off by default; save one manager email address before enabling.
 - Select order creation (`new`) and/or processing, ready, completed, cancelled.
@@ -48,8 +48,8 @@ For callers wrapping Orders in an outer transaction, automatic sending is skippe
 after committing they must drain the queue through the worker.
 
 Recent delivery states are visible in administration. **Retry waiting emails**
-processes up to 20 waiting rows. Operators can run `php spark notifications:send`
-to process up to 100 rows, and invoke it periodically with their existing scheduler.
+attempts up to 20 waiting deliveries. Operators can run `php spark notifications:send`
+to attempt up to 100 deliveries across both queues, and invoke it periodically with their existing scheduler.
 No background scheduler is installed by the module. Turning notifications off
 pauses both new queue entries and retries. Disabling the module removes its routes
 and listeners; re-enabling preserves preferences and queue records.
@@ -65,3 +65,22 @@ The HTTP/SMTP smoke uses a loopback-only receiver in a disposable container. It
 checks a rejected SMTP DATA command, successful order creation/reservation,
 retry, real received headers/body, selected/unselected events, no-op transitions,
 CLI, permissions and disable/re-enable persistence. It never relays external mail.
+
+
+## Comments adapter
+
+Comments is optional: Notifications accepts `mcms.comments.recorded` snapshots
+inside the comment transaction, then attempts delivery after
+`mcms.comments.committed`. A separate recipient, enabled switch and pending/
+published event selection live on the same settings screen. Order settings and
+comment settings pause only their own queue. Pending alerts are explicitly marked
+as awaiting moderation and link to administration; published alerts link to the
+public comment. Authors/customers never become recipients automatically.
+
+`notifications_messages` deduplicates comment/event keys and retains delivery
+snapshots with the same transport, atomic claims, leases and retry semantics.
+Before a delayed send, a registered `NotificationEventSourceInterface` checks live
+eligibility. Rejection, deletion, unpublication or per-resource denial cancels a
+stale alert; an absent/disabled source leaves it waiting. The worker limit is shared
+across order and comment attempts, including failures. Delivery remains at least
+once; a crash after SMTP acceptance can result in a repeated message.

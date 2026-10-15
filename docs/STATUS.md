@@ -553,12 +553,16 @@ form/navigation checks including a 390px viewport without horizontal overflow.
 - Menus 2.0 assignments have no fixed extra-slot count, support per-resource
   conditions, public provider search and keyboard/touch sorting. Arbitrary external
   theme positions may declare their own limit. Legacy assignments are retained.
-- 290 PHPUnit tests / 2066 assertions passed locally. Reusable HTTP scenarios:
+- 291 PHPUnit tests / 2074 assertions passed locally. Reusable HTTP scenarios:
   `theme-updates-smoke.py`, `resource-options-smoke.py`,
-  `captcha-policies-smoke.py` and `theme-resource-menus-smoke.py`.
+  `captcha-policies-smoke.py`, `theme-resource-menus-smoke.py` and
+  `comment-notifications-smoke.py`. Existing order HTTP/SMTP smoke also passed;
+  loopback receivers never relay externally. The worker shares its send budget
+  across both queues.
 - Actual browser checks covered Default, Depth, Focus, Signature and Atelier at
   390/768/1440px, public interactions, CAPTCHA keyboard/accessibility-tree behavior
-  and menu assignment/search/reordering. No document overflow or repeated H1 was
+  and menu assignment/search/reordering. Page, news and category views all
+  passed the five-theme/three-viewport checks. No document overflow or repeated H1 was
   observed in the checked material views. Human screen-reader testing was not run.
 - Interrupted rollback was also injected into the live disposable filesystem;
   the next web request restored the site and retained a usable rollback snapshot.

@@ -11,7 +11,7 @@ final class SendNotifications extends BaseCommand
 {
     protected $group = 'mCMS';
     protected $name = 'notifications:send';
-    protected $description = 'Send up to 100 pending order notifications.';
+    protected $description = 'Send up to 100 pending order/comment notifications.';
 
     public function run(array $params)
     {

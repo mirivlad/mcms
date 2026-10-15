@@ -1,8 +1,7 @@
-# Notifications 0.1.0
+# Notifications 0.2.0
 
 Optional manager emails for order creation and selected status changes. Requires
-Orders 0.3.2 and Core 0.1.6. Enable it in Modules, then configure **Order
-notifications** from Commerce or its section in the Settings centre. Both entry
+Orders 0.3.2 and Core ^0.1.7. Enable it in Modules, then configure **Notifications** from Commerce or its section in the Settings centre. Both entry
 points share the same handlers and saved values.
 
 Delivery is off by default. Save one manager email address, select events and edit
