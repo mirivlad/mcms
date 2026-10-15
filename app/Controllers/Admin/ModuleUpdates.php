@@ -85,6 +85,19 @@ final class ModuleUpdates extends BaseAdminController
         }
     }
 
+    public function cancelPreview(string $id): RedirectResponse
+    {
+        if ($denied = $this->guard('core.modules')) {
+            return $denied;
+        }
+        $preview = session()->get('module_update_preview');
+        if (is_array($preview) && ($preview['owner'] ?? null) === auth()->id() && ($preview['id'] ?? null) === $id) {
+            service('mcmsModulePackages')->cancel($preview['token']);
+            session()->remove('module_update_preview');
+        }
+        return redirect()->to('/admin/modules/' . rawurlencode($id) . '/update');
+    }
+
     public function cancel(string $id): RedirectResponse
     {
         if ($denied = $this->guard('core.modules')) {

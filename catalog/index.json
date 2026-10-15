@@ -1,0 +1,70 @@
+{
+    "schema": 1,
+    "extensions": [
+        {
+            "id": "lifecycle-demo",
+            "type": "module",
+            "name": "Lifecycle demo",
+            "description": "Демонстрационный модуль с настоящими миграциями, заметкой в БД, настройками и собственными файлами.",
+            "author": "mCMS community",
+            "license": "MIT",
+            "version": "1.0.0",
+            "project": "https://github.com/mirivlad/mcms/tree/main/examples/modules/lifecycle-demo",
+            "tags": [
+                "demo",
+                "development"
+            ],
+            "screenshots": [
+                "https://raw.githubusercontent.com/mirivlad/mcms/main/catalog/modules/lifecycle-demo/screenshots/preview.png"
+            ],
+            "versions": [
+                {
+                    "version": "1.0.0",
+                    "mcms": "^0.1",
+                    "requires": [],
+                    "download": "https://raw.githubusercontent.com/mirivlad/mcms/main/catalog/modules/lifecycle-demo/lifecycle-demo-1.0.0.zip",
+                    "bytes": 2672,
+                    "sha256": "2bb44f3f2f46b8625563a8afd0bf49c8c0d279ca01780019e7f217ea1c93d76e",
+                    "changelog": "Пакет для проверки полного жизненного цикла расширения."
+                }
+            ]
+        },
+        {
+            "id": "mcms-atelier",
+            "type": "theme",
+            "name": "mCMS Atelier",
+            "description": "Редакционная тема с тёплой бумажной палитрой, журнальной сеткой и поддержкой всех публичных разделов mCMS.",
+            "author": "mCMS community",
+            "license": "MIT",
+            "version": "1.1.2",
+            "project": "https://github.com/mirivlad/mcms/tree/main/examples/themes/mcms-atelier",
+            "tags": [
+                "editorial",
+                "responsive"
+            ],
+            "screenshots": [
+                "https://raw.githubusercontent.com/mirivlad/mcms/main/catalog/themes/mcms-atelier/screenshots/preview.svg"
+            ],
+            "versions": [
+                {
+                    "version": "1.1.1",
+                    "mcms": "^0.1",
+                    "requires": [],
+                    "download": "https://raw.githubusercontent.com/mirivlad/mcms/main/catalog/themes/mcms-atelier/mcms-atelier-1.1.1.zip",
+                    "bytes": 26510,
+                    "sha256": "d9a313457a59264ed6d91de48c643873bdde79173daa938044f92315b3a1dd97",
+                    "changelog": "Предыдущая версия Atelier для проверки обновления и отката."
+                },
+                {
+                    "version": "1.1.2",
+                    "mcms": "^0.1",
+                    "requires": [],
+                    "download": "https://raw.githubusercontent.com/mirivlad/mcms/main/catalog/themes/mcms-atelier/mcms-atelier-1.1.2.zip",
+                    "bytes": 26585,
+                    "sha256": "41bcb253b3868f2295e5fc29d27856b6feaa08539cfa80fae4ef5ece99dbc8de",
+                    "changelog": "Общие компоненты контента, комментарии и рейтинги; адаптивное оформление."
+                }
+            ]
+        }
+    ]
+}

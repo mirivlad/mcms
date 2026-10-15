@@ -18,6 +18,12 @@ final class McmsUpdate extends BaseCommand
     {
         $runtime = service('mcmsModuleRuntime');
         $runtime->exclusive(function () use ($runtime): void {
+            try {
+                service('mcmsExtensionRemoval')->recover();
+            } catch (\Throwable $e) {
+                CLI::error('Extension removal recovery pending: ' . $e->getMessage());
+                return;
+            }
             if ($runtime->maintenance() !== null) {
                 CLI::write('Module recovery pending; startup migrations skipped.', 'yellow');
                 return;

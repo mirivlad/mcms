@@ -231,6 +231,12 @@ final class ModulePackages
         } elseif (isset($catalog[$manifest->id])) {
             throw new RuntimeException('Module id already exists; package updates are not supported here.');
         }
+        foreach (glob($this->root . '/retained/*.json') ?: [] as $path) {
+            $retained = \MCMS\Core\Packages\PackageState::read($path);
+            if (basename($path, '.json') !== $manifest->id && strcasecmp($retained['namespace'], $manifest->namespace) === 0) {
+                throw new RuntimeException('Module namespace belongs to a package with retained data.');
+            }
+        }
         foreach ($catalog as $current) {
             if (strcasecmp($current->namespace, $manifest->namespace) === 0) {
                 throw new RuntimeException('Module namespace already exists.');

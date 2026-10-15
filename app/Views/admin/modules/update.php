@@ -67,6 +67,7 @@
             <label class="form-check mb-3"><input class="form-check-input" type="checkbox" name="trusted" value="1" required><span class="form-check-label"><?= esc(lang('MCMS.modules.trustPackage')) ?></span></label>
             <button class="btn btn-primary" type="submit"><?= esc(lang('MCMS.modules.prepareUpdate')) ?></button>
         </form>
+    <form class="mt-2" method="post" action="<?= site_url('admin/modules/' . rawurlencode($id) . '/update/cancel-preview') ?>"><?= csrf_field() ?><button class="btn btn-outline-secondary"><?= esc(lang('MCMS.common.cancel')) ?></button></form>
     </div>
 </div>
 <?php endif ?>

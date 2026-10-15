@@ -45,6 +45,7 @@ final class ExtensionRemovalTest extends CIUnitTestCase
     protected function tearDown(): void
     {
         $this->db->table(config('Migrations')->table)->where('namespace', 'MCMS\\Modules\\LifecycleDemo')->delete();
+        \Config\Database::forge($this->db)->dropTable('other_module_reference', true);
         \Config\Database::forge($this->db)->dropTable('lifecycle_demo_notes', true);
         $this->runtime->release();
         PackageState::remove($this->dir);
@@ -160,7 +161,111 @@ final class ExtensionRemovalTest extends CIUnitTestCase
                 self::assertStringContainsString('dependent', $e->getMessage());
             }
         }
+        $this->db->table('mcms_modules')->insert(['module_id' => 'dependent', 'version' => '1.0.0', 'enabled' => 0,
+            'installed_at' => date('Y-m-d H:i:s'), 'updated_at' => date('Y-m-d H:i:s')]);
+        foreach ([false, true] as $purge) {
+            try {
+                $this->removal->remove('module', 'lifecycle-demo', $purge, $preview['fingerprint'], true);
+                self::fail('Disabled dependent ignored');
+            } catch (RuntimeException $e) {
+                self::assertStringContainsString('dependent', $e->getMessage());
+            }
+        }
         self::assertDirectoryExists($this->dir . '/modules/installed/LifecycleDemo');
+    }
+
+    public function testForeignDataAndMissingCleanupContractBlockPurgeButKeepStillWorks(): void
+    {
+        $this->install();
+        $this->modules->enable('lifecycle-demo');
+        $forge = \Config\Database::forge($this->db);
+        $forge->addField(['id' => ['type' => 'INTEGER'], 'note_id' => ['type' => 'INTEGER']]);
+        $forge->addKey('id', true);
+        $forge->addForeignKey('note_id', 'lifecycle_demo_notes', 'id', 'CASCADE', 'CASCADE');
+        $forge->createTable('other_module_reference');
+        $this->db->table('other_module_reference')->insert(['id' => 1, 'note_id' => 1]);
+        $preview = $this->removal->preview('module', 'lifecycle-demo');
+        self::assertStringContainsString('references', $preview['purgeError']);
+        $this->remove();
+        self::assertSame(1, $this->db->table('other_module_reference')->countAllResults());
+        $this->install();
+        $path = $this->dir . '/modules/installed/LifecycleDemo/module.json';
+        $manifest = json_decode(file_get_contents($path), true);
+        unset($manifest['cleanup']);
+        file_put_contents($path, json_encode($manifest));
+        $preview = $this->removal->preview('module', 'lifecycle-demo');
+        self::assertStringContainsString('no complete cleanup contract', $preview['purgeError']);
+        $this->remove();
+    }
+
+    public function testInterruptedPurgeIsIdempotentAndDoesNotDeleteAnotherModulesHistory(): void
+    {
+        $this->install();
+        $this->modules->enable('lifecycle-demo');
+        $otherHistory = $this->dir . '/modules/history/lifecycle-demo-other-' . str_repeat('a', 24);
+        mkdir($otherHistory, 0700, true);
+        file_put_contents($otherHistory . '/marker', 'other module');
+        $preview = $this->removal->preview('module', 'lifecycle-demo');
+        $state = ['id' => 'lifecycle-demo', 'type' => 'module', 'operation' => 'interrupted-purge', 'purge' => true,
+            'folder' => 'LifecycleDemo', 'retained' => ['version' => '1.0.0', 'namespace' => 'MCMS\\Modules\\LifecycleDemo'], 'resources' => $preview['resources']];
+        PackageState::write($this->dir . '/modules/removals/lifecycle-demo.json', $state);
+        rename($this->dir . '/modules/installed/LifecycleDemo', $this->dir . '/modules/removed-interrupted-purge');
+        \Config\Database::forge($this->db)->dropTable('lifecycle_demo_notes');
+        $this->removal->recover();
+        self::assertNull($this->runtime->maintenance());
+        self::assertFileExists($otherHistory . '/marker');
+        self::assertArrayNotHasKey('lifecycle-demo', $this->modules->states());
+        $this->install();
+        $this->modules->enable('lifecycle-demo');
+        self::assertSame(1, $this->db->table('lifecycle_demo_notes')->countAllResults());
+    }
+
+    public function testSharedSchemaChangesAndInterruptedMigrationsDisableCompleteCleanup(): void
+    {
+        $this->install();
+        $this->modules->enable('lifecycle-demo');
+        $manifest = $this->modules->catalog()['lifecycle-demo'];
+        \MCMS\Core\Modules\ModuleResources::migrate($this->db, $manifest, $this->dir . '/modules/installed', function (): bool {
+            \Config\Database::forge($this->db)->addColumn('mcms_modules', ['shared_probe' => ['type' => 'INTEGER', 'default' => 0]]);
+            return true;
+        });
+        self::assertStringContainsString('shared tables', $this->removal->preview('module', 'lifecycle-demo')['purgeError']);
+        try {
+            \MCMS\Core\Modules\ModuleResources::migrate($this->db, $manifest, $this->dir . '/modules/installed', function (): never {
+                throw new RuntimeException('Interrupted migration');
+            });
+        } catch (RuntimeException) {
+        }
+        self::assertStringContainsString('interrupted migration', $this->removal->preview('module', 'lifecycle-demo')['purgeError']);
+        $this->remove();
+    }
+
+    public function testRetainedNamespaceCannotBeClaimedByDifferentModule(): void
+    {
+        $this->install();
+        $this->remove();
+        $archive = $this->archive();
+        $zip = new ZipArchive();
+        $zip->open($archive);
+        $manifest = json_decode($zip->getFromName('module.json'), true);
+        $manifest['id'] = 'different-module';
+        $zip->addFromString('module.json', json_encode($manifest));
+        $zip->close();
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('retained data');
+        $this->packages->prepare($archive);
+    }
+
+    public function testPendingThemeUpdateBlocksRemovalUntilCancelled(): void
+    {
+        $packages = new ThemePackages($this->themes, $this->dir . '/themes', $this->runtime);
+        $preview = $packages->prepare(ROOTPATH . 'examples/packages/mcms-atelier-1.1.1.zip');
+        $packages->install($preview['token'], $preview['sha256']);
+        $updates = new \MCMS\Core\Themes\ThemeUpdates($this->themes, $packages, $this->runtime, $this->dir . '/themes');
+        $preview = $updates->prepare('mcms-atelier', ROOTPATH . 'examples/packages/mcms-atelier-1.1.2.zip');
+        self::assertNotEmpty($this->removal->preview('theme', 'mcms-atelier')['blockers']);
+        $packages->cancel($preview['token']);
+        self::assertSame([], $this->removal->preview('theme', 'mcms-atelier')['blockers']);
     }
 
     public function testBuiltinModulesAreProtected(): void

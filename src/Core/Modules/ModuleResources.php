@@ -43,17 +43,42 @@ final class ModuleResources
         if ($packagesPath === null || realpath($manifest->path) !== realpath($packagesPath . '/' . basename($manifest->path))) {
             return $migrate();
         }
+        $path = dirname($packagesPath) . '/ownership/' . $manifest->id . '.json';
+        $owned = PackageState::read($path) ?? ['tables' => []];
         $before = self::tables($db);
+        $shared = array_diff($before, $owned['tables'], [$db->prefixTable(config('Migrations')->table)]);
+        $schemas = [];
+        foreach ($shared as $table) {
+            $schemas[$table] = self::schema($db, $table);
+        }
+        $wasIncomplete = $owned['incomplete'] ?? false;
+        PackageState::write($path, [...$owned, 'incomplete' => true]);
         $result = $migrate();
         if ($result !== true) {
             throw new RuntimeException('Module migrations did not complete.');
         }
+        $runner = \Config\Services::migrations()->setNamespace($manifest->namespace);
+        $history = array_map(fn ($row) => $runner->getObjectUid($row), $runner->getHistory(''));
+        foreach ($runner->findMigrations() as $migration) {
+            if (! in_array($runner->getObjectUid($migration), $history, true)) {
+                throw new RuntimeException('Module migration was not recorded.');
+            }
+        }
         $after = self::tables($db);
-        $path = dirname($packagesPath) . '/ownership/' . $manifest->id . '.json';
-        $owned = PackageState::read($path) ?? ['tables' => []];
+        foreach ($schemas as $table => $schema) {
+            if (! in_array($table, $after, true) || self::schema($db, $table) !== $schema) {
+                $owned['uncontrolled_tables'][] = $table;
+            }
+        }
         $owned['tables'] = array_values(array_unique([...$owned['tables'], ...array_diff($after, $before)]));
+        $owned['incomplete'] = $wasIncomplete;
         PackageState::write($path, $owned);
         return $result;
+    }
+
+    private static function schema(BaseConnection $db, string $table): string
+    {
+        return hash('sha256', json_encode([$db->getFieldData($table), $db->getIndexData($table), $db->getForeignKeyData($table)], JSON_THROW_ON_ERROR));
     }
 
     public static function assertCleanup(BaseConnection $db, ModuleManifest $manifest, string $root): array
@@ -62,7 +87,14 @@ final class ModuleResources
         if ($contract === null) {
             throw new RuntimeException('This module has no complete cleanup contract. Keep its data instead.');
         }
-        $owned = PackageState::read($root . '/ownership/' . $manifest->id . '.json')['tables'] ?? [];
+        $receipt = PackageState::read($root . '/ownership/' . $manifest->id . '.json');
+        if (($receipt['incomplete'] ?? false) === true) {
+            throw new RuntimeException('An interrupted migration left ownership unproven. Keep the data or restore a verified backup.');
+        }
+        if (($receipt['uncontrolled_tables'] ?? []) !== []) {
+            throw new RuntimeException('Module migrations changed shared tables. Complete cleanup is unavailable.');
+        }
+        $owned = $receipt['tables'] ?? [];
         $tables = array_map(fn ($name) => $db->prefixTable($name), $contract['tables']);
         $existing = self::tables($db);
         // Unknown/pre-existing/shared tables can never be admitted by a later manifest.

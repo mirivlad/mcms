@@ -85,6 +85,22 @@
 - [x] Menus 2.0: per-resource visibility through the navigation registry, unlimited ordered extras, keyboard/touch assignment controls and optional limits for arbitrary third-party theme positions.
 - [x] Catalogue navigation v0.2.5: full category tree (default), collapsible first-level tree and horizontal dropdown with responsive controls, plus optional shop secondary menu and Theme API integration.
 
+## Stage 5 — GitHub extension catalog and external package lifecycle
+
+- [x] Core-owned keep-data and complete module/theme removal with explicit resource previews, confirmation, backup acknowledgement and dependency/built-in/active-theme protection.
+- [x] Retained identity/schema/migration receipts, same-version reinstallation and disabled module restoration.
+- [x] Explicit cleanup contract, migration-created table ownership and foreign-reference/shared-schema guards; unsupported cleanup stays blocked.
+- [x] Writer locking, durable removal journals, maintenance and interrupted-operation recovery before module boot/startup updates.
+- [x] Versioned repository catalog, local/CI validator, immutable ZIP metadata and same-repository GitHub Releases support.
+- [x] Bounded trusted HTTPS fetches, atomic offline cache, daily/background/manual checks and cron CLI.
+- [x] Tabler RU/EN catalog tabs, search/filters, detail/screenshots/history, compatible updates and admin update counts.
+- [x] Catalog downloads routed through existing ZIP previews/install/update/backup/recovery flows; manual uploads preserved.
+- [x] Atelier releases and a migration/data-backed Lifecycle demo package.
+- [x] Integration and browser coverage for install/update/removal/reinstallation, permissions, confirmation and responsive layouts.
+
+See [extension lifecycle and catalog publication](EXTENSIONS.md) for contracts,
+operational recovery, scheduling and supported limitations.
+
 ## Reference policy
 
 Ferma is a functional reference only.

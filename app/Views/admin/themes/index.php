@@ -22,6 +22,7 @@
     </div>
 <?php else: ?>
     <div class="row row-cards">
+        <?php $catalogEntries = service('mcmsExtensionCatalog')->entries(); ?>
         <?php foreach ($themes as $theme): ?>
             <?php $isActive = $activeId === $theme->id; ?>
             <div class="col-md-6 col-xl-4">
@@ -42,6 +43,7 @@
                             <div class="min-w-0 flex-fill">
                                 <div class="d-flex align-items-center flex-wrap gap-2">
                                     <h3 class="card-title mb-0"><?= esc($manager->displayName($theme)) ?></h3>
+                                    <?php if (($catalogEntries[$theme->id]['update'] ?? false)): ?><a class="badge bg-warning-lt" href="<?= site_url('admin/extensions/' . rawurlencode($theme->id)) ?>"><?= esc(lang('Catalog.state_update')) ?></a><?php endif ?>
                                     <?php if ($isActive): ?>
                                         <span class="badge bg-primary-lt"><?= esc(lang('MCMS.themes.active')) ?></span>
                                     <?php endif ?>

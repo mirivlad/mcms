@@ -95,6 +95,21 @@ editorial theme, available as a [ready-to-install ZIP](examples/packages/mcms-at
 Install it under Administration → Themes → Install theme ZIP; it remains
 inactive until explicitly activated. See [the package contract](docs/THEMES.md).
 
+## Extension catalog and lifecycle
+
+Administration → **Extension catalog** browses third-party modules/themes from
+this repository's [`catalog/`](catalog/index.json), including Atelier and a small
+migration-backed Lifecycle demo. Installation/update downloads lead to the normal
+ZIP review and confirmation; installed modules remain disabled. Manual ZIP
+upload is still supported.
+
+External packages can be removed while keeping their data, then reinstalled at
+the **same version**. Complete removal requires a verified external backup,
+explicit confirmation and proven resource ownership. Installed dependents block
+both module-removal modes; built-in packages and active themes are protected.
+Daily cached checks and `php spark mcms:catalog:refresh` only check for updates.
+See [catalog format, PR publication, cleanup contracts and recovery](docs/EXTENSIONS.md).
+
 ## File storage
 
 All extensions use two shared Docker volumes: `modules_data` (module packages, uploaded files, generated data and Core files) and `themes_data` (theme packages and theme data). Module-specific volumes are not supported. See [the storage contract](docs/STORAGE.md).

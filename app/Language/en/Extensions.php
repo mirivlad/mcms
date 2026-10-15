@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'pendingUpdate' => 'an unfinished package preview (complete/cancel it, or wait one hour for expiry)',
     'remove' => 'Remove', 'keep' => 'Remove code, keep data', 'purge' => 'Remove completely',
     'keepHint' => 'Keep database records, settings, files, migrations and rollback history. Reinstalling the same version is supported; modules remain disabled.',
     'purgeHint' => 'Complete removal also deletes the resources listed below and rollback history. Shared media and menus are kept. Make and verify a full backup first.',

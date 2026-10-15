@@ -361,7 +361,7 @@ final class ModuleManager
             throw new RuntimeException('Module migrations failed.');
         }
         // CI can report success when its migration lock was unavailable.
-        $history = array_map(fn ($row) => $runner->getObjectUid($row), $runner->getHistory());
+        $history = array_map(fn ($row) => $runner->getObjectUid($row), $runner->getHistory(''));
         foreach ($runner->findMigrations() as $migration) {
             if (! in_array($runner->getObjectUid($migration), $history, true)) {
                 throw new RuntimeException('Module migration was not recorded.');

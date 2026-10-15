@@ -36,11 +36,7 @@ final class ExtensionRemoval extends BaseAdminController
     public function recovery(): string|RedirectResponse
     {
         $flag = service('mcmsModuleRuntime')->maintenance();
-        // Recovery can affect either kind; administrators must be allowed to manage both.
-        if ($denied = $this->guard('core.modules')) {
-            return $denied;
-        }
-        if ($denied = $this->guard('core.themes')) {
+        if ($denied = $this->guard(service('mcmsExtensionRemoval')->recoveryType() === 'theme' ? 'core.themes' : 'core.modules')) {
             return $denied;
         }
         if (strtolower($this->request->getMethod()) === 'post') {

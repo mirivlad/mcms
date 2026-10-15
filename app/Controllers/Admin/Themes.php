@@ -185,6 +185,19 @@ final class Themes extends BaseAdminController
         }
     }
 
+    public function cancelUpdate(string $id): RedirectResponse
+    {
+        if ($denied = $this->guard('core.themes')) {
+            return $denied;
+        }
+        $preview = session()->get('theme_update_preview');
+        if (is_array($preview) && ($preview['owner'] ?? null) === auth()->id() && ($preview['id'] ?? null) === $id) {
+            service('mcmsThemePackages')->cancel($preview['token']);
+            session()->remove('theme_update_preview');
+        }
+        return redirect()->to('/admin/themes/' . rawurlencode($id) . '/update');
+    }
+
     public function rollback(string $id): RedirectResponse
     {
         if ($denied = $this->guard('core.themes')) {

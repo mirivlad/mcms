@@ -85,6 +85,7 @@
     <div class="page-wrapper">
         <div class="page-body">
             <div class="container-xl">
+                <?= view('admin/catalog/notice') ?>
                 <?php if (session()->getFlashdata('message')): ?>
                     <div class="alert alert-success"><?= esc(session()->getFlashdata('message')) ?></div>
                 <?php endif ?>

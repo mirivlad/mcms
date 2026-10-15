@@ -131,6 +131,12 @@ final class ThemePackages
         if ($replacingId === null && $retained !== null && $retained['namespace'] !== $manifest->namespace) {
             throw new RuntimeException('Theme namespace differs from the retained package.');
         }
+        foreach (glob($this->root . '/retained/*.json') ?: [] as $path) {
+            $saved = \MCMS\Core\Packages\PackageState::read($path);
+            if (basename($path, '.json') !== $manifest->id && strcasecmp($saved['namespace'], $manifest->namespace) === 0) {
+                throw new RuntimeException('Theme namespace belongs to a package with retained data.');
+            }
+        }
         foreach ($catalog as $current) {
             if ($current->id === $replacingId) {
                 continue;
@@ -172,6 +178,17 @@ final class ThemePackages
             }
             $ownsStage = true;
             ZipPackage::extractArchive($path, $stage, self::inspectArchive(...));
+            $retained = \MCMS\Core\Packages\PackageState::read($this->root . '/retained/' . $manifest->id . '.json');
+            if ($retained !== null && $retained['version'] === $manifest->version
+                && ! hash_equals($retained['source'], \MCMS\Core\Modules\ModulePackages::fingerprint($stage))) {
+                throw new RuntimeException('Retained theme version has different bytes. Publish a new version.');
+            }
+            foreach (glob($this->root . '/history/' . $manifest->id . '/*/theme.json') ?: [] as $saved) {
+                if (ThemeManifest::fromFile($saved)->version === $manifest->version
+                    && \MCMS\Core\Modules\ModulePackages::fingerprint(dirname($saved)) !== \MCMS\Core\Modules\ModulePackages::fingerprint($stage)) {
+                    throw new RuntimeException('Retained theme version has different bytes. Publish a new version.');
+                }
+            }
             if (! rename($stage, $destination)) {
                 throw new RuntimeException('Cannot publish theme directory.');
             }

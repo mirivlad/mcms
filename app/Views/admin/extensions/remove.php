@@ -19,7 +19,7 @@
         <input type="hidden" name="fingerprint" value="<?= esc($fingerprint, 'attr') ?>">
         <label class="form-check mb-2"><input class="form-check-input" type="radio" name="mode" value="keep" checked><span class="form-check-label"><?= esc(lang('Extensions.keep')) ?></span></label>
         <label class="form-check mb-3"><input class="form-check-input" type="radio" name="mode" value="purge" <?= $purgeError !== null ? 'disabled' : '' ?>><span class="form-check-label"><?= esc(lang('Extensions.purge')) ?></span></label>
-        <label class="form-check mb-3"><input class="form-check-input" type="checkbox" name="backup" value="1"><span class="form-check-label"><?= esc(lang('Extensions.backupRequired')) ?> <a href="<?= site_url('admin/backups') ?>"><?= esc(lang('MCMS.nav.backups')) ?></a></span></label>
+        <label class="form-check mb-3"><input class="form-check-input" type="checkbox" name="backup" value="1"><span class="form-check-label"><?= esc(lang('Extensions.backupRequired')) ?> <a href="<?= site_url('admin/backups') ?>"><?= esc(lang('MCMS.backups.title')) ?></a></span></label>
         <label class="form-label" for="confirm-id"><?= esc(lang('Extensions.typeId')) ?> <code><?= esc($id) ?></code></label>
         <input class="form-control mb-3" id="confirm-id" name="confirm" required autocomplete="off">
         <button type="submit" class="btn btn-danger"><?= esc(lang('Extensions.remove')) ?></button>

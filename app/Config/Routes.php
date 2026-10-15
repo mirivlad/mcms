@@ -33,8 +33,13 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->get('access', 'Admin\Access::index', ['as' => 'admin.access']);
     $routes->post('access/group', 'Admin\Access::saveGroup');
     $routes->post('access/group/delete', 'Admin\Access::deleteGroup');
+    $routes->get('extensions', 'Admin\ExtensionCatalog::index');
+    $routes->get('extensions/check', 'Admin\ExtensionCatalog::refresh');
+    $routes->post('extensions/refresh', 'Admin\ExtensionCatalog::refresh');
+    $routes->post('extensions/(:segment)/prepare', 'Admin\ExtensionCatalog::prepare/$1');
     $routes->match(['get', 'post'], 'extensions/recovery', 'Admin\ExtensionRemoval::recovery');
     $routes->match(['get', 'post'], 'extensions/(:segment)/(:segment)/remove', 'Admin\ExtensionRemoval::index/$1/$2');
+    $routes->get('extensions/(:segment)', 'Admin\ExtensionCatalog::index/$1');
     $routes->get('modules', 'Admin\Modules::index', ['as' => 'admin.modules']);
     $routes->get('modules/package', 'Admin\Modules::package');
     $routes->post('modules/package', 'Admin\Modules::uploadPackage');
@@ -43,6 +48,7 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->get('modules/(:segment)/update', 'Admin\ModuleUpdates::index/$1');
     $routes->post('modules/(:segment)/update', 'Admin\ModuleUpdates::upload/$1');
     $routes->post('modules/(:segment)/update/queue', 'Admin\ModuleUpdates::queue/$1');
+    $routes->post('modules/(:segment)/update/cancel-preview', 'Admin\ModuleUpdates::cancelPreview/$1');
     $routes->post('modules/(:segment)/update/cancel', 'Admin\ModuleUpdates::cancel/$1');
     $routes->post('modules/(:segment)/update/apply', 'Admin\ModuleUpdates::apply/$1');
     $routes->post('modules/(:segment)/update/restore', 'Admin\ModuleUpdates::restore/$1');
@@ -57,6 +63,7 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
         $routes->post($themePrefix . '/package/install', 'Admin\Themes::installPackage');
         $routes->post($themePrefix . '/package/cancel', 'Admin\Themes::cancelPackage');
         $routes->match(['get', 'post'], $themePrefix . '/(:segment)/update', 'Admin\Themes::update/$1');
+        $routes->post($themePrefix . '/(:segment)/update/cancel', 'Admin\Themes::cancelUpdate/$1');
         $routes->post($themePrefix . '/(:segment)/update/apply', 'Admin\Themes::applyUpdate/$1');
         $routes->post($themePrefix . '/(:segment)/rollback', 'Admin\Themes::rollback/$1');
         $routes->get($themePrefix . '/package/resources', 'Admin\Themes::resources');
@@ -81,7 +88,7 @@ $moduleManager = service('mcmsModules');
 // Applying a replacement must not load old module PHP into the parent request.
 // The fresh worker owns target execution; normal requests drain through shutdown.
 $coreUpdateRequest = ! is_cli() && preg_match(
-    '#^admin/modules/[^/]+/update/(apply|restore)$#D',
+    '#^admin/(modules/[^/]+/update/(apply|restore)|extensions/[^/]+/[^/]+/remove|extensions/recovery)$#D',
     trim(service('request')->getUri()->getPath(), '/'),
 ) === 1;
 if (! $coreUpdateRequest && ! is_file(WRITEPATH . 'backups/restore-active.json')) {

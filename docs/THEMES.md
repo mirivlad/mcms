@@ -236,3 +236,13 @@ products/categories/archive, Galleries and Feedback supply this context. Core
 rechecks it through `NavigableResourceRegistry::resolve`. Unknown, draft and
 preview resources cannot activate resource-scoped extras. Future providers use the
 same contract; the Theme API never needs their models or schema.
+
+## Catalog and removal
+
+Use Administration → Extension catalog to browse and download packages into the
+existing ZIP preview/install/update forms. Manual ZIP uploads remain supported.
+External packages have a separate Remove action with keep-data and complete
+modes; built-in packages are protected. Same-version reinstallation after keeping
+data is a supported operation. Modules remain disabled; active themes must be
+switched before removal. See [catalog publication, cleanup ownership, dependencies,
+backup confirmation and interruption recovery](EXTENSIONS.md).

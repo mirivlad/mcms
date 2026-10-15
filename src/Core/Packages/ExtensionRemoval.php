@@ -34,6 +34,9 @@ final class ExtensionRemoval
     {
         return $this->runtime->exclusive(function () use ($type, $id): array {
             $this->runtime->assertAvailable();
+            if (is_file(WRITEPATH . 'backups/restore-active.json')) {
+                throw new RuntimeException('Site restoration is in progress.');
+            }
             PackageState::id($id);
             $root = $this->root($type);
             $this->modules->refresh();
@@ -58,6 +61,20 @@ final class ExtensionRemoval
             }
             if (is_file($root . '/transactions/' . $id . '.json')) {
                 throw new RuntimeException('Finish theme recovery before removal.');
+            }
+            foreach (glob($root . '/pending/*.zip') ?: [] as $archive) {
+                if (filemtime($archive) < time() - 3600) {
+                    continue;
+                }
+                try {
+                    $pending = $type === 'module' ? \MCMS\Core\Modules\ModulePackages::inspectArchive($archive)
+                        : \MCMS\Core\Themes\ThemePackages::inspectArchive($archive);
+                    if ($pending['manifest']->id === $id) {
+                        $blockers[] = lang('Extensions.pendingUpdate');
+                    }
+                } catch (\Throwable) {
+                    // An invalid preview cannot be applied by either package service.
+                }
             }
             $tables = [];
             $purgeError = null;
@@ -101,7 +118,8 @@ final class ExtensionRemoval
             $state = [
                 'type' => $type, 'id' => $id, 'operation' => $operation, 'purge' => $purge,
                 'folder' => basename($manifest->path), 'resources' => $preview['resources'],
-                'retained' => ['version' => $manifest->version, 'namespace' => $manifest->namespace],
+                'retained' => ['version' => $manifest->version, 'namespace' => $manifest->namespace,
+                    'source' => \MCMS\Core\Modules\ModulePackages::fingerprint($manifest->path)],
             ];
             if ($type === 'module') {
                 $state['retained'] += [
@@ -119,6 +137,19 @@ final class ExtensionRemoval
             PackageState::write($root . '/removals/' . $id . '.json', $state);
             $this->resume($state);
         });
+    }
+
+    public function recoveryType(): string
+    {
+        foreach (['module', 'theme'] as $type) {
+            foreach (glob($this->root($type) . '/removals/*.json') ?: [] as $file) {
+                $state = PackageState::read($file);
+                if (($state['operation'] ?? null) === ($this->runtime->maintenance()['operation'] ?? null)) {
+                    return $type;
+                }
+            }
+        }
+        return 'module';
     }
 
     public function recover(): void
@@ -220,12 +251,17 @@ final class ExtensionRemoval
             unset($grants);
             $settings->set('AuthGroups.permissions', $permissions);
             $settings->set('AuthGroups.matrix', $matrix);
+            if ($this->db->tableExists('auth_permissions_users')) {
+                $this->db->table('auth_permissions_users')->like('permission', $id . '.', 'after')->delete();
+            }
             $this->db->table(config('Migrations')->table)->where('namespace', $state['retained']['namespace'])->delete();
             $this->db->table('mcms_modules')->where('module_id', $id)->delete();
             PackageState::remove($root . '/ownership/' . $id . '.json');
             PackageState::remove($root . '/updates/' . $id);
             foreach (glob($root . '/history/' . $id . '-*') ?: [] as $path) {
-                PackageState::remove($path);
+                if (preg_match('/^' . preg_quote($id, '/') . '-[a-f0-9]{24}$/D', basename($path))) {
+                    PackageState::remove($path);
+                }
             }
         } else {
             foreach (['themeAppearance', 'themeHome', 'themeMenuAssignments', 'themeExtraMenus'] as $key) {

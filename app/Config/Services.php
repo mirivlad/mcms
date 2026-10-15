@@ -59,6 +59,7 @@ class Services extends BaseService
         $registry->addMenu('dashboard', '@MCMS.nav.dashboard', '/admin', 'ti ti-home', 'core.admin', 10, group: 'main');
         $registry->addMenu('users', '@MCMS.nav.users', '/admin/users', 'ti ti-users', 'core.users', 30, group: 'administration');
         $registry->addMenu('access', '@MCMS.nav.access', '/admin/access', 'ti ti-shield-lock', 'core.access', 40, group: 'administration');
+        $registry->addMenu('extensions', '@Catalog.title', '/admin/extensions', 'ti ti-packages', 'core.admin', 55, group: 'administration');
         $registry->addMenu('modules', '@MCMS.nav.modules', '/admin/modules', 'ti ti-plug', 'core.modules', 50, group: 'administration');
         $registry->addMenu('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 65, group: 'appearance');
         $registry->addMenu('settings', '@MCMS.nav.settings', '/admin/settings', 'ti ti-settings', 'core.settings', 70, group: 'administration');
@@ -122,6 +123,16 @@ class Services extends BaseService
             WRITEPATH . 'modules-data/installed',
             static::mcmsModuleRuntime(),
         );
+    }
+
+    public static function mcmsExtensionCatalog(bool $getShared = true): \MCMS\Core\Packages\ExtensionCatalog
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsExtensionCatalog');
+        }
+        return new \MCMS\Core\Packages\ExtensionCatalog(WRITEPATH . 'modules-data/catalog', WRITEPATH . 'modules-data',
+            WRITEPATH . 'themes-data', static::mcmsModules(), static::mcmsThemes(), static::mcmsModulePackages(),
+            static::mcmsThemePackages(), static::mcmsModuleUpdates(), static::mcmsThemeUpdates());
     }
 
     public static function mcmsExtensionRemoval(bool $getShared = true): \MCMS\Core\Packages\ExtensionRemoval

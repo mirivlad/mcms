@@ -38,6 +38,7 @@
                 </tr>
             <?php endif ?>
 
+            <?php $catalogEntries = service('mcmsExtensionCatalog')->entries(); ?>
             <?php foreach ($modules as $id => $module): ?>
                 <?php
                     $enabled = (int) ($states[$id]['enabled'] ?? 0) === 1;
@@ -54,7 +55,11 @@
                         <div class="text-secondary"><?= esc($description) ?></div>
                         <code><?= esc($id) ?></code>
                     </td>
-                    <td><?= esc($module->version) ?></td>
+                    <td><?= esc($module->version) ?>
+                    <?php if (($catalogEntries[$id]['update'] ?? false)): ?>
+                        <a class="badge bg-warning-lt" href="<?= site_url('admin/extensions/' . rawurlencode($id)) ?>"><?= esc(lang('Catalog.state_update')) ?></a>
+                    <?php endif ?>
+                    </td>
                     <td>
                         <span class="badge <?= $enabled ? 'bg-success-lt' : 'bg-secondary-lt' ?>">
                             <?= esc($enabled
