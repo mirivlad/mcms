@@ -27,6 +27,7 @@ final class Module implements ModuleProviderInterface
             db_connect(),
             new HtmlSanitizer(),
             $media,
+            new \MCMS\Core\Content\ResourceEditor($context->services),
         );
 
         $context->services->register('news.repository', $repository);

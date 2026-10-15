@@ -18,6 +18,7 @@ final class Admin extends BaseAdminController
         }
         return view('MCMS\\Modules\\Notifications\\Views\\settings', [
             'title' => lang('Notifications.title'), 'adminMenu' => $this->adminMenu(), 'user' => auth()->user(),
+            'commentPreferences' => $this->mail()->commentPreferences(),
             'preferences' => $this->mail()->preferences(), 'recent' => $this->mail()->recent(),
             'pending' => $this->mail()->pendingCount(), 'transport' => config('Email'),
         ]);
@@ -30,6 +31,19 @@ final class Admin extends BaseAdminController
         }
         try {
             $this->mail()->save((array) $this->request->getPost());
+            return $this->back()->with('message', lang('Notifications.saved'));
+        } catch (Throwable $e) {
+            return $this->back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    public function comments(): RedirectResponse
+    {
+        if ($denied = $this->guard('notifications.manage')) {
+            return $denied;
+        }
+        try {
+            $this->mail()->saveCommentPreferences((array) $this->request->getPost());
             return $this->back()->with('message', lang('Notifications.saved'));
         } catch (Throwable $e) {
             return $this->back()->withInput()->with('error', $e->getMessage());

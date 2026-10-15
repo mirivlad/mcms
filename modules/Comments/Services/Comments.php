@@ -9,13 +9,14 @@ use InvalidArgumentException;
 use MCMS\Core\Navigation\NavigableResourceRegistry;
 use MCMS\Modules\Comments\Api\CommentsInterface;
 
-final class Comments implements CommentsInterface
+final class Comments implements CommentsInterface, \MCMS\Core\Events\NotificationEventSourceInterface
 {
     private const STATUSES = ['pending', 'published', 'rejected', 'spam'];
 
     public function __construct(
         private readonly BaseConnection $db,
         private readonly NavigableResourceRegistry $navigation,
+        private readonly ?\MCMS\Core\Content\ResourcePolicy $policy = null,
     ) {
     }
 
@@ -27,7 +28,8 @@ final class Comments implements CommentsInterface
 
     public function publicTarget(string $targetType, string $targetId): ?array
     {
-        if (! $this->permitted($targetType)
+        $policy = $this->policy ?? new \MCMS\Core\Content\ResourcePolicy($this->db, 'comments', 'Comments.Admin.title', 'comments_resource_options');
+        if (! $policy->allowed($targetType, $targetId, $this->permitted($targetType))
             || preg_match('/^[a-z][a-z0-9._-]{0,31}$/D', $targetType) !== 1
             || preg_match('/^[a-zA-Z0-9._:-]{1,128}$/D', $targetId) !== 1) {
             return null;
@@ -74,24 +76,56 @@ final class Comments implements CommentsInterface
         $status = $userId !== null && (bool) setting('comments.auto_approve_users')
             ? 'published' : 'pending';
         $now = date('Y-m-d H:i:s');
-        $this->db->table('comments')->insert([
-            'target_type' => $targetType, 'target_id' => $targetId,
-            'parent_id' => $parentId, 'depth' => $depth,
-            'user_id' => $userId, 'author_name' => $authorName,
-            'author_email' => $authorEmail === '' ? null : $authorEmail,
-            'body' => $body, 'status' => $status, 'created_at' => $now, 'updated_at' => $now,
-        ]);
-        return ['id' => (int) $this->db->insertID(), 'status' => $status, 'depth' => $depth];
+        $this->db->transBegin();
+        try {
+            $this->db->table('comments')->insert([
+                'target_type' => $targetType, 'target_id' => $targetId,
+                'parent_id' => $parentId, 'depth' => $depth,
+                'user_id' => $userId, 'author_name' => $authorName,
+                'author_email' => $authorEmail === '' ? null : $authorEmail,
+                'body' => $body, 'status' => $status, 'created_at' => $now, 'updated_at' => $now,
+            ]);
+            $id = (int) $this->db->insertID();
+            $this->recordNotification($id, $status);
+            if (! $this->db->transStatus()) {
+                throw new \RuntimeException('Cannot save comment.');
+            }
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
+        \CodeIgniter\Events\Events::trigger('mcms.comments.committed');
+        return ['id' => $id, 'status' => $status, 'depth' => $depth];
     }
 
     public function published(string $targetType, string $targetId, int $limit = 100): array
     {
-        return $this->db->table('comments')
+        $rows = $this->db->table('comments')
             ->select('id, parent_id, depth, user_id, author_name, body, status, created_at')
             ->where('target_type', $targetType)->where('target_id', $targetId)
             ->whereIn('status', ['published', 'deleted'])
             ->orderBy('id', 'ASC')->limit(max(1, min(200, $limit)))
             ->get()->getResultArray();
+        $ids = array_fill_keys(array_column($rows, 'id'), true);
+        $children = [];
+        foreach ($rows as $row) {
+            $parent = isset($ids[$row['parent_id'] ?? '']) ? (int) $row['parent_id'] : 0;
+            $children[$parent][] = $row;
+        }
+        $ordered = [];
+        $visit = static function (int $parent, int $depth) use (&$visit, &$ordered, $children): void {
+            if ($depth > 8) {
+                return;
+            }
+            foreach ($children[$parent] ?? [] as $row) {
+                $row['display_depth'] = $depth;
+                $ordered[] = $row;
+                $visit((int) $row['id'], $depth + 1);
+            }
+        };
+        $visit(0, 0);
+        return $ordered;
     }
 
     public function list(string $status = 'pending', int $limit = 30, int $offset = 0): array
@@ -118,9 +152,53 @@ final class Comments implements CommentsInterface
         if (! in_array($status, self::STATUSES, true)) {
             throw new InvalidArgumentException('Invalid comment status');
         }
-        $this->db->table('comments')->where('id', $id)
-            ->where('status !=', 'deleted')
-            ->update(['status' => $status, 'updated_at' => date('Y-m-d H:i:s')]);
+        $this->db->transBegin();
+        try {
+            $current = $this->db->table('comments')->where('id', $id)->get()->getRowArray();
+            if ($current !== null && $current['status'] !== 'deleted' && $current['status'] !== $status) {
+                $this->db->table('comments')->where('id', $id)->where('status', $current['status'])
+                    ->update(['status' => $status, 'updated_at' => date('Y-m-d H:i:s')]);
+                if ($this->db->affectedRows() === 1 && $status === 'published') {
+                    $this->recordNotification($id, $status);
+                }
+            }
+            if (! $this->db->transStatus()) {
+                throw new \RuntimeException('Cannot moderate comment.');
+            }
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
+        \CodeIgniter\Events\Events::trigger('mcms.comments.committed');
+    }
+
+    public function supportsNotification(string $event): bool
+    {
+        return in_array($event, ['comments.pending', 'comments.published'], true);
+    }
+
+    public function notificationCurrent(string $key): bool
+    {
+        if (preg_match('/^comment:([1-9][0-9]*):(pending|published)$/D', $key, $match) !== 1) {
+            return false;
+        }
+        $row = $this->db->table('comments')->where('id', (int) $match[1])->get()->getRowArray();
+        return $row !== null && $row['status'] === $match[2]
+            && $this->publicTarget($row['target_type'], $row['target_id']) !== null;
+    }
+
+    private function recordNotification(int $id, string $status): void
+    {
+        $row = $this->db->table('comments')->where('id', $id)->get()->getRowArray();
+        $target = $this->publicTarget($row['target_type'], $row['target_id']);
+        if ($target !== null && in_array($status, ['pending', 'published'], true)) {
+            \CodeIgniter\Events\Events::trigger('mcms.comments.recorded', [
+                'key' => 'comment:' . $id . ':' . $status, 'id' => $id, 'event' => $status,
+                'author' => $row['author_name'], 'body' => $row['body'],
+                'url' => $status === 'published' ? site_url($target['url']) . '#comment-' . $id : site_url('admin/comments'),
+            ]);
+        }
     }
 
     public function delete(int $id): void

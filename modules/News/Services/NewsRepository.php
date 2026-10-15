@@ -23,6 +23,7 @@ final class NewsRepository implements NewsRepositoryInterface
         private readonly BaseConnection $db,
         private readonly HtmlSanitizer $sanitizer,
         private readonly MediaLibraryInterface $media,
+        private readonly ?\MCMS\Core\Content\ResourceEditor $extensions = null,
     ) {
     }
 
@@ -129,7 +130,7 @@ final class NewsRepository implements NewsRepositoryInterface
         $normalized = $this->normalize($data, null);
         $now = date('Y-m-d H:i:s');
 
-        return $this->workflow()->transaction(function () use ($normalized, $now, $userId): array {
+        return $this->workflow()->transaction(function () use ($normalized, $now, $userId, $data): array {
             $this->db->table('news_articles')->insert([
                 ...$normalized,
                 'created_by' => $this->validUserId($userId),
@@ -139,6 +140,7 @@ final class NewsRepository implements NewsRepositoryInterface
             ]);
 
             $article = $this->required((int) $this->db->insertID());
+            ($this->extensions ?? service('mcmsResourceEditor'))->save('news.article', (string) $article['id'], $data['resource_options'] ?? null);
             $this->workflow()->record((int) $article['id'], $article, $userId);
             return $article;
         });
@@ -164,6 +166,7 @@ final class NewsRepository implements NewsRepositoryInterface
                 ]);
 
             $article = $this->required($id);
+            ($this->extensions ?? service('mcmsResourceEditor'))->save('news.article', (string) $id, $data['resource_options'] ?? null);
             $this->workflow()->record($id, $article, $userId);
             return $article;
         });

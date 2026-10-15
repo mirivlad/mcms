@@ -19,7 +19,7 @@ final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
-        $repository = new Catalogue(db_connect(), $context->services->get('product-images.library'));
+        $repository = new Catalogue(db_connect(), $context->services->get('product-images.library'), new \MCMS\Core\Content\ResourceEditor($context->services));
         $context->services->register('catalogue.repository', $repository);
         $context->services->register('catalogue.exchange', $repository);
         $categories = new Categories(db_connect(), $context->storage->directory('category-icons'));

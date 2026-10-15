@@ -1,10 +1,10 @@
 {
   "id": "pages",
   "name": "@Pages.Admin.menuLabel",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "namespace": "MCMS\\Modules\\Pages",
   "provider": "MCMS\\Modules\\Pages\\Module",
-  "mcms": "^0.1.6",
+  "mcms": "^0.1.7",
   "description": "@Pages.Admin.description",
   "requires": [
     {

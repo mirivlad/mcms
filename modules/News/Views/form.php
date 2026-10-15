@@ -167,6 +167,7 @@ details:not([open]) > .mcms-seo-summary .mcms-seo-chevron {
 <form method="post" id="news-form">
     <input type="hidden" name="content_id" value="<?= (int) ($article['id'] ?? 0) ?>">
     <?= csrf_field() ?>
+    <?= view('admin/content/resource_options', ['resourceType' => 'news.article', 'resourceId' => (string) ($article['id'] ?? '')]) ?>
     <?= view('admin/content/request') ?>
     <?= view('admin/content/workflow', ['workflowUrl' => site_url('admin/news'), 'contentId' => (int) ($article['id'] ?? 0), 'editorId' => 'news-editor']) ?>
     <?= view('admin/content/preview', ['previewUrl' => site_url('admin/news/preview'), 'editorId' => 'news-editor']) ?>

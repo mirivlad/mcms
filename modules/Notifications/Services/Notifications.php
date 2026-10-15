@@ -70,6 +70,42 @@ final class Notifications
         }
     }
 
+    public function commentPreferences(): array
+    {
+        return (array) (setting('notifications.comments') ?? ['enabled' => false, 'recipient' => '', 'events' => []]);
+    }
+
+    public function saveCommentPreferences(array $input): void
+    {
+        $enabled = ($input['enabled'] ?? null) === '1';
+        $recipient = is_string($input['recipient'] ?? null) ? trim($input['recipient']) : '';
+        $events = $input['events'] ?? [];
+        if (! is_array($events) || array_filter($events, static fn ($value): bool => ! is_string($value)) !== []
+            || array_diff($events, ['pending', 'published']) !== []
+            || ($recipient !== '' && (strlen($recipient) > 254 || filter_var($recipient, FILTER_VALIDATE_EMAIL) === false))
+            || ($enabled && ($recipient === '' || $events === []))) {
+            throw new InvalidArgumentException(lang('Notifications.invalid'));
+        }
+        service('settings')->set('notifications.comments', compact('enabled', 'recipient', 'events'));
+    }
+
+    public function recordComment(array $snapshot): void
+    {
+        $config = $this->commentPreferences();
+        if (! $config['enabled'] || ! in_array($snapshot['event'], $config['events'], true)) {
+            return;
+        }
+        $event = lang('Notifications.commentEvents.' . $snapshot['event']);
+        $this->messageOutbox()->record($snapshot['key'], 'comments.' . $snapshot['event'], $config['recipient'],
+            mb_substr($event . ' #' . $snapshot['id'], 0, 255),
+            $event . "\n" . $snapshot['author'] . "\n\n" . $snapshot['body'] . "\n\n" . $snapshot['url']);
+    }
+
+    private function messageOutbox(): MessageOutbox
+    {
+        return new MessageOutbox($this->db, $this->send(...));
+    }
+
     public function record(int $orderId, string $event, int $historyId): void
     {
         $config = $this->preferences();
@@ -101,6 +137,9 @@ final class Notifications
     public function sendPending(?int $orderId = null, int $limit = 20): array
     {
         $result = ['sent' => 0, 'failed' => 0];
+        if ($this->db->transDepth === 0 && $orderId === null && $this->commentPreferences()['enabled']) {
+            $result = $this->messageOutbox()->sendPending($limit);
+        }
         if ($this->db->transDepth !== 0 || ! $this->preferences()['enabled']) {
             return $result;
         }
@@ -141,12 +180,16 @@ final class Notifications
 
     public function recent(): array
     {
-        return $this->db->table('notifications_outbox')->orderBy('id', 'DESC')->limit(20)->get()->getResultArray();
+        $rows = [...$this->db->table('notifications_outbox')->orderBy('id', 'DESC')->limit(20)->get()->getResultArray(),
+            ...$this->db->table('notifications_messages')->orderBy('id', 'DESC')->limit(20)->get()->getResultArray()];
+        usort($rows, static fn (array $a, array $b): int => strcmp($b['created_at'], $a['created_at']));
+        return array_slice($rows, 0, 20);
     }
 
     public function pendingCount(): int
     {
-        return $this->db->table('notifications_outbox')->whereIn('status', ['pending', 'sending'])->countAllResults();
+        return $this->db->table('notifications_outbox')->whereIn('status', ['pending', 'sending'])->countAllResults()
+            + $this->db->table('notifications_messages')->whereIn('status', ['pending', 'sending'])->countAllResults();
     }
 
     private function send(string $recipient, string $subject, string $body): bool

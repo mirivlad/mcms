@@ -32,6 +32,7 @@ final class PageRepository implements PageRepositoryInterface
         private readonly BaseConnection $db,
         private readonly HtmlSanitizer $sanitizer,
         private readonly array $reservedPublicPaths = [],
+        private readonly ?\MCMS\Core\Content\ResourceEditor $extensions = null,
     ) {
     }
 
@@ -145,7 +146,7 @@ final class PageRepository implements PageRepositoryInterface
         $normalized = $this->normalize($data, null);
         $now = date('Y-m-d H:i:s');
 
-        return $this->workflow()->transaction(function () use ($normalized, $now, $userId): array {
+        return $this->workflow()->transaction(function () use ($normalized, $now, $userId, $data): array {
             $this->db->table('pages')->insert([
                 ...$normalized,
                 'created_by' => $this->validUserId($userId),
@@ -161,6 +162,7 @@ final class PageRepository implements PageRepositoryInterface
                 throw new RuntimeException(lang('Pages.Errors.notFound'));
             }
 
+            ($this->extensions ?? service('mcmsResourceEditor'))->save('pages.page', (string) $page['id'], $data['resource_options'] ?? null);
             $this->workflow()->record((int) $page['id'], $page, $userId);
             return $page;
         });
@@ -175,7 +177,7 @@ final class PageRepository implements PageRepositoryInterface
 
         $normalized = $this->normalize($data, $current);
 
-        $page = $this->workflow()->transaction(function () use ($id, $normalized, $current, $userId): array {
+        $page = $this->workflow()->transaction(function () use ($id, $normalized, $current, $userId, $data): array {
             if (! $this->workflow()->hasRevisions($id)) {
                 $this->workflow()->record($id, $current, $current['updated_by']);
             }
@@ -191,6 +193,7 @@ final class PageRepository implements PageRepositoryInterface
             if ($page === null) {
                 throw new RuntimeException(lang('Pages.Errors.notFound'));
             }
+            ($this->extensions ?? service('mcmsResourceEditor'))->save('pages.page', (string) $id, $data['resource_options'] ?? null);
             $this->workflow()->record($id, $page, $userId);
             return $page;
         });

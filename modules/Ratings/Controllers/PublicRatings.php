@@ -26,7 +26,7 @@ final class PublicRatings extends BaseController
         if ($target === null) {
             throw PageNotFoundException::forPageNotFound();
         }
-        $returnTo = $target['url'] . '#ratings';
+        $returnTo = site_url($target['url']) . '#ratings';
         session();
         $userId = auth()->loggedIn() ? (int) auth()->id() : null;
         if ($userId === null) {

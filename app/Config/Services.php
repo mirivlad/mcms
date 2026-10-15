@@ -33,6 +33,14 @@ class Services extends BaseService
         return new DemoData(db_connect());
     }
 
+    public static function mcmsResourceEditor(bool $getShared = true): \MCMS\Core\Content\ResourceEditor
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsResourceEditor');
+        }
+        return new \MCMS\Core\Content\ResourceEditor(static::mcmsModuleServices());
+    }
+
     public static function mcmsShortcodes(bool $getShared = true): ShortcodeRenderer
     {
         if ($getShared) {

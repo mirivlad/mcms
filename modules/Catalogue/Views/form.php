@@ -8,6 +8,7 @@ $status = old('status', $product['status'] ?? 'draft');
 ?>
 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4"><div><div class="page-pretitle"><?= esc(lang('Catalogue.manageProducts')) ?></div><h1 class="page-title"><?= esc($product['title'] ?? lang('Catalogue.new')) ?></h1></div><a class="btn" href="<?= site_url('admin/catalogue/products') ?>"><?= esc(lang('Catalogue.back')) ?></a></div>
 <form method="post" id="product-form">
+    <?= view('admin/content/resource_options', ['resourceType' => 'catalogue.product', 'resourceId' => (string) ($product['id'] ?? '')]) ?>
     <?= csrf_field() ?><input type="hidden" name="image_set_id" value="<?= esc($setId, 'attr') ?>">
     <div class="row g-3">
         <div class="col-lg-8">

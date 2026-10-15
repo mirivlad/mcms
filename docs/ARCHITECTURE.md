@@ -288,3 +288,10 @@ MariaDB's `db_data`. See [STORAGE.md](STORAGE.md) for paths, API, nginx
 exposure and deployment requirements. Modules must never introduce their own
 Compose volume or hardcode persistent paths. This is a pre-release breaking
 change; old development uploads are not migrated.
+
+
+Optional content editor fields implement `Core\Content\ResourceEditorExtensionInterface`
+and register in the module service registry. Resource owners save submitted fields
+inside their content transactions; optional modules own field storage and lifecycle.
+Core has no Comments/Ratings imports. Deferred notification sources may implement
+`Core\Events\NotificationEventSourceInterface` for live delivery eligibility.

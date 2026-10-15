@@ -17,6 +17,8 @@ final class Module implements ModuleProviderInterface
     {
         $notifications = new Notifications(db_connect(), $context->services->get('orders.orders'));
         $context->services->register('notifications.mail', $notifications);
+        Events::on('mcms.comments.recorded', $notifications->recordComment(...));
+        Events::on('mcms.comments.committed', static fn (): array => $notifications->sendPending());
         Events::on(OrderEvents::RECORDED, $notifications->record(...));
         Events::on(OrderEvents::COMMITTED, static fn (int $id): array => $notifications->sendPending($id, 1));
         $context->admin->addMenu('notifications', '@Notifications.title', '/admin/notifications', 'ti ti-mail', 'notifications.manage', 69, group: 'commerce');
@@ -30,6 +32,7 @@ final class Module implements ModuleProviderInterface
                 $controller = '\\MCMS\\Modules\\Notifications\\Controllers\\Admin::';
                 $routes->get('/', $controller . 'index');
                 $routes->post('/', $controller . 'save');
+                $routes->post('comments', $controller . 'comments');
                 $routes->post('test', $controller . 'test');
                 $routes->post('retry', $controller . 'retry');
             });

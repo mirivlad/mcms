@@ -1,10 +1,10 @@
 {
   "id": "news",
   "name": "@News.Admin.menuLabel",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "namespace": "MCMS\\Modules\\News",
   "provider": "MCMS\\Modules\\News\\Module",
-  "mcms": "^0.1.6",
+  "mcms": "^0.1.7",
   "description": "@News.Admin.description",
   "requires": [
     {

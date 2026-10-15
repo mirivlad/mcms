@@ -249,6 +249,7 @@ final class Admin extends BaseAdminController
     private function formData(): array
     {
         return [
+            'resource_options' => $this->request->getPost('resource_options'),
             'title' => (string) $this->request->getPost('title'),
             'slug' => (string) $this->request->getPost('slug'),
             'body' => (string) $this->request->getPost('body'),

@@ -20,6 +20,7 @@ final class Module implements ModuleProviderInterface
             db_connect(),
             new HtmlSanitizer(),
             service('mcmsModules')->reservedPublicPaths(),
+            new \MCMS\Core\Content\ResourceEditor($context->services),
         );
 
         $context->services->register('pages.repository', $repository);

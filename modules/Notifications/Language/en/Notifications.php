@@ -1,5 +1,9 @@
 <?php
 return [
+    'comments' => 'Comment notifications',
+    'commentEnabled' => 'Send comment notifications',
+    'commentEventsLabel' => 'Comment events',
+    'commentEvents' => ['pending' => 'New comment awaiting moderation', 'published' => 'Comment published'],
     'title' => 'Order notifications', 'description' => 'Order emails, templates and a durable delivery queue.',
     'permission' => 'Manage order notifications', 'enabled' => 'Send order notifications',
     'recipient' => 'Recipient email', 'recipientHint' => 'One store manager address. Customer emails are not used as recipients.',
@@ -10,7 +14,7 @@ return [
     'testSent' => 'Test email sent.', 'testSubject' => 'mCMS mail delivery test', 'testBody' => 'This is a test of order notification email delivery from mCMS.',
     'queue' => 'Recent notifications · waiting: {0}', 'retry' => 'Retry waiting emails',
     'order' => 'Order / event', 'state' => 'Delivery state', 'attempts' => 'Attempts', 'date' => 'Created / sent',
-    'states' => ['pending' => 'Waiting', 'sending' => 'Sending', 'sent' => 'Sent'], 'empty' => 'No notifications yet.',
+    'states' => ['cancelled' => 'Cancelled', 'pending' => 'Waiting', 'sending' => 'Sending', 'sent' => 'Sent'], 'empty' => 'No notifications yet.',
     'saved' => 'Notification settings saved.', 'invalid' => 'Check the recipient, events and non-empty templates. The subject must be one line (up to 255 characters); the message limit is 10,000 bytes.',
     'invalidTokens' => 'The template contains an unknown placeholder.', 'recipientRequired' => 'Save a valid recipient email first.',
     'sendFailed' => 'Mail delivery failed. Check the server mail configuration; waiting notifications can be retried.',

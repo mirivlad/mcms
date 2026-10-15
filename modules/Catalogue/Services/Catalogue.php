@@ -17,7 +17,7 @@ use Throwable;
 
 final class Catalogue implements CatalogueInterface, VariantFeedInterface
 {
-    public function __construct(private readonly BaseConnection $db, private readonly ProductImagesInterface $images)
+    public function __construct(private readonly BaseConnection $db, private readonly ProductImagesInterface $images, private readonly ?\MCMS\Core\Content\ResourceEditor $extensions = null)
     {
     }
 
@@ -177,6 +177,7 @@ final class Catalogue implements CatalogueInterface, VariantFeedInterface
                     $this->db->table('catalogue_variants')->where('id', $variantId)->update($variant);
                 }
             }
+            ($this->extensions ?? service('mcmsResourceEditor'))->save('catalogue.product', (string) $id, $data['resource_options'] ?? null);
             if (! $this->db->transStatus()) {
                 throw new RuntimeException(lang('Catalogue.saveFailed'));
             }

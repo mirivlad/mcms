@@ -6,7 +6,7 @@ namespace MCMS\Core;
 
 final class Version
 {
-    public const VERSION = '0.1.6';
+    public const VERSION = '0.1.7';
 
     private function __construct()
     {

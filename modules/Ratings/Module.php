@@ -13,7 +13,9 @@ final class Module implements ModuleProviderInterface
 {
     public function boot(ModuleContext $context): void
     {
-        $context->services->register('ratings.repository', new Repository(db_connect(), $context->navigation));
+        $policy = new \MCMS\Core\Content\ResourcePolicy(db_connect(), 'ratings', 'Ratings.Admin.title', 'ratings_resource_options');
+        $context->services->register('ratings.resource-policy', $policy);
+        $context->services->register('ratings.repository', new Repository(db_connect(), $context->navigation, $policy));
         $context->admin->addMenu('ratings', '@Ratings.Admin.title', '/admin/ratings', 'ti ti-star', 'ratings.view', 59, group: 'administration');
         $context->admin->addSettings('ratings', '@Ratings.Admin.title', '/admin/ratings/settings', 'ti ti-star', 'ratings.manage', 'content');
     }

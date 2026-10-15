@@ -25,7 +25,7 @@ final class PublicComments extends BaseController
         if ($target === null) {
             throw PageNotFoundException::forPageNotFound();
         }
-        $url = $target['url'] . '#comments';
+        $url = site_url($target['url']) . '#comments';
         if (trim((string) $this->request->getPost('website')) !== '') {
             return redirect()->to($url);
         }
@@ -84,9 +84,9 @@ final class PublicComments extends BaseController
             $actor = auth()->loggedIn() ? 'user:' . auth()->id() : 'guest:' . session_id();
             $repository->report($commentId, $actor, (string) $this->request->getPost('reason'));
         } catch (InvalidArgumentException $e) {
-            return redirect()->to($target['url'] . '#comments')->with('comments_error', $e->getMessage());
+            return redirect()->to(site_url($target['url']) . '#comments')->with('comments_error', $e->getMessage());
         }
-        return redirect()->to($target['url'] . '#comments')->with('comments_notice', lang('Comments.Public.reported'));
+        return redirect()->to(site_url($target['url']) . '#comments')->with('comments_notice', lang('Comments.Public.reported'));
     }
 
     private function repository(): Comments

@@ -36,3 +36,12 @@ to unavailable resources remain in storage but do not render on the public site.
 
 Future possibilities: transaction-backed concurrent upserts, suspicious voting
 analytics, verified-purchaser badges and guest abuse detection.
+
+## Material overrides
+
+Pages, News and Catalogue editors can inherit the global type setting, explicitly
+allow ratings or explicitly deny them, independently of Comments. The module owns
+`ratings_resource_options`; Core's optional editor-extension contract saves choices
+inside the content transaction. Disabled/missing extensions preserve existing rows.
+Public visibility and direct HTTP voting use the same policy; overrides cannot
+expose drafts, deleted resources or a disabled source module.

@@ -12,3 +12,15 @@ recipients. Mail transport uses the existing site Email configuration.
 
 See [notification delivery and operations](../../docs/NOTIFICATIONS.md) for queue
 semantics, retries and SMTP configuration.
+
+
+## Comment notifications (0.2)
+
+The same module also accepts optional Comments events without requiring Comments
+to be installed. Configure a separate recipient and pending/published events on
+the existing Notifications screen. This switch is independent of order delivery.
+`notifications_messages` retains immutable text snapshots with unique event keys;
+manual Retry and `notifications:send` handle both queues. Messages are recorded in
+the comment transaction and sent after commit. A live Core event-source interface
+cancels stale public alerts after rejection/deletion/unpublication; disabled sources
+keep their queue waiting. No customer or comment-author email becomes a recipient.

@@ -76,8 +76,10 @@
 - [x] Captcha foundation: first-party PNG counting challenge, session/form-bound single-use tokens, server verification, expiry, throttles and Feedback guest integration.
 - [ ] Captcha follow-up: accessible nonvisual verification, configurable policies/difficulty and abuse metrics before forcing it on all forms.
 - [x] Comments v0.1: guests with Captcha, registered users, reply depth, central moderation queue, reports, and module-type enablement for Pages/News/Catalogue.
-- [ ] Comments follow-up: controls on individual resources, threaded reply UI, Notifications adapter and moderation refinements.
+- [x] Comments: independent per-resource policies, threaded reply UI and optional transactional Notifications with live eligibility checks.
+- [ ] Comments follow-up: further moderation refinements.
 - [x] Ratings v0.1: independent five-star votes, one mutable vote per user/resource, average and distribution, admin deletion and optional Captcha-guarded guest mode.
+- [x] Ratings: independent per-resource inherit/allow/deny policies enforced by public vote endpoints.
 - [ ] Ratings follow-up: suspicious-vote analytics, verified purchase badges and stronger guest deduplication.
 - [x] Menus 2.0 foundation: dynamic menu sources, page-type visibility conditions and two ordered secondary menus per existing theme location without altering primary assignments.
 - [ ] Menus 2.0 follow-up: per-resource visibility, admin ordering beyond two slots and richer custom theme locations.

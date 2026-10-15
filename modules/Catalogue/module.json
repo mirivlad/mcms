@@ -1,10 +1,10 @@
 {
   "id": "catalogue",
   "name": "@Catalogue.name",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "namespace": "MCMS\\Modules\\Catalogue",
   "provider": "MCMS\\Modules\\Catalogue\\Module",
-  "mcms": "^0.1.6",
+  "mcms": "^0.1.7",
   "description": "@Catalogue.description",
   "requires": [{"id": "product-images", "version": "^0.1"}],
   "public_paths": ["shop"],

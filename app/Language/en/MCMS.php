@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'resourceOptions' => ['title' => 'Public interactions', 'inherit' => 'Inherit site setting', 'allow' => 'Allow for this material', 'deny' => 'Disable for this material', 'invalid' => 'Invalid material interaction setting.'],
     'account' => [
         'captchaRegistrationHint' => 'Public registration requires the first-party Captcha module to be enabled.',
         'navigation' => 'Account',

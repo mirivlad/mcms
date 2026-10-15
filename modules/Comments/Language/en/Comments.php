@@ -12,6 +12,7 @@ return [
         'maxDepth' => 'Maximum reply depth', 'resources' => 'Allowed content types',
     ],
     'Public' => [
+        'inReplyTo' => 'In reply to comment #{0}',
         'title' => 'Comments', 'name' => 'Your name', 'email' => 'Email (not published)',
         'body' => 'Your comment', 'submit' => 'Post comment',
         'reply' => 'Reply', 'report' => 'Report', 'reason' => 'Reason for reporting',

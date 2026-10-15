@@ -48,6 +48,8 @@ final class NotificationsModuleTest extends CIUnitTestCase
             $this->sent[] = [$to, $subject, $body];
             return $this->deliver;
         });
+        Events::removeAllListeners('mcms.comments.recorded');
+        Events::removeAllListeners('mcms.comments.committed');
         Events::removeAllListeners(OrderEvents::RECORDED);
         Events::removeAllListeners(OrderEvents::COMMITTED);
         Events::on(OrderEvents::RECORDED, $this->mail->record(...));
@@ -65,6 +67,8 @@ final class NotificationsModuleTest extends CIUnitTestCase
 
     protected function tearDown(): void
     {
+        Events::removeAllListeners('mcms.comments.recorded');
+        Events::removeAllListeners('mcms.comments.committed');
         Events::removeAllListeners(OrderEvents::RECORDED);
         Events::removeAllListeners(OrderEvents::COMMITTED);
         session()->remove('mcms_cart');
@@ -72,6 +76,33 @@ final class NotificationsModuleTest extends CIUnitTestCase
             $this->migrations->setNamespace('MCMS\\Modules\\' . $module)->regress(0, 'tests');
         }
         parent::tearDown();
+    }
+
+    public function testCommentSnapshotsRetryAndWithdrawnPublicationIsNotDelivered(): void
+    {
+        $this->mail->saveCommentPreferences(['enabled' => '1', 'recipient' => 'moderator@example.test', 'events' => ['pending', 'published']]);
+        $source = new class implements \MCMS\Core\Events\NotificationEventSourceInterface {
+            public bool $current = true;
+            public function supportsNotification(string $event): bool { return str_starts_with($event, 'comments.'); }
+            public function notificationCurrent(string $key): bool { return $this->current; }
+        };
+        service('mcmsModuleServices')->register('test.comment-source', $source);
+        $this->deliver = false;
+        $snapshot = ['key' => 'comment:1:pending', 'id' => 1, 'event' => 'pending', 'author' => 'Guest', 'body' => 'Review me', 'url' => '/admin/comments'];
+        $this->db->transBegin();
+        $this->mail->recordComment($snapshot);
+        self::assertSame(['sent' => 0, 'failed' => 0], $this->mail->sendPending());
+        $this->db->transCommit();
+        self::assertSame(['sent' => 0, 'failed' => 1], $this->mail->sendPending());
+        self::assertStringContainsString('awaiting moderation', $this->sent[0][1]);
+        $this->deliver = true;
+        self::assertSame(['sent' => 1, 'failed' => 0], $this->mail->sendPending());
+        $this->mail->recordComment($snapshot);
+        self::assertSame(1, $this->db->table('notifications_messages')->countAllResults());
+        $this->mail->recordComment([...$snapshot, 'key' => 'comment:1:published', 'event' => 'published']);
+        $source->current = false;
+        self::assertSame(['sent' => 0, 'failed' => 0], $this->mail->sendPending());
+        self::assertSame('cancelled', $this->db->table('notifications_messages')->where('event', 'comments.published')->get()->getRowArray()['status']);
     }
 
     private function configure(array $changes = []): void

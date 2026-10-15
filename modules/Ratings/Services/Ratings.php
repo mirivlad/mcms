@@ -15,13 +15,15 @@ final class Ratings implements RatingsInterface
     public function __construct(
         private readonly BaseConnection $db,
         private readonly NavigableResourceRegistry $navigation,
+        private readonly ?\MCMS\Core\Content\ResourcePolicy $policy = null,
     ) {
     }
 
     public function publicTarget(string $type, string $id): ?array
     {
         $enabled = array_map('trim', explode(',', (string) (setting('ratings.enabled_resources') ?? '')));
-        if (! in_array($type, $enabled, true)
+        $policy = $this->policy ?? new \MCMS\Core\Content\ResourcePolicy($this->db, 'ratings', 'Ratings.Admin.title', 'ratings_resource_options');
+        if (! $policy->allowed($type, $id, in_array($type, $enabled, true))
             || preg_match('/^[a-z][a-z0-9._-]{0,31}$/D', $type) !== 1
             || preg_match('/^[a-zA-Z0-9._:-]{1,128}$/D', $id) !== 1) {
             return null;
