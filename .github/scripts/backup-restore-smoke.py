@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Restore a mutated clean-install site from an archive using real admin endpoints."""
+import argparse
 import hashlib
 import html
 import http.cookiejar
 import io
 import json
+from pathlib import Path
 import re
 import subprocess
 import time
@@ -13,18 +15,24 @@ import urllib.parse
 import urllib.request
 import urllib.error
 
-BASE = 'http://127.0.0.1:8080'
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--base-url', default='http://127.0.0.1:8080')
+parser.add_argument('--compose-project')
+parser.add_argument('--archive-output', type=Path, default=Path('/tmp/mcms-restore-upload.zip'))
+args = parser.parse_args()
+BASE = args.base_url.rstrip('/')
+compose = ['docker', 'compose'] + (['-p', args.compose_project] if args.compose_project else [])
 jar = http.cookiejar.CookieJar()
 client = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
 
 def exec_app(*args):
-    return subprocess.check_output(['docker', 'compose', 'exec', '-T', 'app', *args], text=True)
+    return subprocess.check_output(compose + ['exec', '-T', 'app', *args], text=True)
 
 def query(statement):
-    return subprocess.check_output([
-        'docker', 'compose', 'exec', '-T', 'db', 'mariadb',
-        '-umcms', '-pci-test', 'mcms', '--batch', '--skip-column-names', '-e', statement
-    ], text=True).strip()
+    return subprocess.check_output(compose + [
+        'exec', '-T', 'db', 'sh', '-c',
+        'exec mariadb -u"$MARIADB_USER" -p"$MARIADB_PASSWORD" "$MARIADB_DATABASE" --batch --skip-column-names'
+    ], input=statement, text=True).strip()
 
 def page(path):
     reply = client.open(BASE + path, timeout=25)
@@ -42,7 +50,7 @@ page('/login')
 _, where = post('/login', {
     'email': 'admin@example.test', 'password': 'Correct-Horse-Battery-Staple-42!'
 })
-assert '/admin' in where, where
+assert page('/admin')[1] == BASE + '/admin', where
 original = query("SELECT title FROM pages WHERE slug='demo-about';")
 assert original, 'Demo content missing'
 
@@ -91,9 +99,9 @@ exec_app('test', '-s', 'writable/backups/' + state['safety'])
 exec_app('test', '!', '-e', 'writable/backups/restore-active.json')
 
 # Test uploading a downloaded backup, without applying it twice.
-backup_bytes = subprocess.check_output(['docker', 'compose', 'exec', '-T', 'app',
+backup_bytes = subprocess.check_output(compose + ['exec', '-T', 'app',
     'cat', 'writable/backups/' + name])
-with open('/tmp/mcms-restore-upload.zip', 'wb') as stream:
+with args.archive_output.open('wb') as stream:
     stream.write(backup_bytes)
 assert hashlib.sha256(backup_bytes).hexdigest() != hashlib.sha256(b'').hexdigest()
 

@@ -570,3 +570,24 @@ form/navigation checks including a 390px viewport without horizontal overflow.
   No production deployment or separate application release was performed. Atelier
   source/ZIP stays at 1.1.2 because its existing shared components support the new
   Core behavior without template changes.
+
+## Automated deployment/recovery rehearsal — 2026-10-16
+
+- `python3 .github/scripts/verify-deployment.py` builds production images,
+  installs and populates a disposable site, checks app/web recreation and repeated
+  startup migrations, then uploads its downloaded backup into a second fresh
+  instance. No GitHub Actions or manual fixture setup is required.
+- All nine stages passed locally on Core 0.1.8. Ten selected data/settings/registry
+  tables, all column definitions and migration versions/classes, and 16 persistent
+  files matched after source recreation, an explicit updater run, independent
+  restoration and the restored site's next restart. Public material pages, Media,
+  external package code/assets/settings and administrator login were exercised.
+- A deliberately injected failure immediately after stack creation returned
+  nonzero and removed its own containers, volumes and image tags. Inherited
+  Compose/MCMS settings were ignored; existing running containers were unchanged.
+- Both successful and failed runs retained private JSON evidence and command logs;
+  disposable Docker resources and temporary credentials were removed. See
+  [verification scope and usage](VERIFICATION.md).
+- This is local rebuild/recreation and exact-version ZIP recovery evidence.
+  Production deployment, prior-release migration, scheduled/off-host backup jobs,
+  and real SMTP/proxy/DNS/TLS checks are outside this rehearsal.

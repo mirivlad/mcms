@@ -102,3 +102,10 @@ All extensions use two shared Docker volumes: `modules_data` (module packages, u
 ## Backups
 
 Create, download and restore full-site ZIP archives from **Administration → Backups**, or schedule `php spark mcms:backup:create --keep=7` from cron. The separately mounted `backup_data` volume holds completed ZIPs, while each archive includes a transaction-consistent MariaDB SQL dump and both CMS data volumes. See [docs/BACKUPS.md](docs/BACKUPS.md).
+
+## Local deployment verification
+
+Run `python3 .github/scripts/verify-deployment.py` to build an isolated test site,
+check container recreation and restore its downloaded backup into a second fresh
+instance. The command produces a JSON report and cleans up its temporary Docker
+stacks without GitHub Actions or manual setup. See [the verification scope](docs/VERIFICATION.md).

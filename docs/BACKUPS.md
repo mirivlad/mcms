@@ -37,6 +37,13 @@ status, and periodically test restoration. Do not expose the backup directory
 through a reverse proxy. ZIP archives can include personal data, account
 password hashes, licensed assets and extension PHP code.
 
+For an unattended local recovery rehearsal, run
+`python3 .github/scripts/verify-deployment.py` from the repository root.
+It generates test data and restores a downloaded ZIP into a second isolated
+instance, compares database records and file hashes, and removes both test stacks.
+See [local verification](VERIFICATION.md) for evidence and scope; this does not
+schedule or recover your production backups.
+
 ## ZIP layout
 
 ```text
