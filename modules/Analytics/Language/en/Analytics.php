@@ -29,9 +29,5 @@ return [
     'topHint' => 'Up to 20 most popular pages and sources for the selected period.',
     'emptyTitle' => 'No visits yet',
     'empty' => 'Statistics will appear when public pages are opened. There is no data for the selected period yet.',
-    'definitionsTitle' => 'How these numbers are counted',
-    'definitions' => 'A page view is a successful HTML page request. A visitor is a browser with a random cookie identifier; another browser or cleared cookies create a new visitor. A new visit starts after 30 minutes of inactivity. Source and device are captured on the first view of a visit. Visits spanning days count on each active day, but only once in the period total.',
-    'privacy' => 'Data stays in the mCMS database. IP addresses, full User-Agent strings, URL parameters and full referrer URLs are not stored. Two cookies are used: a browser identifier for one year and a visit identifier for 30 minutes. Administration, accounts, cart, checkout, known bots, prefetch requests and DNT/GPC requests are excluded. Without cookies, each page view counts as a separate visitor and visit.',
-    'limits' => 'This is server-side traffic measurement: reloads count, some bots may resemble browsers, and external caches serving pages without reaching mCMS are invisible to the counter.',
     'point' => '{0}: page views {1}, visits {2}, visitors {3}',
 ];

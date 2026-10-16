@@ -37,8 +37,9 @@ final class AdminRegistry
         int $order = 100,
         string $group = 'extensions',
         ?string $section = null,
+        ?string $overviewSection = null,
     ): void {
-        $this->menu[$id] = compact('id', 'label', 'url', 'icon', 'permission', 'order', 'group', 'section');
+        $this->menu[$id] = compact('id', 'label', 'url', 'icon', 'permission', 'order', 'group', 'section', 'overviewSection');
     }
 
     /** Module-owned forms keep their original route and add a central route. */

@@ -178,9 +178,4 @@ $y = static fn (int $value): float => 232 - $value * 224 / $ceiling;
 <p class="text-secondary small"><?= esc(lang('Analytics.topHint')) ?></p>
 <?php endif ?>
 <?php endif ?>
-<details class="card"><summary class="card-body py-3"><?= esc(lang('Analytics.definitionsTitle')) ?></summary><div class="card-body pt-0 text-secondary">
-    <p><?= esc(lang('Analytics.definitions')) ?></p>
-    <p><?= esc(lang('Analytics.privacy')) ?></p>
-    <p class="mb-0"><?= esc(lang('Analytics.limits')) ?></p>
-</div></details>
 <?= $this->endSection() ?>

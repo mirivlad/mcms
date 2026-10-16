@@ -15,7 +15,7 @@ final class Module implements ModuleProviderInterface
     public function boot(ModuleContext $context): void
     {
         $context->services->register('analytics.statistics', new Analytics(db_connect()));
-        $context->admin->addMenu('analytics', '@Analytics.title', '/admin/analytics', 'ti ti-chart-line', 'analytics.view', 10, group: 'main');
+        $context->admin->addMenu('analytics', '@Analytics.title', '/admin/analytics', 'ti ti-chart-line', 'analytics.view', 10, group: 'main', overviewSection: 'maintenance');
         $filters = config('Filters');
         $filters->aliases['analyticsVisits'] = TrackVisits::class;
         $filters->globals['after'][] = 'analyticsVisits';

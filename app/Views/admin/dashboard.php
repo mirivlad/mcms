@@ -11,7 +11,17 @@
 </div>
 
 <div class="row row-cards">
-    <?php $overviewGroups = service('mcmsAdmin')->groupedMenu(array_values(array_filter($adminMenu ?? [], static fn ($item) => $item['id'] !== 'dashboard'))); ?>
+    <?php
+    $overviewMenu = array_values(array_filter($adminMenu ?? [], static fn ($item) => $item['id'] !== 'dashboard'));
+    foreach ($overviewMenu as &$item) {
+        if (($item['overviewSection'] ?? null) !== null) {
+            $item['group'] = 'administration';
+            $item['section'] = $item['overviewSection'];
+        }
+    }
+    unset($item);
+    $overviewGroups = service('mcmsAdmin')->groupedMenu($overviewMenu);
+    ?>
     <?php foreach ($overviewGroups as $group): ?>
     <?php foreach ($group['sections'] ?? [$group] as $section): ?>
     <div class="col-md-6 col-xl-4">

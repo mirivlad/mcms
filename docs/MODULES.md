@@ -119,6 +119,9 @@ collapsible subsections; omitted/unknown sections appear under Other. Empty
 subsections are hidden after permission filtering, and the current page's
 subsection opens automatically. The Core Overview page reuses these permitted
 groups for quick links and retains module dashboard widgets.
+An optional `overviewSection: 'maintenance'` (or another administration section)
+places a quick link in that section on Overview while preserving its sidebar
+group and section. Permissions are still filtered before building either view.
 
 First-party modules should ship their own `Language/<locale>/...` files and avoid
 hard-coded UI strings. This keeps module translations inside the module instead of

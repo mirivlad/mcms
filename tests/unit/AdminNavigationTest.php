@@ -22,6 +22,7 @@ final class AdminNavigationTest extends CIUnitTestCase
         $registry = new AdminRegistry();
         $registry->addMenu('pages', 'Pages', '/admin/pages', permission: 'pages.view', group: 'content');
         $registry->addMenu('shop', 'Shop', '/admin/shop', permission: 'shop.view', group: 'commerce');
+        $registry->addMenu('analytics', 'Analytics', '/admin/analytics', permission: 'analytics.view', group: 'main', overviewSection: 'maintenance');
         $registry->addMenu('legacy', 'Legacy', '/admin/legacy');
         $registry->addMenu('custom', 'Custom', '/admin/custom', group: 'unknown');
         \Config\Services::injectMock('mcmsAdmin', $registry);
@@ -105,6 +106,28 @@ final class AdminNavigationTest extends CIUnitTestCase
         } finally {
             $request->getUri()->setPath($path);
         }
+    }
+
+    public function testOverviewCanGroupAnalyticsUnderMaintenanceWithoutMovingTheSidebarLink(): void
+    {
+        $registry = new AdminRegistry();
+        $registry->addMenu('dashboard', 'Overview', '/admin', group: 'main');
+        $registry->addMenu('analytics', 'Analytics', '/admin/analytics', group: 'main', overviewSection: 'maintenance');
+        $registry->addMenu('backups', 'Backups', '/admin/backups', group: 'administration', section: 'maintenance');
+        \Config\Services::injectMock('mcmsAdmin', $registry);
+        $menu = $registry->menu();
+        $html = view('admin/dashboard', ['adminMenu' => $menu, 'user' => (object) ['username' => 'Owner']]);
+        $document = new DOMDocument();
+        @$document->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+        $xpath = new DOMXPath($document);
+        $links = $xpath->query('//div[contains(@class, "page-wrapper")]//a[contains(@href, "/admin/analytics")]');
+        self::assertSame(1, $links->length);
+        self::assertSame(lang('MCMS.nav.sectionMaintenance'),
+            $xpath->evaluate('string(../../div[contains(@class, "card-header")]/h3)', $links->item(0)));
+        self::assertSame(1, $xpath->query('//div[contains(@class, "page-wrapper")]//div[contains(@class, "card-header")]/h3')->length);
+        self::assertSame(1, $xpath->query('//aside//a[contains(@href, "/admin/analytics")]')->length);
+        self::assertSame(0, $xpath->query('//aside//details//a[contains(@href, "/admin/analytics")]')->length);
+        self::assertSame($menu, $registry->menu());
     }
 
     public function testNestedPageOpensItsGroupAndPublicLinkRespectsBasePath(): void
