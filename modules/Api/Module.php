@@ -17,7 +17,7 @@ final class Module implements ModuleProviderInterface
         $keys = new Keys(db_connect());
         $context->services->register('api.keys', $keys);
         $context->services->register('api.exchange', new Exchange(db_connect(), $context->services, $keys));
-        $context->admin->addMenu('api', '@Api.title', '/admin/api', 'ti ti-plug-connected', 'api.manage', 85, group: 'administration');
+        $context->admin->addMenu('api', '@Api.title', '/admin/api', 'ti ti-plug-connected', 'api.manage', 85, group: 'administration', section: 'configuration');
         $context->admin->addSettings('api', '@Api.title', '/admin/api', 'ti ti-plug-connected', 'api.manage', 'integrations');
     }
 

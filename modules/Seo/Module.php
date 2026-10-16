@@ -25,7 +25,7 @@ final class Module implements ModuleProviderInterface
         $filters = config('Filters');
         $filters->aliases['seoRedirects'] = Redirects::class;
         $filters->globals['before'][] = 'seoRedirects';
-        $context->admin->addMenu('seo', '@Seo.Admin.title', '/admin/seo', 'ti ti-link', 'seo.manage', 64, group: 'administration');
+        $context->admin->addMenu('seo', '@Seo.Admin.title', '/admin/seo', 'ti ti-link', 'seo.manage', 64, group: 'administration', section: 'configuration');
         $context->admin->addSettings('seo', '@Seo.Admin.title', '/admin/seo', 'ti ti-link', 'seo.manage', 'content');
     }
 

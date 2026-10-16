@@ -113,6 +113,13 @@ modules. `main` is reserved for standalone links such as the Core dashboard.
 Empty groups are hidden after filtering by user permissions; the current page's
 group opens automatically, including on nested editor/settings routes.
 
+Administration items may also pass `section: 'access'`, `'moderation'`,
+`'packages'`, `'configuration'` or `'maintenance'` to `addMenu()`. These form
+collapsible subsections; omitted/unknown sections appear under Other. Empty
+subsections are hidden after permission filtering, and the current page's
+subsection opens automatically. The Core Overview page reuses these permitted
+groups for quick links and retains module dashboard widgets.
+
 First-party modules should ship their own `Language/<locale>/...` files and avoid
 hard-coded UI strings. This keeps module translations inside the module instead of
 growing Core's language catalogue.

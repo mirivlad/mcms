@@ -14,7 +14,7 @@ final class Module implements ModuleProviderInterface
     public function boot(ModuleContext $context): void
     {
         $context->services->register('captcha.verifier', new CaptchaService(db_connect()));
-        $context->admin->addMenu('captcha', '@Captcha.Admin.name', '/admin/captcha', 'ti ti-shield-check', 'captcha.manage', 60, group: 'administration');
+        $context->admin->addMenu('captcha', '@Captcha.Admin.name', '/admin/captcha', 'ti ti-shield-check', 'captcha.manage', 60, group: 'administration', section: 'access');
         $context->admin->addSettings('captcha', '@Captcha.Admin.name', '/admin/captcha', 'ti ti-shield-check', 'captcha.manage', 'content');
     }
 

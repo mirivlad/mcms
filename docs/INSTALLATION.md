@@ -60,7 +60,7 @@ The installer asks for:
 - whether public registration should initially be enabled.
 
 Submitting the form creates the first `superadmin`, stores the initial settings,
-logs that user in and redirects to the Core dashboard.
+logs that user in and redirects to the Core Overview page.
 
 As soon as a superadmin exists, `/install` closes and redirects to the normal
 login page. The installer cannot be used to create a second superadmin.

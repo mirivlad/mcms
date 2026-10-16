@@ -85,8 +85,8 @@ jobs:
 
           curl -fsS             -b /tmp/mcms.cookies             -c /tmp/mcms.cookies             -L             --data-urlencode "csrf_test_name=$csrf"             --data-urlencode "site_name=CI Test mCMS"             --data-urlencode "locale=en"             --data-urlencode "email=admin@example.test"             --data-urlencode "username=admin"             --data-urlencode "password=Correct-Horse-Battery-Staple-42!"             --data-urlencode "password_confirm=Correct-Horse-Battery-Staple-42!"             --data-urlencode "allow_registration=1"             http://127.0.0.1:8080/install             -o /tmp/admin.html
 
-          grep -q 'Dashboard' /tmp/admin.html
-          grep -q 'mCMS is running' /tmp/admin.html
+          grep -q 'class="admin-navigation' /tmp/admin.html
+          grep -q 'list-group-item-action' /tmp/admin.html
           grep -q 'ti-home' /tmp/admin.html
 
           curl -fsS http://127.0.0.1:8080/ -o /tmp/public-home.html
@@ -650,7 +650,7 @@ jobs:
           curl -fsS -c /tmp/backups.cookies http://127.0.0.1:8080/login -o /tmp/backups-login.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-login.html)"
           curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies -L --data-urlencode "csrf_test_name=$csrf" --data-urlencode 'email=admin@example.test' --data-urlencode 'password=Correct-Horse-Battery-Staple-42!' http://127.0.0.1:8080/login -o /tmp/backups-admin.html
-          grep -q 'Dashboard' /tmp/backups-admin.html
+          grep -q 'class="admin-navigation' /tmp/backups-admin.html
           curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies             http://127.0.0.1:8080/admin/backups -o /tmp/backups-page.html
           grep -q 'Create backup' /tmp/backups-page.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-page.html)"

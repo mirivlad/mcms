@@ -16,7 +16,7 @@ final class Module implements ModuleProviderInterface
         $policy = new \MCMS\Core\Content\ResourcePolicy(db_connect(), 'comments', 'Comments.Admin.title', 'comments_resource_options');
         $context->services->register('comments.resource-policy', $policy);
         $context->services->register('comments.repository', new Repository(db_connect(), $context->navigation, $policy));
-        $context->admin->addMenu('comments', '@Comments.Admin.title', '/admin/comments', 'ti ti-messages', 'comments.view', 58, group: 'administration');
+        $context->admin->addMenu('comments', '@Comments.Admin.title', '/admin/comments', 'ti ti-messages', 'comments.view', 58, group: 'administration', section: 'moderation');
         $context->admin->addSettings('comments', '@Comments.Admin.title', '/admin/comments/settings', 'ti ti-messages', 'comments.moderate', 'content');
     }
 

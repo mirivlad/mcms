@@ -62,7 +62,7 @@
                                             <i class="ti ti-chevron-right admin-menu-chevron" aria-hidden="true"></i>
                                         </summary>
                                         <ul class="navbar-nav admin-submenu">
-                                            <?= view('layouts/admin_menu_items', ['items' => $group['items']]) ?>
+                                            <?= view('layouts/admin_menu_items', ['items' => $group['sections'] ?? $group['items']]) ?>
                                         </ul>
                                     </details>
                                 </li>

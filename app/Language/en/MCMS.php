@@ -100,7 +100,7 @@ return [
         'ru' => 'Russian',
     ],
     'nav' => [
-        'dashboard' => 'Dashboard',
+        'dashboard' => 'Overview',
         'users' => 'Users',
         'access' => 'Access',
         'modules' => 'Modules',
@@ -117,6 +117,12 @@ return [
         'groupCommerce' => 'Shop',
         'groupAdministration' => 'Administration',
         'groupExtensions' => 'Extensions',
+        'sectionAccess' => 'Users and access',
+        'sectionModeration' => 'Moderation',
+        'sectionPackages' => 'Extensions',
+        'sectionConfiguration' => 'Site configuration',
+        'sectionMaintenance' => 'Maintenance',
+        'sectionOther' => 'Other',
     ],
     'search' => [
         'title' => 'Search',
@@ -195,9 +201,11 @@ return [
         'description' => 'The Core provides identity, administration, settings and module lifecycle. Everything domain-specific is installed as a module.',
     ],
     'dashboard' => [
-        'title' => 'Dashboard',
+        'title' => 'Overview',
         'running' => 'mCMS is running',
-        'description' => 'Modules extend this dashboard without changing the Core layout.',
+        'description' => 'Quick links to the site sections you can access.',
+        'sections' => 'Sections',
+        'empty' => 'No sections are available for your account yet.',
     ],
     'install' => [
         'title' => 'Install mCMS',

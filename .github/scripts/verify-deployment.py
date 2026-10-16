@@ -155,7 +155,7 @@ class Site:
         self.jar.clear()
         self.post('/login', {'email': 'admin@example.test', 'password': PASSWORD})
         content, destination = self.get('/admin')
-        assert destination == self.base + '/admin' and 'Dashboard' in content, 'Administrator login failed'
+        assert destination == self.base + '/admin' and 'class="admin-navigation' in content, 'Administrator login failed'
         self.jar.save(ignore_discard=True, ignore_expires=True)
 
 
@@ -211,7 +211,7 @@ def check_public(site, media_path, image):
         assert response.read() == image, 'Uploaded image changed'
     with urllib.request.urlopen(site.base + '/theme-assets/theme-probe/1.0.0/css/style.css', timeout=20) as response:
         assert b'.eyebrow' in response.read(), 'Installed theme assets missing'
-    assert 'Dashboard' in site.get('/admin')[0], 'Restored admin login failed'
+    assert 'class="admin-navigation' in site.get('/admin')[0], 'Restored admin login failed'
 
 
 def verify():

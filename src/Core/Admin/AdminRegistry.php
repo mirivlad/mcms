@@ -15,6 +15,15 @@ final class AdminRegistry
         'extensions' => ['@MCMS.nav.groupExtensions', 'ti ti-puzzle'],
     ];
 
+    private const ADMIN_SECTIONS = [
+        'access' => ['@MCMS.nav.sectionAccess', 'ti ti-users'],
+        'moderation' => ['@MCMS.nav.sectionModeration', 'ti ti-messages'],
+        'packages' => ['@MCMS.nav.sectionPackages', 'ti ti-puzzle'],
+        'configuration' => ['@MCMS.nav.sectionConfiguration', 'ti ti-adjustments'],
+        'maintenance' => ['@MCMS.nav.sectionMaintenance', 'ti ti-tool'],
+        'other' => ['@MCMS.nav.sectionOther', 'ti ti-dots'],
+    ];
+
     private array $menu = [];
     private array $widgets = [];
     private array $settings = [];
@@ -27,8 +36,9 @@ final class AdminRegistry
         ?string $permission = null,
         int $order = 100,
         string $group = 'extensions',
+        ?string $section = null,
     ): void {
-        $this->menu[$id] = compact('id', 'label', 'url', 'icon', 'permission', 'order', 'group');
+        $this->menu[$id] = compact('id', 'label', 'url', 'icon', 'permission', 'order', 'group', 'section');
     }
 
     /** Module-owned forms keep their original route and add a central route. */
@@ -105,6 +115,16 @@ final class AdminRegistry
             $id = $item['group'] ?? 'extensions';
             $groups[isset($groups[$id]) ? $id : 'extensions']['items'][] = $item;
         }
+
+        $sections = [];
+        foreach (self::ADMIN_SECTIONS as $id => [$label, $icon]) {
+            $sections[$id] = compact('id', 'label', 'icon') + ['items' => []];
+        }
+        foreach ($groups['administration']['items'] as $item) {
+            $id = $item['section'] ?? 'other';
+            $sections[isset($sections[$id]) ? $id : 'other']['items'][] = $item;
+        }
+        $groups['administration']['sections'] = array_values(array_filter($sections, static fn (array $section): bool => $section['items'] !== []));
 
         return array_values(array_filter($groups, static fn (array $group): bool => $group['items'] !== []));
     }
