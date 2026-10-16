@@ -136,6 +136,7 @@ input.dataset.queuedQuantity = requested;
 enqueue(async () => {
 if (!document.documentElement.contains(form)) return;
 const row = form.closest('[data-cart-row]');
+const inModal = Boolean(form.closest('[data-cart-modal-content]'));
 row?.classList.add('mcms-cart-pending');
 try {
 const payload = await request(form, {quantity:requested});
@@ -154,7 +155,7 @@ syncCheckoutTotals();
 const message = row?.querySelector('[data-cart-stock-message]');
 setMessage(message, payload.adjusted ? payload.message : '', payload.adjusted ? 'adjusted' : '');
 if (payload.adjusted) pulse(row);
-if (Number(payload.quantity) <= 0 && row) { row.remove(); if (!document.querySelector('[data-cart-row]')) window.location.reload(); }
+if (Number(payload.quantity) <= 0 && row) { row.remove(); if (!document.querySelector('[data-cart-row]')) { if (inModal) await refreshModal(); else window.location.reload(); } }
 } catch (error) {
 if (Number(input.value) === Number(requested)) input.value = input.dataset.savedQuantity || '0';
 window.alert(error.message);
@@ -169,10 +170,11 @@ const form = event.target.closest('[data-cart-remove],[data-cart-clear]');
 if (!form) return;
 event.preventDefault();
 enqueue(async () => {
+const inModal = Boolean(form.closest('[data-cart-modal-content]'));
 try {
 const payload = await request(form);
 updateCount(payload.total_items);
-if (form.matches('[data-cart-clear]')) { window.location.reload(); return; }
+if (form.matches('[data-cart-clear]')) { if (inModal) await refreshModal(); else window.location.reload(); return; }
 form.closest('[data-cart-row]')?.remove();
 const subtotal = document.querySelector('[data-cart-subtotal]');
 if (subtotal) subtotal.textContent = payload.subtotal_display;
@@ -181,8 +183,46 @@ if (checkoutTotals) {
 checkoutTotals.dataset.subtotalMinor = String(payload.subtotal_minor || 0);
 syncCheckoutTotals();
 }
-if (payload.empty || !document.querySelector('[data-cart-row]')) window.location.reload();
+if (payload.empty || !document.querySelector('[data-cart-row]')) { if (inModal) await refreshModal(); else window.location.reload(); }
 } catch (error) { window.alert(error.message); }
 });
+});
+
+let cartDialog = null;
+let fragmentUrl = '';
+const refreshModal = async () => {
+    if (!cartDialog || !cartDialog.open) return;
+    const response = await fetch(fragmentUrl, {
+        credentials: 'same-origin', cache: 'no-store',
+        headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'text/html'},
+    });
+    if (!response.ok) throw new Error('Unable to load cart');
+    const content = cartDialog.querySelector('[data-cart-modal-content]');
+    if (content) content.innerHTML = await response.text();
+};
+const ensureDialog = () => {
+    if (cartDialog) return cartDialog;
+    cartDialog = document.createElement('dialog');
+    cartDialog.className = 'mcms-cart-dialog';
+    cartDialog.setAttribute('aria-labelledby', 'mcms-cart-modal-title');
+    cartDialog.innerHTML = '<div data-cart-modal-content></div>';
+    cartDialog.addEventListener('click', event => {
+        if (event.target === cartDialog || event.target.closest('[data-cart-modal-close]')) cartDialog.close();
+    });
+    document.body.append(cartDialog);
+    return cartDialog;
+};
+document.addEventListener('click', async event => {
+    const link = event.target.closest('a[data-cart-modal-link]');
+    if (!link || event.defaultPrevented || event.button !== 0
+        || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    fragmentUrl = link.dataset.cartFragment || '';
+    if (!fragmentUrl) { window.location.assign(link.href); return; }
+    const dialog = ensureDialog();
+    if (!dialog.open) dialog.showModal();
+    dialog.querySelector('[data-cart-modal-content]').textContent = '…';
+    try { await refreshModal(); }
+    catch (_) { dialog.close(); window.location.assign(link.href); }
 });
 })();

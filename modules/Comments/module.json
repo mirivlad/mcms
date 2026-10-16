@@ -1,7 +1,7 @@
 {
   "id": "comments",
   "name": "@Comments.Admin.title",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "namespace": "MCMS\\Modules\\Comments",
   "provider": "MCMS\\Modules\\Comments\\Module",
   "mcms": "^0.1.7",

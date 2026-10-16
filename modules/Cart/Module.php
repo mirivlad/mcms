@@ -24,6 +24,7 @@ final class Module implements ModuleProviderInterface
 
     public function routes(RouteCollection $routes): void
     {
+        $routes->get('cart/fragment', '\\MCMS\\Modules\\Cart\\Controllers\\Cart::fragment');
         $routes->get('cart', '\\MCMS\\Modules\\Cart\\Controllers\\Cart::index');
         $routes->post('cart/add', '\\MCMS\\Modules\\Cart\\Controllers\\Cart::add');
         $routes->post('cart/update', '\\MCMS\\Modules\\Cart\\Controllers\\Cart::update');

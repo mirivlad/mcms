@@ -22,6 +22,7 @@ final class RatingsModuleTest extends CIUnitTestCase
         foreach (['Ratings', 'Pages', 'Media', 'Captcha'] as $module) {
             $this->migrations->setNamespace('MCMS\Modules\\' . $module)->regress(0, 'tests');
         }
+        \Config\Services::resetSingle('mcmsModuleServices');
         parent::tearDown();
     }
 
@@ -40,7 +41,7 @@ final class RatingsModuleTest extends CIUnitTestCase
         ]);
         $repo = $services->get('ratings.repository');
         self::assertInstanceOf(RatingsInterface::class, $repo);
-        return [$manager, $repo, (string) $page['id']];
+        return [$manager, $repo, (string) $page['id'], $services];
     }
 
     public function testOneVotePerUserAndDistributionChangeWhenVoteUpdated(): void
@@ -76,6 +77,20 @@ final class RatingsModuleTest extends CIUnitTestCase
         self::assertSame(5, $repo->userRating('pages.page', $id, null, 'guest-session'));
         self::assertNull($repo->userRating('pages.page', $id, null, 'other-session'));
         self::assertSame(1, $repo->summary('pages.page', $id)['count']);
+    }
+
+    public function testViewingRatingFormDoesNotGenerateCaptcha(): void
+    {
+        [, , $pageId, $services] = $this->ready();
+        \Config\Services::injectMock('mcmsModuleServices', $services);
+        service('settings')->set('ratings.allow_guests', true);
+        session()->remove('captcha_prompt');
+        $html = view('MCMS\\Modules\\Ratings\\Views\\widget', [
+            'targetType' => 'pages.page', 'targetId' => $pageId,
+        ]);
+        self::assertStringContainsString('data-captcha-guard="ratings.vote"', $html);
+        self::assertStringNotContainsString('name="captcha_token"', $html);
+        self::assertSame(0, $this->db->table('captcha_challenges')->countAllResults());
     }
 
     public function testRefusesUnknownContentAndOutOfRangeStars(): void

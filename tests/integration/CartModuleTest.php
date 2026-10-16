@@ -96,6 +96,20 @@ final class CartModuleTest extends CIUnitTestCase
         parent::tearDown();
     }
 
+    public function testModalCartKeepsCheckoutOnItsOwnPage(): void
+    {
+        $this->cart->add($this->firstVariant, 2);
+        $html = view('MCMS\\Modules\\Cart\\Views\\_modal', ['cart' => $this->cart->snapshot()]);
+        self::assertStringContainsString('Tea', $html);
+        self::assertStringContainsString('data-cart-update', $html);
+        self::assertStringContainsString('data-cart-clear', $html);
+        self::assertStringContainsString('cart#checkout', $html);
+        self::assertStringNotContainsString('data-checkout-form', $html);
+        $link = view('MCMS\\Modules\\Cart\\Views\\link', ['count' => 2]);
+        self::assertStringContainsString('data-cart-modal-link', $link);
+        self::assertStringContainsString('cart/fragment', html_entity_decode($link));
+    }
+
     public function testCartNeverReservesStockAndKeepsPriceSnapshot(): void
     {
         self::assertTrue($this->services->has('cart.cart'));

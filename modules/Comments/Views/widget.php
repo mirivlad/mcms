@@ -12,10 +12,16 @@ $commentChallenge = null;
 $commentChallengeError = false;
 $commentCaptcha = $commentServices->get('captcha.verifier');
 $commentCaptchaRequired = ($commentUser || $guestAllowed) && (method_exists($commentCaptcha, 'required') ? $commentCaptcha->required('comments.create', $commentUser) : ! $commentUser);
-if ($commentCaptchaRequired) {
+// A challenge is created only after a submission attempt, never on page load.
+$commentPrompt = session()->getFlashdata('captcha_prompt');
+$commentShouldIssue = $commentCaptchaRequired && is_array($commentPrompt)
+    && ($commentPrompt['purpose'] ?? '') === 'comments.create'
+    && ($commentPrompt['type'] ?? '') === (string) $targetType
+    && ($commentPrompt['id'] ?? '') === (string) $targetId;
+if ($commentShouldIssue) {
     session();
     try {
-        $commentChallenge = $commentServices->get('captcha.verifier')->issue('comments.create', session_id());
+        $commentChallenge = $commentCaptcha->issue('comments.create', session_id());
     } catch (RuntimeException) {
         $commentChallengeError = true;
     }
@@ -64,7 +70,13 @@ if ($commentCaptchaRequired) {
             <?php if ($commentChallengeError): ?>
                 <p class="alert alert-warning"><?= esc(lang('Comments.Public.captchaUnavailable')) ?></p>
             <?php endif ?>
-            <form method="post" action="<?= site_url('comments/create') ?>">
+            <form method="post" action="<?= site_url('comments/create') ?>"
+                data-captcha-guard="comments.create"
+                data-captcha-required="<?= $commentCaptchaRequired ? '1' : '0' ?>"
+                data-captcha-endpoint="<?= esc(site_url('captcha/challenge'), 'attr') ?>"
+                data-captcha-csrf-name="<?= esc(csrf_token(), 'attr') ?>"
+                data-captcha-confirm="<?= esc(lang('Captcha.Public.confirmSend'), 'attr') ?>"
+                data-captcha-error="<?= esc(lang('Captcha.Public.unavailable'), 'attr') ?>">
                 <?= csrf_field() ?>
                 <input type="hidden" name="target_type" value="<?= esc($targetType, 'attr') ?>">
                 <input type="hidden" name="target_id" value="<?= esc($targetId, 'attr') ?>">
@@ -87,10 +99,12 @@ if ($commentCaptchaRequired) {
                     </div>
                 <?php endif ?>
                 <div class="mb-3"><label class="form-label" for="comment-body"><?= esc(lang('Comments.Public.body')) ?></label><textarea class="form-control" id="comment-body" name="body" minlength="2" maxlength="5000" rows="4" required><?= esc(old('body') ?? '') ?></textarea></div>
-                <?php if ($commentChallenge !== null): ?>
-                    <?= view('MCMS\\Modules\\Captcha\\Views\\widget', ['challenge' => $commentChallenge]) ?>
-                <?php endif ?>
-                <button class="btn btn-primary" type="submit" <?= $commentCaptchaRequired && $commentChallenge === null ? 'disabled' : '' ?>><?= esc(lang('Comments.Public.submit')) ?></button>
+                <div data-captcha-slot>
+                    <?php if ($commentChallenge !== null): ?>
+                        <?= view('MCMS\\Modules\\Captcha\\Views\\widget', ['challenge' => $commentChallenge]) ?>
+                    <?php endif ?>
+                </div>
+                <button class="btn btn-primary" type="submit" <?= $commentCaptchaRequired && $commentChallenge === null && $commentChallengeError ? 'disabled' : '' ?>><?= esc(lang('Comments.Public.submit')) ?></button>
             </form>
         </div>
     </div>

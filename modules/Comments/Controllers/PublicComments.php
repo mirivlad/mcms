@@ -42,7 +42,9 @@ final class PublicComments extends BaseController
                 (string) $this->request->getPost('captcha_token'),
                 (string) $this->request->getPost('captcha_answer'),
         )) {
-            return redirect()->to($url)->withInput()->with('comments_error', lang('Captcha.Public.invalid'));
+            return redirect()->to($url)->withInput()
+                ->with('captcha_prompt', ['purpose' => 'comments.create', 'type' => $type, 'id' => $id])
+                ->with('comments_error', lang((string) $this->request->getPost('captcha_token') === '' ? 'Captcha.Public.required' : 'Captcha.Public.invalid'));
         }
         $parent = $this->request->getPost('parent_id');
         $parentId = is_scalar($parent) && ctype_digit((string) $parent) && (int) $parent > 0

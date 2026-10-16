@@ -22,6 +22,8 @@ final class Module implements ModuleProviderInterface
     {
         $routes->match(['get', 'post'], 'admin/captcha', '\MCMS\Modules\Captcha\Controllers\Admin::index', ['filter' => 'session']);
         $routes->match(['get', 'post'], 'admin/settings/captcha', '\MCMS\Modules\Captcha\Controllers\Admin::index', ['filter' => 'session']);
+        $routes->post('captcha/challenge', '\\MCMS\\Modules\\Captcha\\Controllers\\Challenge::issue');
+        $routes->get('captcha/assets/guard.js', '\\MCMS\\Modules\\Captcha\\Controllers\\Image::script');
         $routes->get('captcha/image/(:segment)', '\MCMS\Modules\Captcha\Controllers\Image::show/$1');
     }
 }

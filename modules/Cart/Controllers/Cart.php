@@ -30,6 +30,15 @@ final class Cart extends BaseController
         ], 'MCMS\\Modules\\Cart\\Views\\public_index');
     }
 
+    public function fragment(): ResponseInterface
+    {
+        $cart = $this->cart()->snapshot();
+        return $this->response
+            ->setHeader('Content-Type', 'text/html; charset=UTF-8')
+            ->setHeader('Cache-Control', 'no-store, private')
+            ->setBody(view('MCMS\\Modules\\Cart\\Views\\_modal', ['cart' => $cart]));
+    }
+
     public function add(): RedirectResponse|ResponseInterface
     {
         try {

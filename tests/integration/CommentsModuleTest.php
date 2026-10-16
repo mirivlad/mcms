@@ -22,6 +22,7 @@ final class CommentsModuleTest extends CIUnitTestCase
         foreach (['Comments', 'Pages', 'Media', 'Captcha'] as $module) {
             $this->migrations->setNamespace('MCMS\Modules\\' . $module)->regress(0, 'tests');
         }
+        \Config\Services::resetSingle('mcmsModuleServices');
         parent::tearDown();
     }
 
@@ -42,7 +43,7 @@ final class CommentsModuleTest extends CIUnitTestCase
         ]);
         $repo = $services->get('comments.repository');
         self::assertInstanceOf(CommentsInterface::class, $repo);
-        return [$manager, $repo, (string) $page['id']];
+        return [$manager, $repo, (string) $page['id'], $services];
     }
 
     public function testPublishedResourcesModerationRepliesReportsAndDeletion(): void
@@ -96,6 +97,19 @@ final class CommentsModuleTest extends CIUnitTestCase
             self::fail('Reply to pending comment accepted');
         } catch (InvalidArgumentException) {
         }
+    }
+
+    public function testViewingCommentFormDoesNotGenerateCaptcha(): void
+    {
+        [, , $pageId, $services] = $this->ready();
+        \Config\Services::injectMock('mcmsModuleServices', $services);
+        session()->remove('captcha_prompt');
+        $html = view('MCMS\\Modules\\Comments\\Views\\widget', [
+            'targetType' => 'pages.page', 'targetId' => $pageId,
+        ]);
+        self::assertStringContainsString('data-captcha-guard="comments.create"', $html);
+        self::assertStringNotContainsString('name="captcha_token"', $html);
+        self::assertSame(0, $this->db->table('captcha_challenges')->countAllResults());
     }
 
     public function testCaptchaDependencyCannotBeDisabledWhileCommentsEnabled(): void

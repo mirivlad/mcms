@@ -18,7 +18,14 @@ Session-scoped customer cart built on Catalogue variants and current Stock avail
 
 ## Public UI
 
-The Cart module provides `/cart` and a theme template named `cart.index`. Catalogue
+The Cart module provides `/cart` and a theme template named `cart.index`.
+On supported theme pages, cart links open a responsive modal with the cart items via
+`GET /cart/fragment`. Quantity changes, removal and clearing use AJAX; an empty cart
+can be displayed in the modal without reloading the page. Checkout stays on the
+separate existing `/cart#checkout` page. The normal `/cart` view remains available
+for direct links and no-JavaScript fallback.
+
+Catalogue
 detects Cart only when the service is enabled and then adds add-to-cart controls to
 product cards/detail pages plus a cart count on shop pages.
 

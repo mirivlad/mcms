@@ -10,6 +10,14 @@ use MCMS\Modules\Captcha\Api\CaptchaInterface;
 
 final class Image extends BaseController
 {
+    public function script(): ResponseInterface
+    {
+        return $this->response
+            ->setHeader('Content-Type', 'text/javascript; charset=UTF-8')
+            ->setHeader('Cache-Control', 'public, max-age=300')
+            ->setBody(file_get_contents(dirname(__DIR__) . '/assets/guard.js'));
+    }
+
     public function show(string $token): ResponseInterface
     {
         $this->response->setHeader('Cache-Control', 'no-store, private')

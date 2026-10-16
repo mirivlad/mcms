@@ -11,6 +11,7 @@ return [
     ],
     'Public' => [
         'title' => 'Rating', 'average' => 'Average', 'votes' => 'votes',
+        'pendingRating' => 'Selected rating',
         'myRating' => 'Your rating', 'submit' => 'Set rating',
         'login' => 'Sign in to rate this content.',
         'saved' => 'Rating saved.', 'invalid' => 'Unable to save rating.',

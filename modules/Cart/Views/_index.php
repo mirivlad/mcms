@@ -129,7 +129,7 @@ if (auth()->loggedIn()) {
                 }
             }
             ?>
-            <section class="mcms-cart-checkout">
+            <section class="mcms-cart-checkout" id="checkout">
                 <h2><?= esc(lang('Orders.checkoutTitle')) ?></h2>
                 <p class="mcms-cart-checkout-note"><?= esc(lang('Orders.reserveAtCheckout')) ?></p>
                 <form method="post" action="<?= site_url('order/checkout') ?>" data-checkout-form>

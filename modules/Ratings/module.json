@@ -1,7 +1,7 @@
 {
   "id": "ratings",
   "name": "@Ratings.Admin.title",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "namespace": "MCMS\\Modules\\Ratings",
   "provider": "MCMS\\Modules\\Ratings\\Module",
   "mcms": "^0.1.7",

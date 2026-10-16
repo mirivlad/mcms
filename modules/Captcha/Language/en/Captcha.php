@@ -5,6 +5,8 @@ return [
     'Purposes' => ['auth_register' => 'Registration', 'feedback_contact' => 'Contact form', 'comments_create' => 'Comments', 'ratings_vote' => 'Ratings'],
     'Settings' => ['permission' => 'Manage CAPTCHA policies and statistics', 'difficulty' => 'Difficulty', 'easy' => 'Easy', 'standard' => 'Standard', 'hard' => 'Hard', 'ttl' => 'Token lifetime (seconds)', 'session_limit' => 'Challenges per session per minute', 'ip_limit' => 'Challenges per IP per minute', 'verify_limit' => 'Verification attempts per IP/session per minute', 'off' => 'Disabled', 'guests' => 'Guests only', 'all' => 'Everyone', 'saved' => 'CAPTCHA settings saved.', 'invalid' => 'Check CAPTCHA limits, difficulty and form policies.', 'statistics' => 'Checks in the last 7 days', 'form' => 'Form', 'issued' => 'Issued', 'passed' => 'Passed', 'failed' => 'Failed', 'expired' => 'Expired', 'limited' => 'Limited'],
     'Public' => [
+        'confirmSend' => 'Verify and send',
+        'confirmRating' => 'Verify and rate',
         'verification' => 'Verification',
         'addition' => 'What is {0} plus {1}?',
         'subtraction' => 'What is {0} minus {1}?',
@@ -14,6 +16,7 @@ return [
         'question' => 'How many {1} {0} shapes are in the picture?',
         'answer' => 'Answer (whole number)',
         'newChallenge' => 'Get a new challenge',
+        'required' => 'Please complete the verification to submit.',
         'invalid' => 'Incorrect challenge answer. Please try again.',
         'unavailable' => 'Challenge is temporarily unavailable. Try later.',
     ],

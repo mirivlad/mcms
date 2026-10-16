@@ -13,9 +13,14 @@ $ratingChallenge = null;
 $ratingCaptchaUnavailable = false;
 $ratingCaptcha = service('mcmsModuleServices')->get('captcha.verifier');
 $ratingCaptchaRequired = ($ratingUser !== null || $ratingGuestAllowed) && (method_exists($ratingCaptcha, 'required') ? $ratingCaptcha->required('ratings.vote', $ratingUser !== null) : $ratingUser === null);
-if ($ratingCaptchaRequired) {
+$ratingPrompt = session()->getFlashdata('captcha_prompt');
+$ratingShouldIssue = $ratingCaptchaRequired && is_array($ratingPrompt)
+    && ($ratingPrompt['purpose'] ?? '') === 'ratings.vote'
+    && ($ratingPrompt['type'] ?? '') === (string) $targetType
+    && ($ratingPrompt['id'] ?? '') === (string) $targetId;
+if ($ratingShouldIssue) {
     try {
-        $ratingChallenge = service('mcmsModuleServices')->get('captcha.verifier')->issue('ratings.vote', session_id());
+        $ratingChallenge = $ratingCaptcha->issue('ratings.vote', session_id());
     } catch (RuntimeException) {
         $ratingCaptchaUnavailable = true;
     }
@@ -44,16 +49,27 @@ if ($ratingCaptchaRequired) {
         <div class="alert alert-danger" role="alert"><?= esc($error) ?></div>
     <?php endif ?>
     <?php if ($ratingUser !== null || $ratingGuestAllowed): ?>
-        <form method="post" action="<?= site_url('ratings/vote') ?>">
+        <form method="post" action="<?= site_url('ratings/vote') ?>"
+            data-captcha-guard="ratings.vote"
+            data-captcha-required="<?= $ratingCaptchaRequired ? '1' : '0' ?>"
+            data-captcha-endpoint="<?= esc(site_url('captcha/challenge'), 'attr') ?>"
+            data-captcha-csrf-name="<?= esc(csrf_token(), 'attr') ?>"
+            data-captcha-confirm="<?= esc(lang('Captcha.Public.confirmRating'), 'attr') ?>"
+            data-captcha-error="<?= esc(lang('Captcha.Public.unavailable'), 'attr') ?>">
             <?= csrf_field() ?>
             <input type="hidden" name="target_type" value="<?= esc($targetType, 'attr') ?>">
             <input type="hidden" name="target_id" value="<?= esc($targetId, 'attr') ?>">
+            <?php if (($pendingStars = (int) session()->getFlashdata('rating_pending_stars')) >= 1 && $pendingStars <= 5): ?>
+                <p class="mb-2"><?= esc(lang('Ratings.Public.pendingRating')) ?>: <?= $pendingStars ?> / 5</p>
+            <?php endif ?>
             <?php if ($myRating !== null): ?>
                 <p class="mb-1"><?= esc(lang('Ratings.Public.myRating')) ?>: <?= (int) $myRating ?> / 5</p>
             <?php endif ?>
-            <?php if ($ratingChallenge !== null): ?>
-                <?= view('MCMS\\Modules\\Captcha\\Views\\widget', ['challenge' => $ratingChallenge]) ?>
-            <?php endif ?>
+            <div data-captcha-slot>
+                <?php if ($ratingChallenge !== null): ?>
+                    <?= view('MCMS\\Modules\\Captcha\\Views\\widget', ['challenge' => $ratingChallenge]) ?>
+                <?php endif ?>
+            </div>
             <?php if ($ratingCaptchaUnavailable): ?>
                 <div class="alert alert-warning"><?= esc(lang('Ratings.Public.captchaUnavailable')) ?></div>
             <?php endif ?>
@@ -61,7 +77,7 @@ if ($ratingCaptchaRequired) {
                 <?php for ($score = 1; $score <= 5; $score++): ?>
                     <button type="submit" class="btn btn-sm btn-outline-secondary"
                         name="stars" value="<?= $score ?>"
-                        <?= $ratingCaptchaRequired && $ratingChallenge === null ? 'disabled' : '' ?>
+                        <?= $ratingCaptchaRequired && $ratingChallenge === null && $ratingCaptchaUnavailable ? 'disabled' : '' ?>
                         aria-label="<?= $score ?> / 5" title="<?= $score ?> / 5"
                         style="font-size:1.35rem;color:<?= $myRating !== null && $score <= $myRating ? '#c58b1a' : 'inherit' ?>">
                         ★

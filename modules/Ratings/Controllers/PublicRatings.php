@@ -40,7 +40,10 @@ final class PublicRatings extends BaseController
                 (string) $this->request->getPost('captcha_token'),
                 (string) $this->request->getPost('captcha_answer'),
         )) {
-            return redirect()->to($returnTo)->with('ratings_error', lang('Captcha.Public.invalid'));
+            return redirect()->to($returnTo)
+                ->with('captcha_prompt', ['purpose' => 'ratings.vote', 'type' => $type, 'id' => $id])
+                ->with('rating_pending_stars', (int) $this->request->getPost('stars'))
+                ->with('ratings_error', lang((string) $this->request->getPost('captcha_token') === '' ? 'Captcha.Public.required' : 'Captcha.Public.invalid'));
         }
         $rating = (string) $this->request->getPost('stars');
         try {

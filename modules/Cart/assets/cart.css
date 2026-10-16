@@ -68,3 +68,14 @@
 .mcms-checkout-totals dt,.mcms-checkout-totals dd{margin:0}
 .mcms-checkout-total{font-size:1.1rem;font-weight:700;padding-top:.45rem;border-top:1px solid rgba(127,127,127,.18)}
 @media(max-width:700px){.mcms-delivery-option-body{gap:.5rem}.mcms-checkout-totals{max-width:none}}
+
+/* Theme-independent cart dialog; checkout remains a separate page. */
+.mcms-cart-dialog{width:min(960px,calc(100vw - 2rem));max-width:none;max-height:min(90vh,100dvh - 2rem);padding:0;border:0;border-radius:1rem;background:var(--bs-body-bg,#fff);color:var(--bs-body-color,#222);box-shadow:0 20px 80px rgba(0,0,0,.3)}
+.mcms-cart-dialog::backdrop{background:rgba(0,0,0,.55)}
+.mcms-cart-modal-inner{padding:1.25rem;overflow-y:auto;max-height:calc(100dvh - 2rem)}
+.mcms-cart-modal-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}
+.mcms-cart-modal-header h2{margin:0;font-size:1.5rem}
+.mcms-cart-modal-close{display:grid;place-items:center;width:2.3rem;height:2.3rem;font-size:1.6rem;border:1px solid rgba(127,127,127,.4);border-radius:.5rem;background:transparent;color:inherit;cursor:pointer}
+.mcms-cart-dialog .mcms-cart-empty{border:0}
+.mcms-cart-dialog .mcms-cart-actions{justify-content:space-between}
+@media(max-width:700px){.mcms-cart-dialog{width:100vw;height:100dvh;max-height:none;max-width:none;border-radius:0;margin:0}.mcms-cart-modal-inner{max-height:100dvh;padding:1rem}.mcms-cart-dialog .mcms-cart-actions{flex-direction:column-reverse;align-items:stretch}.mcms-cart-dialog .mcms-cart-actions>a,.mcms-cart-dialog .mcms-cart-actions form,.mcms-cart-dialog .mcms-cart-actions button{width:100%}}

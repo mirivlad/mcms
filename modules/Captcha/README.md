@@ -67,3 +67,14 @@ inspection. The UI shows seven days; aggregate rows are pruned after 90 days.
 Arithmetic and visual puzzles are solvable by automation. This accessible first-party
 check is an abuse-friction layer alongside CSRF, moderation and submission throttles,
 not proof of human identity. It does not require external cloud services.
+
+## Deferred challenges for Comments and Ratings
+
+The public Comments and Ratings widgets do not issue a token while rendering a page.
+When a visitor first attempts to submit a protected form, the shared guard script
+requests a fresh single-use challenge through `POST /captcha/challenge`. The endpoint
+verifies the target and policy, applies the existing issuance limits, and renders
+only the form challenge. Server-side `verify()` remains mandatory on final submission.
+If JavaScript is disabled, the first POST redirects back with the same typed comment
+or selected rating and triggers challenge issuance on that next GET. Wrong and expired
+answers trigger a fresh challenge instead of accepting the unverified submission.
