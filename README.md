@@ -40,6 +40,10 @@ of Core. Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Cat
 A module owns its schema, settings, permissions, routes and admin contributions.
 Disabling a module preserves its data.
 
+[Analytics](modules/Analytics/README.md) adds built-in traffic tracking with daily
+charts, visitors, visits, popular pages, referral sources and device statistics.
+It is optional, stores data locally for 90 days and needs no external service.
+
 See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Development status

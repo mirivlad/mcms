@@ -544,6 +544,9 @@ jobs:
       - name: Verify order reports and CSV export permissions
         run: python3 .github/scripts/orders-reports-smoke.py --cookies /tmp/mcms.cookies
 
+      - name: Verify built-in traffic analytics
+        run: python3 .github/scripts/analytics-smoke.py --cookies /tmp/mcms.cookies
+
       - name: Verify module package review, access and installation
         run: python3 .github/scripts/module-packages-smoke.py --cookies /tmp/mcms.cookies
 

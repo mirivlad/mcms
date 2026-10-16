@@ -1,0 +1,17 @@
+{
+  "id": "analytics",
+  "name": "@Analytics.title",
+  "version": "0.1.0",
+  "namespace": "MCMS\\Modules\\Analytics",
+  "provider": "MCMS\\Modules\\Analytics\\Module",
+  "mcms": "^0.1.8",
+  "description": "@Analytics.description",
+  "requires": [],
+  "settings": {},
+  "permissions": {
+    "analytics.view": "@Analytics.permission"
+  },
+  "grants": {
+    "admin": ["analytics.view"]
+  }
+}
