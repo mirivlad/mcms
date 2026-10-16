@@ -11,6 +11,33 @@ All timestamps and date boundaries use UTC. No external scripts or chart librari
 are loaded. Period totals deduplicate visitors and visits across days, rather
 than summing daily unique counts.
 
+## Reports (0.2.0)
+
+- Compare against the immediately preceding period of equal calendar-day length.
+  Both periods share the selected filters. Percentage changes have no numeric
+  value when the baseline is zero and the current value is nonzero. Comparison
+  is unavailable if any part of the preceding period is outside retention;
+  expired history is never represented as zero traffic. A current day may still
+  be incomplete, and missing recorded traffic does not establish site inactivity.
+- Filter by initial referral hostname (including direct traffic), initial device
+  and a path section. `/news` includes `/news` and `/news/...`, but not
+  `/newsletter`; `%` and `_` are literal characters. Filters apply to totals,
+  tables, both chart periods and page details.
+- Switch between daily chronology and the 24 hours of day. Hourly values combine
+  matching UTC hours across the entire selected period. Visitors and visits are
+  distinct within each bucket; bucket unique counts must not be added together.
+- Open a page from the popular pages table for its own chart, sources, devices,
+  entrances and exits. Titles come from currently public navigation providers;
+  removed/unavailable resources fall back to their saved URL path. Titles are
+  current, not historical snapshots. Entrances/exits use the earliest/latest
+  retained view of the entire visit (time, then ID), before filtering by page or
+  date. Active visits may continue. The first page remaining after retention
+  cleanup is the first observable page. Repeated views of a page still count as
+  views; page-level depth means views of that page per matching visit.
+
+This version uses the existing schema and collection flow. It adds no UTM,
+conversion events, browser tracker, long-term aggregates or new retention policy.
+
 ## Collection and identifiers
 
 An enabled module registers an HTTP after-filter. It counts successful GET HTML

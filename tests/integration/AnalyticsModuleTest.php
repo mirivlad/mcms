@@ -198,6 +198,115 @@ final class AnalyticsModuleTest extends CIUnitTestCase
         self::assertSame(0, $this->db->table('analytics_pageviews')->countAllResults());
     }
 
+    public function testComparisonUsesEqualLengthPeriodsAndHandlesZeroBaselineAndExpiredHistory(): void
+    {
+        $today = strtotime(gmdate('Y-m-d') . ' 00:00:00 UTC');
+        $this->record('a', 'b', '/', $today - 3 * 86400);
+        $this->record('c', 'd', '/', $today - 86400);
+        $this->record('c', 'd', '/news', $today - 86400 + 60);
+        $result = $this->analytics->report(gmdate('Y-m-d', $today - 86400), gmdate('Y-m-d'), compare: true);
+        self::assertSame(gmdate('Y-m-d', $today - 3 * 86400), $result['comparison']['from']);
+        self::assertSame(gmdate('Y-m-d', $today - 2 * 86400), $result['comparison']['to']);
+        self::assertSame(['views' => 1, 'visits' => 1, 'visitors' => 1], $result['comparison']['totals']);
+        self::assertSame(['views' => 100.0, 'visits' => 0.0, 'visitors' => 0.0, 'depth' => 100.0], $result['comparison']['changes']);
+        $zero = $this->analytics->report(gmdate('Y-m-d', $today - 3 * 86400), gmdate('Y-m-d', $today - 3 * 86400), compare: true);
+        self::assertNull($zero['comparison']['changes']['views']);
+        $empty = $this->analytics->report(gmdate('Y-m-d', $today - 8 * 86400), gmdate('Y-m-d', $today - 8 * 86400), compare: true);
+        self::assertSame(0.0, $empty['comparison']['changes']['views']);
+        $expired = $this->analytics->report(gmdate('Y-m-d', $today - 89 * 86400), gmdate('Y-m-d'), compare: true);
+        self::assertFalse($expired['comparison']['available']);
+        self::assertArrayNotHasKey('totals', $expired['comparison']);
+    }
+
+    public function testFiltersApplyTogetherToCurrentComparisonAndHourlyReports(): void
+    {
+        $today = strtotime(gmdate('Y-m-d') . ' 00:00:00 UTC');
+        foreach ([$today - 86400, $today] as $day) {
+            $visit = $day === $today ? 'b' : 'c';
+            $this->record('a', $visit, '/news/item', $day + 3660, 'search.example', 'mobile');
+            $this->record('a', $visit, '/newsletter', $day + 3720, 'search.example', 'mobile');
+        }
+        $this->record('d', 'e', '/news/item', $today + 3660, 'search.example');
+        $this->record('f', 'a', '/news/item', $today + 3660, '', 'mobile');
+        $result = $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), 'search.example', 'mobile', '/news', group: 'hour', compare: true);
+        self::assertSame(['views' => 1, 'visits' => 1, 'visitors' => 1], $result['totals']);
+        self::assertSame($result['totals'], $result['comparison']['totals']);
+        self::assertSame(1, $result['hourly'][1]['views']);
+        self::assertSame(1, array_sum(array_column($result['hourly'], 'views')));
+        self::assertSame('/news/item', $result['pages'][0]['path']);
+        self::assertSame(['mobile'], array_column($result['devices'], 'device'));
+        self::assertSame(['search.example'], array_column($result['sources'], 'source'));
+        self::assertSame(1, $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), '@direct')['totals']['views']);
+        $this->record('b', 'c', '/news_%/item', $today + 7200);
+        self::assertSame(1, $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), prefix: '/news_%')['totals']['views']);
+        self::assertSame(0, $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), prefix: '/news', path: '/newsletter')['totals']['views']);
+    }
+
+    public function testHourlyBucketsUseUtcAndDeduplicateAcrossDays(): void
+    {
+        $today = strtotime(gmdate('Y-m-d') . ' 00:00:00 UTC');
+        $this->record('a', 'b', '/', $today - 86400);
+        $this->record('a', 'c', '/', $today + 3599);
+        $this->record('a', 'c', '/', $today + 3600);
+        $this->record('d', 'e', '/', $today + 60);
+        $result = $this->analytics->report(gmdate('Y-m-d', $today - 86400), gmdate('Y-m-d'));
+        self::assertCount(24, $result['hourly']);
+        self::assertSame(['hour' => '00:00', 'views' => 3, 'visits' => 3, 'visitors' => 2], $result['hourly'][0]);
+        self::assertSame(1, $result['hourly'][1]['views']);
+        self::assertSame(0, $result['hourly'][23]['views']);
+        self::assertSame(3, $result['totals']['visits']);
+    }
+
+    public function testPageDetailsFindVisitBoundariesBeforeApplyingDateAndPathFilters(): void
+    {
+        $today = strtotime(gmdate('Y-m-d') . ' 00:00:00 UTC');
+        $this->record('a', 'b', '/', $today - 60);
+        $this->record('a', 'b', '/news/story', $today);
+        $this->record('a', 'b', '/finish', $today + 60);
+        $this->record('c', 'd', '/news/story', $today + 60);
+        $this->record('c', 'd', '/finish', $today + 60);
+        $this->record('e', 'f', '/', $today + 60);
+        $this->record('e', 'f', '/news/story', $today + 120);
+        $this->record('e', 'f', '/news/story', $today + 180);
+        $result = $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), path: '/news/story');
+        self::assertSame(['views' => 4, 'visits' => 3, 'visitors' => 3], $result['totals']);
+        self::assertSame(1, $result['page']['entrances']);
+        self::assertSame(1, $result['page']['exits']);
+        self::assertSame('/news/story', $result['page']['path']);
+        self::assertNull($this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'))['page']);
+    }
+
+    public function testPageTitlesUseOnlyPublicNavigationProvidersAndFallBackToPaths(): void
+    {
+        $navigation = new \MCMS\Core\Navigation\NavigableResourceRegistry();
+        $provider = $this->createMock(\MCMS\Core\Navigation\PublicResourceProviderInterface::class);
+        $provider->method('id')->willReturn('example.page');
+        $provider->expects(self::never())->method('resources');
+        $provider->method('resolveUrl')->willReturnCallback(static fn (string $path): ?array => $path === '/public'
+            ? ['id' => '1', 'label' => 'Public title', 'url' => '/public'] : null);
+        $navigation->register($provider);
+        $analytics = new Analytics($this->db, $navigation);
+        $this->record('a', 'b', '/public', time());
+        $this->record('a', 'b', '/removed', time());
+        $result = $analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), path: '/public');
+        self::assertSame('Public title', $result['page']['title']);
+        self::assertSame('Public title', $result['pages'][0]['title']);
+        self::assertSame('/removed', $analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), path: '/removed')['page']['title']);
+    }
+
+    public function testInvalidSegmentsAreRejected(): void
+    {
+        foreach ([['device' => 'watch'], ['source' => '<script>'], ['prefix' => 'https://example.com/'],
+            ['path' => "/secret\0"], ['path' => '/?token=secret'], ['group' => 'minute']] as $filters) {
+            try {
+                $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'), ...$filters);
+                self::fail('Invalid segment accepted');
+            } catch (InvalidArgumentException) {
+                self::assertTrue(true);
+            }
+        }
+    }
+
     private function request(string $path): IncomingRequest
     {
         $request = new IncomingRequest(config('App'), new URI('http://example.com' . $path), null, new UserAgent());
