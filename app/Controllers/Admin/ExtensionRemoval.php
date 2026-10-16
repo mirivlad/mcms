@@ -19,8 +19,11 @@ final class ExtensionRemoval extends BaseAdminController
             $removal = service('mcmsExtensionRemoval');
             $preview = $removal->preview($type, $id);
             if (strtolower($this->request->getMethod()) === 'post') {
-                if ($this->request->getPost('confirm') !== $id || ! in_array($this->request->getPost('mode'), ['keep', 'purge'], true)) {
+                if (! in_array($this->request->getPost('mode'), ['keep', 'purge'], true)) {
                     throw new RuntimeException(lang('Extensions.confirmRequired'));
+                }
+                if ($this->request->getPost('backup') !== '1') {
+                    throw new RuntimeException(lang('Extensions.backupRequired'));
                 }
                 $removal->remove($type, $id, $this->request->getPost('mode') === 'purge',
                     (string) $this->request->getPost('fingerprint'), $this->request->getPost('backup') === '1');

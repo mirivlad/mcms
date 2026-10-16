@@ -23,13 +23,27 @@
 </form>
 <div class="row row-cards">
 <?php foreach ($entries as $entry): ?>
-    <div class="col-md-6 col-xl-4"><div class="card h-100">
+    <div class="col-md-6 col-xl-4"><div class="card h-100" data-catalog-id="<?= esc($entry['id'], 'attr') ?>">
     <?php if ($entry['screenshots'] !== []): ?><img class="card-img-top" src="<?= esc($entry['screenshots'][0], 'attr') ?>" alt="<?= esc($entry['name'], 'attr') ?>" loading="lazy" style="aspect-ratio:16/10;object-fit:cover"><?php endif ?>
-    <div class="card-body d-flex flex-column"><h3 class="card-title"><a href="<?= site_url('admin/extensions/' . rawurlencode($entry['id'])) ?>"><?= esc($entry['name']) ?></a></h3>
+    <div class="card-body d-flex flex-column text-break"><h3 class="card-title"><a href="<?= site_url('admin/extensions/' . rawurlencode($entry['id'])) ?>"><?= esc($entry['name']) ?></a></h3>
     <p class="text-secondary"><?= esc($entry['description']) ?></p>
+    <p class="small text-secondary"><?= esc($entry['author']) ?> · <?= esc($entry['license']) ?> · <a href="<?= esc($entry['project'], 'attr') ?>" target="_blank" rel="noopener noreferrer"><?= esc(lang('Catalog.source')) ?></a></p>
+    <?php if ($entry['tags'] !== []): ?><div class="d-flex gap-1 flex-wrap mb-3"><?php foreach ($entry['tags'] as $entryTag): ?><span class="badge bg-secondary-lt"><?= esc($entryTag) ?></span><?php endforeach ?></div><?php endif ?>
     <div class="mb-2"><span class="badge <?= $entry['update'] ? 'bg-warning-lt' : 'bg-secondary-lt' ?>"><?= esc(lang('Catalog.state_' . $entry['state'])) ?></span></div>
     <div class="small mb-3"><?= esc(lang('Catalog.current')) ?>: <?= esc($entry['installed'] ?? '—') ?> · <?= esc(lang('Catalog.available')) ?>: <?= esc($entry['available']['version'] ?? $entry['version']) ?></div>
-    <a class="btn btn-outline-primary mt-auto" href="<?= site_url('admin/extensions/' . rawurlencode($entry['id'])) ?>"><?= esc(lang('Catalog.details')) ?></a>
+    <?php if ($entry['available'] !== null): ?>
+    <div class="small text-secondary mb-3">mCMS <?= esc($entry['available']['mcms']) ?><?php if ($entry['available']['requires'] !== []): ?> · <?= esc(lang('MCMS.modules.dependencies')) ?>: <?= esc(implode(', ', array_map(static fn ($dep) => is_array($dep) ? $dep['id'] . ' ' . ($dep['version'] ?? '*') : $dep, $entry['available']['requires']))) ?><?php endif ?></div>
+    <?php else: ?><div class="alert alert-warning"><?= esc(lang('Catalog.incompatible')) ?>: <?= esc($entry['reason']) ?></div><?php endif ?>
+    <?php if ($entry['type'] === 'module' && $entry['enabled'] && $entry['update']): ?><p class="small text-secondary"><?= esc(lang('Catalog.disableFirst')) ?></p><?php endif ?>
+    <div class="d-flex gap-2 flex-wrap mt-auto">
+        <a class="btn btn-outline-primary" href="<?= site_url('admin/extensions/' . rawurlencode($entry['id'])) ?>"><?= esc(lang('Catalog.details')) ?></a>
+        <?php if ($entry['available'] !== null && ($entry['installed'] === null || $entry['update'])): ?>
+        <form class="mw-100" method="post" action="<?= site_url('admin/extensions/' . rawurlencode($entry['id']) . '/prepare') ?>"><?= csrf_field() ?><input type="hidden" name="version" value="<?= esc($entry['available']['version'], 'attr') ?>"><button type="submit" class="btn btn-primary text-wrap" <?= $entry['type'] === 'module' && $entry['enabled'] ? 'disabled' : '' ?>><?= esc(lang('Catalog.' . ($entry['installed'] !== null ? 'update' : ($entry['retained'] ? 'restore' : 'install')))) ?></button></form>
+        <?php endif ?>
+        <?php if ($entry['installed'] !== null): ?>
+        <a class="btn btn-outline-danger" href="<?= site_url('admin/extensions/' . $entry['type'] . '/' . rawurlencode($entry['id']) . '/remove') ?>"><?= esc(lang('Extensions.remove')) ?></a>
+        <?php endif ?>
+    </div>
     </div></div></div>
 <?php endforeach ?>
 <?php if ($entries === []): ?><div class="col-12"><div class="card"><div class="card-body"><?= esc(lang('Catalog.empty')) ?></div></div></div><?php endif ?>

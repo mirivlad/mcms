@@ -5,8 +5,10 @@ PHP code, not a sandbox. Built-in modules/themes cannot be removed.
 
 ## Removal and reinstallation
 
-Use the Remove action in Modules or Themes. The confirmation page lists code,
-owned tables, settings, scoped files and rollback history. Type the package ID.
+Use the Remove action in the extension catalog, Modules or Themes. The confirmation
+page lists code, owned tables, settings, scoped files and rollback history. Choose
+the removal mode and check the backup acknowledgement; typing the package ID is
+not required. Both modes require backup acknowledgement in the administration UI.
 
 - **Keep data** disables a module, removes code and keeps its registry version,
   schema version, settings, scoped files, migration history and update snapshots.
@@ -114,6 +116,12 @@ This avoids large binaries in Git history; it does not change the installer.
 Project/source links can point to another HTTPS site; the server does not fetch
 them. Screenshots stay in the extension's own `catalog/.../screenshots/` folder.
 The current catalog includes Atelier 1.1.1/1.1.2 and Lifecycle demo 1.0.0.
+
+Catalog cards show the author, license, categories, installed/available versions
+and compatible Core/module requirements. Details, install, update and removal
+actions are available directly in the list when applicable. Install/update still
+opens the standard package review; an enabled module must be disabled before its
+update can be prepared.
 
 ## Publication through a pull request
 

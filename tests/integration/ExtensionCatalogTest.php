@@ -125,14 +125,20 @@ PHP);
         $this->catalog->refresh(true);
     }
 
-    public function testThemePreviewRendersThroughExistingFormAndPermissionsGuardDownloads(): void
+    private function catalogOwner(): \CodeIgniter\Shield\Entities\User
     {
         foreach (['mcmsExtensionCatalog' => $this->catalog, 'mcmsModules' => $this->modules,
             'mcmsThemes' => $this->themes, 'mcmsModuleRuntime' => $this->runtime,
-            'mcmsModulePackages' => $this->modulePackages, 'mcmsThemePackages' => $this->themePackages] as $name => $service) {
+            'mcmsModulePackages' => $this->modulePackages, 'mcmsThemePackages' => $this->themePackages,
+            'mcmsExtensionRemoval' => $this->removal()] as $name => $service) {
             \Config\Services::injectMock($name, $service);
         }
-        $owner = service('mcmsInstaller')->createSuperadmin('catalog-owner@example.test', 'catalog.owner', 'Catalog-Owner-2026!', locale: 'en');
+        return service('mcmsInstaller')->createSuperadmin('catalog-owner@example.test', 'catalog.owner', 'Catalog-Owner-2026!', locale: 'en');
+    }
+
+    public function testThemePreviewRendersThroughExistingFormAndPermissionsGuardDownloads(): void
+    {
+        $owner = $this->catalogOwner();
         $this->catalog->refresh();
         csrf_hash();
         $this->actingAs($owner)->withSession()->post('/admin/extensions/mcms-atelier/prepare', ['version' => '1.1.1', csrf_token() => csrf_hash()])->assertRedirect();
@@ -156,6 +162,83 @@ PHP);
         $this->actingAs($viewer)->withSession()->get('/admin/extensions?type=module')->assertOK();
         $this->withSession()->post('/admin/extensions/lifecycle-demo/prepare', ['version' => '1.0.0', csrf_token() => csrf_hash()])->assertRedirect();
         self::assertSame($requests, $this->requests);
+    }
+
+    public function testCatalogCardsExposeDetailsAndApplicablePackageActions(): void
+    {
+        $this->publishNewModule();
+        $this->actingAs($this->catalogOwner());
+        foreach (['module' => ['lifecycle-demo', '1.0.0'], 'theme' => ['mcms-atelier', '1.1.1']] as $type => [$id, $version]) {
+            $response = $this->withSession()->get('/admin/extensions?type=' . $type);
+            $response->assertOK();
+            $body = $response->response()->getBody();
+            self::assertStringContainsString(site_url('admin/extensions/' . $id), $body);
+            self::assertStringContainsString(site_url('admin/extensions/' . $id . '/prepare'), $body);
+            self::assertStringContainsString('>' . lang('Catalog.install') . '</button>', $body);
+            self::assertStringContainsString($this->catalog->entries()[$id]['author'], $body);
+            self::assertStringContainsString('MIT', $body);
+            self::assertStringNotContainsString('admin/extensions/' . $type . '/' . $id . '/remove', $body);
+            $preview = $this->catalog->prepare($id, $version);
+            ($type === 'module' ? $this->modulePackages : $this->themePackages)->install($preview['token'], $preview['sha256']);
+            $response = $this->withSession()->get('/admin/extensions?type=' . $type);
+            $response->assertOK();
+            $body = $response->response()->getBody();
+            self::assertStringContainsString('>' . lang('Catalog.update') . '</button>', $body);
+            self::assertStringContainsString(site_url('admin/extensions/' . $type . '/' . $id . '/remove'), $body);
+            self::assertStringContainsString('name="version" value="' . $this->catalog->entries()[$id]['available']['version'] . '"', $body);
+        }
+        $this->modules->enable('lifecycle-demo');
+        $body = $this->withSession()->get('/admin/extensions?type=module')->response()->getBody();
+        self::assertStringContainsString(lang('Catalog.disableFirst'), $body);
+        self::assertMatchesRegularExpression('/<button[^>]+disabled[^>]*>' . preg_quote(lang('Catalog.update'), '/') . '<\/button>/', $body);
+
+        $cache = $this->catalog->cache();
+        foreach ($cache['extensions'] as &$entry) {
+            if ($entry['id'] === 'lifecycle-demo') {
+                foreach ($entry['versions'] as &$release) {
+                    $release['mcms'] = '^99.0';
+                }
+                unset($release);
+            }
+        }
+        unset($entry);
+        PackageState::write($this->dir . '/modules-data/catalog/cache.json', $cache);
+        $body = $this->withSession()->get('/admin/extensions?type=module')->response()->getBody();
+        self::assertStringContainsString(lang('Catalog.incompatible'), $body);
+        self::assertStringNotContainsString(site_url('admin/extensions/lifecycle-demo/prepare'), $body);
+    }
+
+    public function testRemovalFormsRequireOnlyBackupAcknowledgementAndMode(): void
+    {
+        $this->actingAs($this->catalogOwner());
+        $this->catalog->refresh();
+        foreach (['module' => 'lifecycle-demo', 'theme' => 'mcms-atelier'] as $type => $id) {
+            foreach (['keep', 'purge'] as $mode) {
+                $preview = $this->catalog->prepare($id, $type === 'module' ? '1.0.0' : '1.1.2');
+                ($type === 'module' ? $this->modulePackages : $this->themePackages)->install($preview['token'], $preview['sha256']);
+                if ($type === 'module') {
+                    $this->modules->enable($id);
+                }
+                $path = '/admin/extensions/' . $type . '/' . $id . '/remove';
+                $response = $this->withSession()->get($path);
+                $response->assertOK();
+                $body = $response->response()->getBody();
+                self::assertStringNotContainsString('name="confirm"', $body);
+                self::assertMatchesRegularExpression('/<input[^>]+name="backup"[^>]+required/', $body);
+                $preview = $this->removal()->preview($type, $id);
+                $fields = ['mode' => $mode, 'fingerprint' => $preview['fingerprint']];
+                $this->withSession()->post($path, [...$fields, csrf_token() => csrf_hash()])->assertRedirect();
+                self::assertSame(lang('Extensions.backupRequired'), session()->getFlashdata('error'));
+                self::assertDirectoryExists($preview['manifest']->path);
+                $this->withSession()->post($path, [...$fields, 'mode' => 'invalid', 'backup' => '1', csrf_token() => csrf_hash()])->assertRedirect();
+                self::assertSame(lang('Extensions.confirmRequired'), session()->getFlashdata('error'));
+                self::assertDirectoryExists($preview['manifest']->path);
+                $this->withSession()->post($path, [...$fields, 'backup' => '1', csrf_token() => csrf_hash()])
+                    ->assertRedirectTo('/admin/' . $type . 's');
+                self::assertDirectoryDoesNotExist($preview['manifest']->path);
+                self::assertSame($mode === 'keep' ? 'retained' : 'available', $this->catalog->entries()[$id]['state']);
+            }
+        }
     }
 
     public function testRepositoryCatalogValidatorAndIndexAgree(): void
