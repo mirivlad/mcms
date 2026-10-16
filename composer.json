@@ -2,6 +2,7 @@
   "name": "mirivlad/mcms",
   "description": "Self-hosted CMS and e-commerce engine based on CodeIgniter 4",
   "type": "project",
+  "license": "MIT",
   "require": {
     "php": "^8.2",
     "ext-zip": "*",

@@ -124,3 +124,12 @@ Run `python3 .github/scripts/verify-deployment.py` to build an isolated test sit
 check container recreation and restore its downloaded backup into a second fresh
 instance. The command produces a JSON report and cleans up its temporary Docker
 stacks without GitHub Actions or manual setup. See [the verification scope](docs/VERIFICATION.md).
+
+## License
+
+mCMS code, including its first-party modules and themes, is licensed under the
+[MIT License](LICENSE).
+
+Third-party dependencies and bundled assets retain their respective licenses.
+See [third-party notices](THIRD_PARTY_NOTICES.md) and the license files shipped
+with those components. External modules and themes may use their own licenses.

@@ -34,4 +34,5 @@ COPY docker/nginx/default.conf /etc/nginx/conf.d/default.conf
 COPY public/ /var/www/html/public/
 COPY --from=ui /out/ /var/www/html/public/assets/vendor/
 COPY --from=theme-assets /out/ /var/www/html/public/assets/themes/
+COPY LICENSE /usr/share/licenses/mcms/LICENSE
 COPY THIRD_PARTY_NOTICES.md /usr/share/licenses/mcms/THIRD_PARTY_NOTICES.md
