@@ -8,7 +8,7 @@
     <div class="row g-3">
         <div class="col-md-6"><label class="form-label" for="captcha-difficulty"><?= esc(lang('Captcha.Settings.difficulty')) ?></label><select class="form-select" id="captcha-difficulty" name="difficulty">
             <?php foreach (['easy', 'standard', 'hard'] as $level): ?><option value="<?= $level ?>" <?= old('difficulty', $options['difficulty']) === $level ? 'selected' : '' ?>><?= esc(lang('Captcha.Settings.' . $level)) ?></option><?php endforeach ?>
-        </select></div>
+        </select><div class="form-hint mt-2"><?= esc(lang('Captcha.Settings.difficultyHelp')) ?></div></div>
         <?php foreach (['ttl' => [120,900], 'session_limit' => [4,120], 'ip_limit' => [8,600], 'verify_limit' => [8,600]] as $key => [$min,$max]): ?>
         <div class="col-md-6"><label class="form-label" for="captcha-<?= $key ?>"><?= esc(lang('Captcha.Settings.' . $key)) ?></label><input class="form-control" id="captcha-<?= $key ?>" name="<?= $key ?>" type="number" min="<?= $min ?>" max="<?= $max ?>" required value="<?= esc((string) old($key, $options[$key]), 'attr') ?>"></div>
         <?php endforeach ?>

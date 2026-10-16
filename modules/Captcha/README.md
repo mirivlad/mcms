@@ -31,17 +31,27 @@ Only generated geometry, not the correct answer, is present in the image.
 Challenges use MySQL (multi-worker safe); expired/used rows are pruned at
 issuance. The service caps issuance per session, and image GETs are throttled.
 
-## Accessible verification and policies (0.2)
+## Difficulty and accessible alternatives (0.2.2)
 
-Every new task includes an ordinary-text arithmetic question, immediately visible
-and readable by screen readers. A native keyboard-operable details control offers
-the existing image puzzle. Both methods give the same answer and use one token;
-the answer itself is never included in hidden fields or JSON. The labelled numeric
-text input describes the question, one-attempt rule and expiry. IDs are unique when
-Comments and Ratings appear together. No audio player, pointer, color recognition
-or image loading is needed to use the text method. Light/dark theme colors inherit
-from the surrounding form. Older integrations consuming image_url/question remain
-compatible; text_question is an additive API value.
+Difficulty controls the **primary** task type:
+
+| Level | Primary task | Alternative |
+| --- | --- | --- |
+| Easy | Addition or subtraction within 10 | Count matching colored shapes among 12 |
+| Standard | Count one shape/color combination among 12 pieces | A two-step word problem |
+| Hard | Count two different shape/color combinations in total among 20 pieces | A three-step word problem |
+
+The image and text questions have **the same answer** and share a single-use token.
+Standard and hard present the image first; their native, keyboard-operable
+details control lets someone choose the text alternative without relying on
+color perception, mouse input or image loading. Easy presents arithmetic first
+with an optional visual puzzle. Neither representation includes the answer as
+hidden fields or in JSON; the expected answer is a salted server-side hash.
+The text alternative prioritizes accessibility, not immunity to automation.
+The response retains the historical visual question and image_url for existing
+integrations, and adds kind (selects the primary view), visual_question,
+text_question, image_width and image_height.
+Unique widget IDs accommodate Comments and Ratings on the same page.
 
 Administration → Captcha (also in Settings) requires `captcha.manage`. Configure:
 

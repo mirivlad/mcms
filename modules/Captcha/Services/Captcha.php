@@ -35,31 +35,94 @@ final class Captcha implements CaptchaInterface
             $this->metric($purpose, 'limited');
             throw new RuntimeException(lang('Captcha.Public.unavailable'));
         }
-        $shape = self::SHAPES[random_int(0, 2)];
-        $colorNames = array_keys(self::COLORS);
-        $color = $colorNames[random_int(0, 2)];
-        $count = random_int(2, match ($options['difficulty']) { 'easy' => 5, 'standard' => 7, default => 9 });
-        $items = array_fill(0, $count, ['shape' => $shape, 'color' => $color]);
-        for ($i = $count; $i < 12; $i++) {
+
+        $difficulty = in_array($options['difficulty'], ['easy', 'standard', 'hard'], true)
+            ? $options['difficulty'] : 'easy';
+        $colors = array_keys(self::COLORS);
+        $firstShape = self::SHAPES[random_int(0, 2)];
+        $firstColor = $colors[random_int(0, 2)];
+        $secondShape = null;
+        $secondColor = null;
+
+        if ($difficulty === 'hard') {
+            // Use two distinct shape AND color combinations; both must be counted.
             do {
-                $otherShape = self::SHAPES[random_int(0, 2)];
-                $otherColor = $colorNames[random_int(0, 2)];
-            } while ($otherShape === $shape && $otherColor === $color);
-            $items[] = ['shape' => $otherShape, 'color' => $otherColor];
+                $secondShape = self::SHAPES[random_int(0, 2)];
+                $secondColor = $colors[random_int(0, 2)];
+            } while ($secondShape === $firstShape || $secondColor === $firstColor);
+            $firstCount = random_int(2, 4);
+            $secondCount = random_int(2, 4);
+            $total = 20;
+            $question = lang('Captcha.Public.questionHard', [
+                lang('Captcha.ColorsPlural.' . $firstColor), lang('Captcha.ShapesPlural.' . $firstShape),
+                lang('Captcha.ColorsPlural.' . $secondColor), lang('Captcha.ShapesPlural.' . $secondShape),
+            ]);
+        } else {
+            $firstCount = random_int(2, $difficulty === 'easy' ? 9 : 6);
+            $secondCount = 0;
+            $total = 12;
+            $question = lang('Captcha.Public.question', [
+                lang('Captcha.ShapesPlural.' . $firstShape),
+                lang('Captcha.ColorsPlural.' . $firstColor),
+            ]);
         }
-        // Cryptographic shuffle, so position carries no information about the answer.
+        $answer = $firstCount + $secondCount;
+
+        $items = array_fill(0, $firstCount, ['shape' => $firstShape, 'color' => $firstColor]);
+        if ($secondShape !== null && $secondColor !== null) {
+            array_push($items, ...array_fill(0, $secondCount, ['shape' => $secondShape, 'color' => $secondColor]));
+        }
+        while (count($items) < $total) {
+            $shape = self::SHAPES[random_int(0, 2)];
+            $color = $colors[random_int(0, 2)];
+            if (($shape === $firstShape && $color === $firstColor)
+                || ($shape === $secondShape && $color === $secondColor)) {
+                continue;
+            }
+            $items[] = ['shape' => $shape, 'color' => $color];
+        }
+
+        // A cryptographic shuffle prevents fixed positions from identifying targets.
         for ($i = count($items) - 1; $i > 0; $i--) {
             $j = random_int(0, $i);
             [$items[$i], $items[$j]] = [$items[$j], $items[$i]];
         }
+
+        $columns = $difficulty === 'hard' ? 5 : 4;
         $pieces = [];
         foreach ($items as $i => $item) {
             $pieces[] = $item + [
-                'x' => 45 + ($i % 4) * 83 + random_int(-9, 9),
-                'y' => 29 + intdiv($i, 4) * 49 + random_int(-6, 6),
-                'size' => random_int(13, 17),
+                'x' => 44 + ($i % $columns) * 83 + random_int(-7, 7),
+                'y' => 29 + intdiv($i, $columns) * ($difficulty === 'hard' ? 53 : 49) + random_int(-5, 5),
+                'size' => random_int(12, 16),
                 'angle' => random_int(-30, 30),
             ];
+        }
+
+        if ($difficulty === 'easy') {
+            // Addition or subtraction, with no negative operands or totals over 10.
+            if (random_int(0, 1) === 0) {
+                $left = random_int(1, $answer - 1);
+                $textQuestion = lang('Captcha.Public.addition', [$left, $answer - $left]);
+            } else {
+                $offset = random_int(1, 10 - $answer);
+                $textQuestion = lang('Captcha.Public.subtraction', [$answer + $offset, $offset]);
+            }
+        } elseif ($difficulty === 'standard') {
+            // Accessible alternative: two operations instead of a trivial one-step equation.
+            $remove = random_int(2, 4);
+            $add = random_int(2, 4);
+            $textQuestion = lang('Captcha.Public.storyStandard', [
+                $answer + $remove, $add, $remove + $add,
+            ]);
+        } else {
+            // Accessible alternative: three operations leading to the same answer.
+            $remove = random_int(2, 4);
+            $add1 = random_int(2, 4);
+            $add2 = random_int(2, 4);
+            $textQuestion = lang('Captcha.Public.storyHard', [
+                $answer + $remove, $add1, $add2, $remove + $add1 + $add2,
+            ]);
         }
 
         $token = bin2hex(random_bytes(24));
@@ -68,7 +131,7 @@ final class Captcha implements CaptchaInterface
             'token_hash' => hash('sha256', $token),
             'owner_hash' => $owner,
             'purpose' => $purpose,
-            'answer_hash' => hash('sha256', $salt . ':' . $count),
+            'answer_hash' => hash('sha256', $salt . ':' . $answer),
             'salt' => $salt,
             'puzzle' => json_encode($pieces, JSON_THROW_ON_ERROR),
             'created_at' => date('Y-m-d H:i:s', $now),
@@ -77,18 +140,15 @@ final class Captcha implements CaptchaInterface
         ]);
 
         $this->metric($purpose, 'issued');
-        $offset = random_int(1, $options['difficulty'] === 'easy' ? $count - 1 : 12);
-        $textQuestion = $options['difficulty'] === 'easy'
-            ? lang('Captcha.Public.addition', [$offset, $count - $offset])
-            : lang('Captcha.Public.subtraction', [$count + $offset, $offset]);
         return [
             'token' => $token,
+            'kind' => $difficulty === 'easy' ? 'math' : 'visual',
+            'question' => $question,
             'text_question' => $textQuestion,
-            'question' => lang('Captcha.Public.question', [
-                lang('Captcha.Shapes.' . $shape),
-                lang('Captcha.Colors.' . $color),
-            ]),
+            'visual_question' => $question,
             'image_url' => site_url('captcha/image/' . $token),
+            'image_width' => $difficulty === 'hard' ? 430 : 340,
+            'image_height' => $difficulty === 'hard' ? 230 : 158,
             'expires_in' => $options['ttl'],
         ];
     }
@@ -146,20 +206,23 @@ final class Captcha implements CaptchaInterface
             return null;
         }
         $items = json_decode($row['puzzle'], true, 512, JSON_THROW_ON_ERROR);
-        if (! is_array($items) || count($items) !== 12) {
+        if (! is_array($items) || ! in_array(count($items), [12, 20], true)) {
             return null;
         }
-        $image = imagecreatetruecolor(340, 158);
+        // Support existing 12-piece tokens and new 20-piece hard puzzles.
+        $width = count($items) === 20 ? 430 : 340;
+        $height = count($items) === 20 ? 230 : 158;
+        $image = imagecreatetruecolor($width, $height);
         if ($image === false) {
             return null;
         }
         $white = imagecolorallocate($image, 249, 249, 247);
         $gray = imagecolorallocate($image, 220, 224, 227);
-        imagefilledrectangle($image, 0, 0, 339, 157, $white);
+        imagefilledrectangle($image, 0, 0, $width - 1, $height - 1, $white);
         // Background texture is generated per rendering; not part of the answer.
-        for ($i = 0; $i < 26; $i++) {
-            imageline($image, random_int(0, 339), random_int(0, 157),
-                random_int(0, 339), random_int(0, 157), $gray);
+        for ($i = 0; $i < (count($items) === 20 ? 36 : 26); $i++) {
+            imageline($image, random_int(0, $width - 1), random_int(0, $height - 1),
+                random_int(0, $width - 1), random_int(0, $height - 1), $gray);
         }
         foreach ($items as $piece) {
             $coords = self::COLORS[$piece['color']] ?? null;
