@@ -121,9 +121,9 @@ final class ModuleUpdates
         });
     }
 
-    public function runWorker(string $id, string $operation, string $action): void
+    public function runWorker(string $id, string $operation, string $action, bool $webWorker = false): void
     {
-        if (! is_cli()) {
+        if (! is_cli() && ! ($webWorker && \MCMS\Core\Install\SharedHostSetup::enabled())) {
             throw new RuntimeException('Module update worker requires CLI.');
         }
         $this->runtime->exclusive(function () use ($id, $operation, $action): void {
@@ -215,6 +215,16 @@ final class ModuleUpdates
     {
         $directory = $this->directory($id);
         $this->runtime->release();
+        if (\MCMS\Core\Install\SharedHostSetup::enabled()) {
+            // The module-update route excludes module provider boot; this
+            // request can safely publish the staged package in maintenance.
+            $this->runWorker($id, $operation, $action, true);
+            $this->finalize();
+            if ($this->runtime->maintenance() !== null) {
+                throw new RuntimeException('Module update requires recovery.');
+            }
+            return;
+        }
         $php = PHP_BINDIR . '/php';
         $process = proc_open([$php, ROOTPATH . 'spark', 'mcms:module:update', $id, $operation, $action], [
             0 => ['file', '/dev/null', 'r'], 1 => ['file', $directory . '/worker.log', 'a'],

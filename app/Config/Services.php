@@ -163,6 +163,14 @@ class Services extends BaseService
         return new \MCMS\Core\Updates\CoreUpdater(static::mcmsUpdatePolicy(), static::mcmsBackups());
     }
 
+    public static function mcmsSharedCoreUpdater(bool $getShared = true): \MCMS\Core\Updates\SharedCoreUpdater
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsSharedCoreUpdater');
+        }
+        return new \MCMS\Core\Updates\SharedCoreUpdater(static::mcmsBackups());
+    }
+
     public static function mcmsExtensionRemoval(bool $getShared = true): \MCMS\Core\Packages\ExtensionRemoval
     {
         if ($getShared) {

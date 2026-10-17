@@ -40,7 +40,9 @@ final class Backups extends BaseAdminController
         }
         try {
             // A large site can take longer than PHP's default request time limit.
-            set_time_limit(0);
+            if (! \MCMS\Core\Install\SharedHostSetup::enabled()) {
+                set_time_limit(0);
+            }
             $name = service('mcmsBackups')->create();
             return redirect()->to('/admin/backups')->with(
                 'message', sprintf(lang('MCMS.backups.success'), $name)

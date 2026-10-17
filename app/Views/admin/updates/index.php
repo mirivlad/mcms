@@ -11,9 +11,10 @@
 <div class="card-header"><h3 class="card-title"><?= esc(lang('Updates.policy')) ?></h3></div>
 <div class="card-body">
 <p class="text-secondary"><?= esc(lang('Updates.help')) ?></p>
+<?php if ($sharedHosting): ?><div class="alert alert-info" role="status">Shared hosting: Core auto-deployment through Portainer is disabled. Use the verified ZIP updater below. Extension auto-updates require an optional hosting cron job; manual uploads work without one.</div><?php endif ?>
 <?php foreach (['core','modules','themes'] as $group): ?>
 <label class="form-check form-switch mb-3">
-<input type="checkbox" class="form-check-input" name="<?= esc($group) ?>" value="1" <?= $policy[$group] ? 'checked' : '' ?>>
+<input type="checkbox" class="form-check-input" name="<?= esc($group) ?>" value="1" <?= $policy[$group] ? 'checked' : '' ?> <?= $sharedHosting && $group === 'core' ? 'disabled' : '' ?>>
 <span class="form-check-label"><strong><?= esc(lang('Updates.' . $group)) ?></strong></span>
 <span class="form-check-description"><?= esc(lang('Updates.' . $group . 'Hint')) ?></span>
 </label>
@@ -31,6 +32,32 @@ value="<?= esc($entry['id']) ?>" <?= in_array($entry['id'], $policy['excluded'],
 <div class="card-footer"><button class="btn btn-primary" type="submit"><?= esc(lang('Updates.save')) ?></button></div>
 </form></div>
 <div class="col-lg-5">
+<?php if ($sharedHosting): ?>
+<div class="card mb-3">
+<div class="card-header"><h3 class="card-title">mCMS Core — shared-hosting ZIP upgrade</h3></div>
+<div class="card-body">
+<p class="text-secondary">Upload the newer official shared-hosting ZIP. mCMS validates its entire code manifest, creates a full site backup and swaps code with recovery on failure. Existing database and uploaded files are preserved unless rollback is necessary.</p>
+<?php if (is_array($sharedCoreLast)): ?>
+<p>Previous operation: <strong><?= esc($sharedCoreLast['status'] ?? '') ?></strong>, version <?= esc($sharedCoreLast['version'] ?? '') ?>. Backup: <?= esc($sharedCoreLast['safety'] ?? '') ?>.</p>
+<?php endif ?>
+<form method="post" enctype="multipart/form-data" action="<?= site_url('admin/updates/shared-core/prepare') ?>">
+<?= csrf_field() ?>
+<label class="form-label" for="shared_core_zip">Release ZIP</label>
+<input type="file" accept=".zip,application/zip" class="form-control mb-3" name="package" id="shared_core_zip" required>
+<button class="btn btn-outline-primary" type="submit">Verify release</button>
+</form>
+<?php if (is_array($sharedCorePreview)): ?>
+<hr><p>Validated upgrade: <strong><?= esc($sharedCorePreview['from'] ?? '') ?> → <?= esc($sharedCorePreview['version'] ?? '') ?></strong></p>
+<form method="post" action="<?= site_url('admin/updates/shared-core/apply') ?>">
+<?= csrf_field() ?>
+<input type="hidden" name="token" value="<?= esc($sharedCorePreview['token'] ?? '') ?>">
+<label class="form-check mb-3"><input type="checkbox" name="acknowledge" value="1" class="form-check-input" required>
+<span class="form-check-label">Create a safety backup, enter maintenance and install this verified Core release.</span></label>
+<button class="btn btn-warning" type="submit">Install Core upgrade</button>
+</form>
+<?php endif ?>
+</div></div>
+<?php endif ?>
 <?php if (is_array($corePending) && ($corePending['status'] ?? '') === 'requested'): ?>
 <div class="alert alert-warning">
     <p>Ожидается проверка обновления ядра <?= esc($corePending['target'] ?? '') ?>.

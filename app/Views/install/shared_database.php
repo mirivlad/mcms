@@ -31,6 +31,23 @@ mCMS will initialize its tables and then let you create the administrator accoun
 <div class="col-12"><label class="form-label" for="db_password">Database password</label>
 <input class="form-control" type="password" name="db_password" id="db_password" maxlength="255" autocomplete="new-password" required></div>
 </div>
+<hr class="my-4">
+<h2 class="h6">Outgoing mail — optional</h2>
+<p class="small text-secondary">Use your hosting provider's SMTP server. You can leave this empty and configure it later.</p>
+<div class="row g-3 mb-3">
+<div class="col-md-8"><label class="form-label" for="smtp_host">SMTP host</label>
+<input class="form-control" name="smtp_host" id="smtp_host" maxlength="255" placeholder="smtp.example.com"></div>
+<div class="col-md-4"><label class="form-label" for="smtp_port">SMTP port</label>
+<input class="form-control" type="number" min="1" max="65535" name="smtp_port" id="smtp_port" value="587"></div>
+<div class="col-md-6"><label class="form-label" for="smtp_user">SMTP user</label>
+<input class="form-control" name="smtp_user" id="smtp_user" maxlength="255" autocomplete="off"></div>
+<div class="col-md-6"><label class="form-label" for="smtp_sender">Sender email</label>
+<input class="form-control" type="email" name="smtp_sender" id="smtp_sender" maxlength="255"></div>
+<div class="col-md-8"><label class="form-label" for="smtp_password">SMTP password</label>
+<input class="form-control" type="password" name="smtp_password" id="smtp_password" maxlength="255" autocomplete="new-password"></div>
+<div class="col-md-4"><label class="form-label" for="smtp_crypto">Transport security</label>
+<select class="form-select" name="smtp_crypto" id="smtp_crypto"><option value="tls">STARTTLS</option><option value="ssl">TLS/SSL</option><option value="">None</option></select></div>
+</div>
 <p class="small text-secondary mt-3">Configuration is saved only outside the public web directory.
 Use HTTPS; do not use an existing database with unrelated data.</p>
 <button class="btn btn-primary" type="submit" <?= $errors !== [] ? 'disabled' : '' ?>>Connect and initialize database</button>

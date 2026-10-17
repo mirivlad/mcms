@@ -6,6 +6,8 @@ The hosting customer never needs Composer, Node, Docker or a shell.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 import os
 import re
 import shutil
@@ -16,7 +18,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 REPO = Path(__file__).resolve().parents[1]
 SOURCE_FOLDERS = ("app", "src", "modules", "themes", "catalog")
-SOURCE_FILES = ("composer.json", "composer.lock", "LICENSE", "THIRD_PARTY_NOTICES.md")
+SOURCE_FILES = ("composer.json", "composer.lock", "LICENSE", "THIRD_PARTY_NOTICES.md", "shared-core-rescue.php")
 NODE_PACKAGES = ("@tabler/core@1.6.1", "@tabler/icons-webfont@3.48.0", "bootstrap@5.3.8")
 
 
@@ -96,6 +98,21 @@ def build(output: Path) -> Path:
                     dirs_exist_ok=True,
                 )
 
+        # Hash every executable/static Core file as an immutable release unit.
+        # The installer verifies this before entering maintenance. The admin
+        # still has to trust the package publisher (hashes are not signatures).
+        core_roots = ("app/", "src/", "modules/", "themes/", "catalog/", "vendor/", "public_html/assets/")
+        release_files = {}
+        for file in sorted(stage.rglob("*")):
+            if file.is_file():
+                name = file.relative_to(stage).as_posix()
+                if name.startswith(core_roots):
+                    release_files[name] = hashlib.sha256(file.read_bytes()).hexdigest()
+        (stage / "shared-release.json").write_text(
+            json.dumps({"format": "mcms-shared-release-v1", "version": version,
+                        "files": release_files}, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
         with ZipFile(archive, "x", compression=ZIP_DEFLATED, compresslevel=6) as zipfile:
             for file in sorted(stage.rglob("*")):
                 if file.is_symlink():

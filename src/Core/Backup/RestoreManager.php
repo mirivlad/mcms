@@ -122,12 +122,20 @@ final class RestoreManager
             }
             // Fail BEFORE entering maintenance or preparing destructive work.
             BackupArchive::assertCompatible((string) ($state['app_version'] ?? ''));
+            if (\MCMS\Core\Install\SharedHostSetup::enabled()) {
+                PhpDatabaseTransfer::assertArchiveFormat($archive);
+            }
             $state['status'] = 'queued';
+            $state['queued_at'] = time();
             $this->writeState($state);
             // Set the maintenance flag only after active HTTP requests drain.
             // Unlike ModuleRuntime, this flag lives OUTSIDE the replaced volumes.
             service('mcmsModuleRuntime')->exclusive(function () use ($token): void {
-                service('mcmsModuleRuntime')->assertAvailable();
+                // A full-site restore is also the recovery route for an
+                // interrupted module update on hosts without a CLI worker.
+                if (! \MCMS\Core\Install\SharedHostSetup::enabled()) {
+                    service('mcmsModuleRuntime')->assertAvailable();
+                }
                 $this->atomicWrite($this->directory . '/restore-active.json', [
                     'token' => $token, 'status' => 'queued',
                 ]);
@@ -142,6 +150,12 @@ final class RestoreManager
     {
         $this->token($token);
         service('mcmsModuleRuntime')->release();
+        if (\MCMS\Core\Install\SharedHostSetup::enabled()) {
+            // In shared mode no CLI process or /bin/sh is available.
+            // The administration request already owns the maintenance flag.
+            $this->run($token);
+            return;
+        }
         $php = escapeshellarg(PHP_BINDIR . '/php');
         $spark = escapeshellarg(ROOTPATH . 'spark');
         $arg = escapeshellarg($token);
@@ -253,6 +267,107 @@ final class RestoreManager
         }
     }
 
+    /**
+     * Best-effort rollback for a PHP worker terminated by the hosting provider.
+     * The live worker owns restore.lock; its work is never interfered with.
+     * The durable safety ZIP was published before any destructive operation.
+     * A recovery failure leaves maintenance active for subsequent attempts.
+     */
+    public function recoverInterrupted(): bool
+    {
+        if (! \MCMS\Core\Install\SharedHostSetup::enabled()) {
+            return false;
+        }
+        $flag = $this->active();
+        $token = $flag['token'] ?? null;
+        if (! is_string($token) || preg_match('/^[a-f0-9]{32}$/D', $token) !== 1) {
+            return false;
+        }
+        $lock = fopen($this->directory . '/restore.lock', 'c');
+        if ($lock === false || ! flock($lock, LOCK_EX | LOCK_NB)) {
+            return false; // another PHP process is still restoring
+        }
+        try {
+            $state = $this->state($token);
+            if ($state === null) {
+                throw new RuntimeException('Missing full-site restore receipt.');
+            }
+            if (($state['status'] ?? null) === 'completed') {
+                $this->clearActive($token);
+                return true;
+            }
+            // A newly queued request is about to start its synchronous web
+            // worker. Other requests must not cancel it between begin/launch.
+            if (($state['status'] ?? null) === 'queued'
+                && time() - (int) ($state['queued_at'] ?? $state['prepared_at'] ?? time()) < 120) {
+                return false;
+            }
+            $safety = $state['safety'] ?? null;
+            if (! is_string($safety) || $safety === '') {
+                if (($state['status'] ?? null) !== 'queued'
+                    && ($state['status'] ?? null) !== 'running') {
+                    throw new RuntimeException('Restore was interrupted without a safety snapshot.');
+                }
+                // State 'running' but without a safety receipt can only occur
+                // before the backup is written: no data files have changed.
+                $state['status'] = 'failed';
+                $state['error'] = 'Interrupted before creating the safety snapshot.';
+                $this->writeState($state);
+                $this->clearActive($token);
+                return true;
+            }
+            $backup = $this->backups->file($safety);
+            if ($backup === null) {
+                throw new RuntimeException('Safety backup not found; automatic recovery cannot proceed.');
+            }
+            $report = BackupArchive::inspect($backup);
+            BackupArchive::assertCompatible($report['app_version']);
+            PhpDatabaseTransfer::assertArchiveFormat($backup);
+            $stages = [];
+            foreach ($this->roots as $prefix => $root) {
+                $this->assertRoot($prefix, $root);
+                $stages[$prefix] = $this->working . '/rescue-' . $token . '-' . $prefix;
+                $this->erase($stages[$prefix]);
+                if (! mkdir($stages[$prefix], 0700, true)) {
+                    throw new RuntimeException('Cannot stage emergency restore.');
+                }
+            }
+            $sql = $this->working . '/rescue-' . $token . '.sql';
+            BackupArchive::extract($backup, $stages, $sql);
+            // Keep the safety ZIP until the database AND both file roots are
+            // restored; repeated attempts reconstruct from this same archive.
+            foreach ($this->roots as $prefix => $root) {
+                foreach (scandir($root) ?: [] as $name) {
+                    if ($name !== '.' && $name !== '..') {
+                        $this->erase($root . '/' . $name);
+                    }
+                }
+                foreach (scandir($stages[$prefix]) ?: [] as $name) {
+                    if ($name !== '.' && $name !== '..'
+                        && ! rename($stages[$prefix] . '/' . $name, $root . '/' . $name)) {
+                        throw new RuntimeException('Cannot publish rescued module data.');
+                    }
+                }
+                rmdir($stages[$prefix]);
+            }
+            $this->importSql($sql);
+            @unlink($sql);
+            $state['status'] = 'failed';
+            $state['error'] = 'Interrupted operation rolled back from verified safety backup.';
+            $this->writeState($state);
+            $this->clearActive($token);
+            return true;
+        } catch (\Throwable $exception) {
+            log_message('error', 'Shared restore auto-recovery failed: {error}', [
+                'error' => $exception->getMessage(),
+            ]);
+            return false;
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
+        }
+    }
+
     private function extractSql(string $archive, string $sql): void
     {
         $zip = new ZipArchive();
@@ -328,6 +443,10 @@ final class RestoreManager
 
     private function importSql(string $sql): void
     {
+        if (\MCMS\Core\Install\SharedHostSetup::enabled()) {
+            PhpDatabaseTransfer::import($sql);
+            return;
+        }
         $host = getenv('MCMS_DB_HOST') ?: 'db';
         $port = (int) (getenv('MCMS_DB_PORT') ?: '3306');
         $name = getenv('MCMS_DB_NAME') ?: 'mcms';

@@ -61,6 +61,16 @@ final class ThemeUpdates
                     if (! str_ends_with($file, '.php')) {
                         continue;
                     }
+                    if (\MCMS\Core\Install\SharedHostSetup::enabled()) {
+                        // TOKEN_PARSE validates PHP syntax without executing the
+                        // untrusted template and without needing a PHP CLI binary.
+                        try {
+                            token_get_all((string) file_get_contents($stage . '/' . $file), TOKEN_PARSE);
+                        } catch (\ParseError $error) {
+                            throw new RuntimeException('Invalid PHP template: ' . $file, 0, $error);
+                        }
+                        continue;
+                    }
                     $process = proc_open([PHP_BINDIR . '/php', '-l', $stage . '/' . $file], [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
                     if (! is_resource($process)) {
                         throw new RuntimeException('Cannot validate theme PHP syntax.');

@@ -120,6 +120,12 @@ final class Install extends BaseController
                     'database' => $this->request->getPost('db_name'),
                     'username' => $this->request->getPost('db_user'),
                     'password' => $this->request->getPost('db_password'),
+                    'smtp_host' => $this->request->getPost('smtp_host'),
+                    'smtp_port' => $this->request->getPost('smtp_port'),
+                    'smtp_sender' => $this->request->getPost('smtp_sender'),
+                    'smtp_user' => $this->request->getPost('smtp_user'),
+                    'smtp_password' => $this->request->getPost('smtp_password'),
+                    'smtp_crypto' => $this->request->getPost('smtp_crypto'),
                 ]);
                 return redirect()->to('/install');
             } catch (RuntimeException $e) {

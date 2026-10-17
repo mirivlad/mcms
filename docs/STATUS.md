@@ -615,3 +615,25 @@ form/navigation checks including a 390px viewport without horizontal overflow.
   rewrite rules, admin form submission, backup/restore, new core ZIP update,
   SMTP and shared-host external module lifecycle have **not** been tested.
 - Focused PHPUnit: 3 tests, 20 assertions; PHP syntax checks passed.
+
+## Shared hosting — recovery and upgrade work (2026-10-17, in progress)
+
+- Added PHP-only MySQL dump/import, no shell tools, with distinct backup-format
+  identification and a refusal of foreign SQL formats before destructive restore.
+  A MariaDB binary/UTF-8/NULL round-trip succeeded.
+- Added synchronous hosted module update processing, built-in theme syntax
+  parsing without PHP CLI, and optional provider SMTP at installation time.
+- Added recovery of terminated site-restore requests; tested rollback of both
+  database content and modules_data files from a verified safety ZIP.
+- Added a verified shared-Core ZIP staging/swap prototype plus a stable
+  pre-bootstrap rescue shim. Simulated v0.1.8 to v0.1.9 code swap and rollback,
+  and simulated failing migration recovery, restored code, module files and DB.
+- Native Apache 2.4/PHP 8.3 smoke passed installer, CSS, media URL and web-root
+  protection. PHPUnit post-change: 357 tests / 2771 assertions.
+- **Pending before production merge**: new shared-hosting ZIP CI build and
+  independently installed package smoke, Core upgrade/finish via authenticated
+  HTTP, module update on real browser session, controlled PHP execution timeout
+  limits, long-running import job handling, signed publisher trust story,
+  cleanup/rollback across host quotas and readonly paths, and SMTP delivery.
+- This remains a draft PR and must not be advertised as a production-ready
+  shared-hosting release.

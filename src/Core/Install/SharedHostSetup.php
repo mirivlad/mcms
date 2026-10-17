@@ -89,6 +89,32 @@ final class SharedHostSetup
         if (! extension_loaded('mysqli')) {
             throw new RuntimeException('The mysqli PHP extension is required.');
         }
+        $smtpHost = trim((string) ($values['smtp_host'] ?? ''));
+        $mail = [];
+        if ($smtpHost !== '') {
+            if (strlen($smtpHost) > 255 || preg_match('/^[a-z0-9.:-]+$/iD', $smtpHost) !== 1) {
+                throw new RuntimeException('Invalid SMTP hostname.');
+            }
+            $smtpPort = filter_var($values['smtp_port'] ?? '587', FILTER_VALIDATE_INT,
+                ['options' => ['min_range' => 1, 'max_range' => 65535]]);
+            $crypto = strtolower((string) ($values['smtp_crypto'] ?? 'tls'));
+            $sender = trim((string) ($values['smtp_sender'] ?? ''));
+            $user = trim((string) ($values['smtp_user'] ?? ''));
+            $pass = (string) ($values['smtp_password'] ?? '');
+            if ($smtpPort === false || ! in_array($crypto, ['', 'tls', 'ssl'], true)
+                || filter_var($sender, FILTER_VALIDATE_EMAIL) === false || strlen($user) > 255
+                || strlen($pass) > 255 || str_contains($pass, "\0")) {
+                throw new RuntimeException('SMTP configuration is incomplete or invalid.');
+            }
+            $mail = [
+                'MCMS_MAIL_HOST' => $smtpHost,
+                'MCMS_MAIL_PORT' => (string) $smtpPort,
+                'MCMS_MAIL_FROM' => $sender,
+                'MCMS_MAIL_USER' => $user,
+                'MCMS_MAIL_PASSWORD_B64' => base64_encode($pass),
+                'MCMS_MAIL_CRYPTO' => $crypto,
+            ];
+        }
         $lock = fopen(WRITEPATH . 'shared-setup.lock', 'c');
         if ($lock === false || ! flock($lock, LOCK_EX)) {
             throw new RuntimeException('Cannot acquire installer lock.');
@@ -120,7 +146,7 @@ final class SharedHostSetup
                 'MCMS_DB_NAME' => $inputs['database'],
                 'MCMS_DB_USER' => $inputs['username'],
                 'MCMS_DB_PASSWORD_B64' => base64_encode($inputs['password']),
-            ] as $name => $value) {
+            ] + $mail as $name => $value) {
                 // JSON quoted strings also escape embedded quotes and backslashes.
                 $config .= $name . ' = ' . json_encode($value, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR) . "\n";
             }

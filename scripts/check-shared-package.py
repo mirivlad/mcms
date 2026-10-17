@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Standalone release archive integrity and web-root boundary checks."""
 import argparse
+import hashlib
+import json
 import re
 import sys
 from pathlib import PurePosixPath
@@ -16,7 +18,7 @@ def check(path: str) -> None:
             "public_html/assets/vendor/tabler-icons/tabler-icons.min.css",
             "public_html/assets/vendor/bootstrap/css/bootstrap.min.css",
             "public_html/assets/vendor/bootstrap/js/bootstrap.bundle.min.js",
-            "vendor/autoload.php", "app/Controllers/Install.php",
+            "vendor/autoload.php", "app/Controllers/Install.php", "shared-core-rescue.php", "shared-release.json",
             "src/Core/Install/SharedHostSetup.php", ".env",
             "README-SHARED-HOSTING.md", "public_html/assets/themes/mcms-default/css/theme.css",
         }
@@ -36,6 +38,12 @@ def check(path: str) -> None:
                     raise ValueError(f"Internal directory exposed: {name}")
                 if rel.endswith(".php") and rel != "index.php":
                     raise ValueError(f"Unexpected executable PHP file: {name}")
+        metadata = json.loads(archive.read("shared-release.json"))
+        if metadata.get("format") != "mcms-shared-release-v1":
+            raise ValueError("Invalid Core release manifest")
+        for name, digest in metadata["files"].items():
+            if name not in members or hashlib.sha256(archive.read(name)).hexdigest() != digest:
+                raise ValueError(f"Unverified Core release file: {name}")
         env = archive.read(".env").decode()
         if "MCMS_INSTALL_MODE = shared" not in env or "MCMS_DB_PASSWORD" in env:
             raise ValueError("Incorrect shared installer environment")

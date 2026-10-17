@@ -32,6 +32,14 @@ if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
 // Path to the front controller (this file)
 define('FCPATH', __DIR__ . DIRECTORY_SEPARATOR);
 
+// Before loading possibly half-replaced framework files, the stable recovery
+// shim restores the previous Core if a shared-hosting upgrade was interrupted.
+// Docker stacks never create this journal and follow the unchanged path.
+if (is_file(FCPATH . '../writable/backups/shared-core-updates/active.json')) {
+    require_once FCPATH . '../shared-core-rescue.php';
+    MCMSSharedCoreRescue::gate(dirname(FCPATH));
+}
+
 // Ensure the current directory is pointing to the front controller's directory
 if (getcwd() . DIRECTORY_SEPARATOR !== FCPATH) {
     chdir(FCPATH);
