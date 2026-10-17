@@ -2,19 +2,19 @@
 
 [Contents](README.md) · [Русский](../ru/webservers.md) · [Installation](installation.md)
 
-mCMS is built on CodeIgniter 4, but **neither Apache nor mod_rewrite is mandatory**. Any web server is suitable if it routes public requests through the PHP front controller correctly and keeps private application files outside the web root. Replace example paths, hostname and PHP-FPM socket with your hosting configuration.
+mCMS is built on CodeIgniter 4, but **neither Apache nor mod_rewrite is mandatory**. Any web server is suitable if it routes public requests through the PHP front controller correctly and keeps private application files outside the web root. Every absolute path below is **only an example**, not a required location. Replace paths, hostname and PHP-FPM socket with those of your installation. mCMS does **not** hard-code an installation directory.
 
 ## Requirements for every server
 
-- **DocumentRoot** must be `/srv/mcms/public_html` (or your equivalent). Keep `app`, `src`, `vendor`, `writable`, `.env`, `manual` and all other private resources **above and outside** this web root.
+- **DocumentRoot** must point **to the `public_html` directory of your mCMS installation**, wherever it is located. For example, `/var/www/domain.ru/public_html`, `/home/user/sites/domain.ru/public_html`, and `/srv/mcms/public_html` are all valid. Keep `app`, `src`, `vendor`, `writable`, `.env`, `manual` and all other private resources **outside** this web root.
 - Serve physical CSS/JS/fonts directly. Send every other request through `public_html/index.php`, including `/account`, `/admin`, `/install` **and `/assets/uploads/media/...`**. Media files are stored under private `writable/modules-data` and served through a PHP controller; an unconditional static-only `/assets/` handler **breaks Media**.
 - Only the intended front controller should execute as PHP. Do not permit arbitrary uploaded PHP. Supply correct `SCRIPT_FILENAME`, `DOCUMENT_ROOT`, `QUERY_STRING` and original request URI. Configure trusted HTTPS proxies inside mCMS; never trust arbitrary external forwarding headers.
 - PHP 8.2+ and its required extensions, MySQL/MariaDB, writable private folders and sufficient PHP worker time/memory/disk quotas. Use HTTPS before sending credentials.
 
-Example installation tree:
+Example layout for an installation under `/var/www/domain.ru/` (**not a required location**):
 
 ```text
-/srv/mcms/
+/var/www/domain.ru/
   .env                 # PRIVATE
   app/ src/ vendor/ modules/ themes/ manual/
   writable/            # PRIVATE: files, Media, backups, logs
@@ -26,8 +26,8 @@ Example installation tree:
 ```nginx
 server {
     listen 80;
-    server_name cms.example.com;
-    root /srv/mcms/public_html;
+    server_name domain.ru;
+    root /var/www/domain.ru/public_html;
     index index.php;
     autoindex off;
 
@@ -62,8 +62,8 @@ Adjust the socket or TCP FPM pool endpoint (e.g., `127.0.0.1:9000`). `.htaccess`
 ## 2. Caddy + PHP-FPM
 
 ```caddyfile
-cms.example.com {
-    root * /srv/mcms/public_html
+domain.ru {
+    root * /var/www/domain.ru/public_html
     encode zstd gzip
 
     # php_fastcgi performs index.php fallback for missing paths.
@@ -82,9 +82,9 @@ Example VirtualHost **without mod_rewrite**:
 
 ```apache
 <VirtualHost *:80>
-    ServerName cms.example.com
-    DocumentRoot /srv/mcms/public_html
-    <Directory /srv/mcms/public_html>
+    ServerName domain.ru
+    DocumentRoot /var/www/domain.ru/public_html
+    <Directory /var/www/domain.ru/public_html>
         Require all granted
         Options -Indexes
         AllowOverride None
@@ -98,7 +98,7 @@ If `AllowOverride None` is used, `.htaccess` has no effect; the VirtualHost must
 
 ## 4. LiteSpeed / OpenLiteSpeed (LSAPI)
 
-LiteSpeed supports Apache-style rewrite rules, although configuration locations differ between managed hosting, LiteSpeed Enterprise and OpenLiteSpeed. Configure DocumentRoot to `/srv/mcms/public_html`, enable PHP via LSAPI/lsphp and enable **Rewrite**. Either load the provided `.htaccess` or configure the rules in the virtual host.
+LiteSpeed supports Apache-style rewrite rules, although configuration locations differ between managed hosting, LiteSpeed Enterprise and OpenLiteSpeed. Point DocumentRoot to the `public_html` directory of your installation (here `/var/www/domain.ru/public_html`), enable PHP via LSAPI/lsphp and enable **Rewrite**. Either load the provided `.htaccess` or configure the rules in the virtual host.
 
 Example **Rewrite Rules** for OpenLiteSpeed Virtual Host:
 
