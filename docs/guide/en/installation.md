@@ -8,6 +8,8 @@
 
 ### Portainer Git Stack
 
+**For automatic Core updates:** follow [the release-image Stack and Portainer API setup guide](portainer-auto-updates.md). The standard `portainer-stack.yml` requires manual Git Re-pull/Redeploy for Core updates.
+
 1. Open **Stacks → Add stack → Repository**, select the mCMS Git URL, branch `main`, and Compose path `portainer-stack.yml`. Add Git credentials in Portainer if the repository is private.
 2. Set independent, strong `MCMS_DB_PASSWORD` and `MCMS_DB_ROOT_PASSWORD` in Stack environment. Optional settings: `MCMS_DB_NAME`/`MCMS_DB_USER` (default `mcms`), `MCMS_HTTP_PORT` (8188), `MCMS_BIND_ADDRESS` (127.0.0.1), `MCMS_MAIL_FROM`, `MCMS_MAIL_DOMAIN`.
 3. Deploy and **build** the Git sources. Forward incoming HTTPS traffic from your host Nginx/Caddy reverse proxy to `http://127.0.0.1:8188`. Preserve `Host`, `X-Forwarded-For`, `X-Forwarded-Proto`; configure `MCMS_TRUSTED_PROXIES` to trust only your proxy. Do not expose 8188 directly by default.

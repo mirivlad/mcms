@@ -8,6 +8,8 @@
 
 ### Portainer
 
+**Рекомендуемый режим для автоматических обновлений ядра:** [пошаговая настройка релизного Stack и Portainer API](portainer-auto-updates.md). При обычном `portainer-stack.yml` Core обновляется только через ручной Git Re-pull/Redeploy.
+
 1. **Stacks → Add stack → Repository**. Укажите URL репозитория и ветку `main`. Для Git Stack: **Compose path** `portainer-stack.yml`. Если репозиторий приватный, настройте Git-доступ в Portainer.
 2. В переменных Stack задайте **разные сильные пароли** `MCMS_DB_PASSWORD` и `MCMS_DB_ROOT_PASSWORD`. Дополнительно: `MCMS_DB_NAME` и `MCMS_DB_USER` (по умолчанию `mcms`), `MCMS_HTTP_PORT` (8188), `MCMS_BIND_ADDRESS` (127.0.0.1), `MCMS_MAIL_DOMAIN`, `MCMS_MAIL_FROM`.
 3. Разверните Stack с **пересборкой** образов из Git. Публиковать 8188 наружу не нужно: направьте внешний Nginx/Caddy с HTTPS на `http://127.0.0.1:8188`, передавая `Host`, `X-Forwarded-For` и `X-Forwarded-Proto`. Убедитесь, что `MCMS_TRUSTED_PROXIES` соответствует вашему proxy.
