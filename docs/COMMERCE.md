@@ -73,36 +73,11 @@ Status: Catalogue, ProductImages, Stock, Cart, Orders and Delivery implemented, 
 - Catalogue and the shop must work independently of Media.
 - Products use their own images, outside the shared content media library.
 - A separate module handles product-image uploads, cropping, scaling and ordering.
-- A product supports multiple images, rather than the single-image card in the Ferma reference.
+- A product supports multiple ordered images with an explicitly selected main image.
 - Editors can choose image order by drag and drop.
-- The CI4 Ferma shop is a functional reference; mCMS should provide a more convenient product editor and storefront.
 
 These requirements do not change Media, content Galleries or the existing themes'
 content-media assignments.
-
-## CI4 Ferma reference inspection
-
-Inspected repository: `mirivlad/ferma`, branch `migration/ci4`, directory `ci4`,
-commit `2d17599f260d8c0e55cda6fff49a7933510cc408`. This was a source inspection;
-the reference application was not started or modified.
-
-- [Product editor](https://github.com/mirivlad/ferma/blob/2d17599f260d8c0e55cda6fff49a7933510cc408/ci4/app/Views/shop_admin/item_form.php):
-  one file input, staged upload, crop selection and one current image preview.
-- [Catalogue persistence](https://github.com/mirivlad/ferma/blob/2d17599f260d8c0e55cda6fff49a7933510cc408/ci4/app/Services/CatalogAdminService.php):
-  one `img` value per product, with category, SKU, descriptions and publication
-  fields. Merchant-specific price/unit rules are reference behavior, not accepted
-  mCMS contracts.
-- [Image processing](https://github.com/mirivlad/ferma/blob/2d17599f260d8c0e55cda6fff49a7933510cc408/ci4/app/Services/MediaService.php):
-  shop-specific staged files, crop finalization and a square 400×400 thumbnail.
-  This service is not the mCMS Media module and will not be imported as a dependency.
-- [Public product page](https://github.com/mirivlad/ferma/blob/2d17599f260d8c0e55cda6fff49a7933510cc408/ci4/app/Views/shop/item.php):
-  one resolved image alongside product information and quantity/add-to-cart controls.
-- [Sorting screen](https://github.com/mirivlad/ferma/blob/2d17599f260d8c0e55cda6fff49a7933510cc408/ci4/app/Views/shop_admin/sortable.php):
-  drag and drop orders products within a category, rather than images within a product.
-
-The useful reference is editing images in the product workflow. mCMS extends that
-workflow to multiple images, explicit main-image selection, repeatable processing
-and image ordering, with a separate product-image module and a public image gallery.
 
 ## Implemented module boundary
 
@@ -141,12 +116,12 @@ The product listing uses the chosen main image. A public product page offers a
 large image, ordered thumbnails, image switching and enlarged viewing, including
 mobile layouts. It should remain usable with zero, one or several images.
 
-Catalogue embeds the ProductImages editor; Ferma database/controllers are not copied.
+Catalogue embeds the ProductImages editor through its public module interfaces.
 
 ## Work sequence
 
-1. Inspect the CI4 Ferma product editor, image handling and storefront; record the
-   useful behavior and the single-image limitation.
+1. Define product-editing and storefront workflows, including multiple uploads,
+   crop/scale controls, main-image selection and image ordering.
 2. Agree the first Catalogue scope and product/variant/price/stock/image contracts.
    Resolve image assignment, new-product uploads, removal and module lifecycle as
    part of that contract.

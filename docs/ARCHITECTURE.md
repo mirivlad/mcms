@@ -2,8 +2,6 @@
 
 mCMS is a modular, self-hosted CMS platform built on CodeIgniter 4.
 
-The original Ferma/CI4 application is not an upstream dependency. It is used only as a catalogue of proven real-world functionality that may later be reimplemented as independent mCMS modules.
-
 ## Core boundary
 
 The Core must remain useful without any content or commerce modules installed.

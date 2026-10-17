@@ -95,10 +95,6 @@ For your own test instance, optional one-time demo content can be enabled with
 existing database completion marker prevents repeated seeding. Real content is
 preserved. See [demo setup](docs/PORTAINER.md#optional-demo-content-for-your-own-test-stack).
 
-Ferma is used only as a functional reference for features that proved useful in a
-real application. mCMS does not inherit Ferma's Git history, database schema,
-customer data, routes or deployment assumptions.
-
 ### Third-party theme example
 
 [Atelier](examples/themes/mcms-atelier/README.md) is a complete independent

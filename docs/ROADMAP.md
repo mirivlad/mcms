@@ -134,8 +134,6 @@ account filesystem permissions, MySQL capabilities and quotas fit their site's
 size. No application can guarantee recovery from inaccessible disks/databases.
 
 
-## Reference policy
+## Feature design policy
 
-Ferma is a functional reference only.
-
-When mCMS needs a feature already implemented there, first extract the user-facing requirement and behavior, then implement it against mCMS Core contracts. Do not copy legacy schema, customer assumptions or compatibility routes unless they are independently justified for a reusable module.
+Define features from mCMS requirements and implement them against its public Core and module contracts. Keep application-specific data models, routes and deployment assumptions out of reusable modules unless the mCMS design explicitly requires them.
