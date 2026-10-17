@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import re
+from urllib.parse import unquote
 import sys
 from pathlib import PurePosixPath
 from zipfile import ZipFile
@@ -44,6 +45,27 @@ def check(path: str) -> None:
         for name, digest in metadata["files"].items():
             if name not in members or hashlib.sha256(archive.read(name)).hexdigest() != digest:
                 raise ValueError(f"Unverified Core release file: {name}")
+        # Operator manuals are shipped for offline reading. Reject internal
+        # Markdown links that point outside the actual release archive.
+        for source in members:
+            if not (re.fullmatch(r"manual/(?:en|ru)/[^/]+\.md", source)
+                    or source == "README-SHARED-HOSTING.md"):
+                continue
+            for link in re.findall(r"\]\(([^)]+)\)", archive.read(source).decode()):
+                if link.startswith(("http:", "https:", "mailto:", "#")):
+                    continue
+                link = unquote(link.split("#", 1)[0])
+                relative = source.rsplit("/", 1)[0] + "/" + link if "/" in source else link
+                pieces = []
+                for piece in relative.split("/"):
+                    if piece == "..":
+                        if pieces:
+                            pieces.pop()
+                    elif piece and piece != ".":
+                        pieces.append(piece)
+                destination = "/".join(pieces)
+                if destination not in members:
+                    raise ValueError(f"Broken offline documentation link: {source} -> {link}")
         env = archive.read(".env").decode()
         if "MCMS_INSTALL_MODE = shared" not in env or "MCMS_DB_PASSWORD" in env:
             raise ValueError("Incorrect shared installer environment")

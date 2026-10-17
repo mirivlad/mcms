@@ -66,7 +66,8 @@ def build(output: Path) -> Path:
             "# mCMS standalone installation\n\n"
             "English instructions: [Administrator guide](manual/en/README.md).\n\n"
             "Русская инструкция: [Руководство администратора](manual/ru/README.md).\n\n"
-            + readme.read_text(encoding="utf-8"), encoding="utf-8",
+            + readme.read_text(encoding="utf-8").replace("](guide/", "](manual/"),
+            encoding="utf-8",
         )
         (stage / ".env").write_text(
             "CI_ENVIRONMENT = production\nMCMS_INSTALL_MODE = shared\n",
