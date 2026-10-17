@@ -31,7 +31,23 @@
     outline-offset: 4px;
 }
 @media (max-width: 767px) {
-    .mcms-account-access { width: 100%; justify-content: flex-end; }
+    /* Two deliberate header rows prevent the brand from being crushed
+       between mobile navigation and account links. */
+    .site-header-inner:has(> .mcms-account-access),
+    .sig-header-inner:has(> .mcms-account-access) {
+        flex-wrap: wrap;
+        row-gap: .25rem;
+        padding-block: .5rem;
+    }
+    .site-header-inner > .site-brand,
+    .sig-header-inner > .sig-brand { flex-shrink: 0; white-space: nowrap; }
+    .mcms-account-access {
+        flex: 0 0 100%;
+        width: 100%;
+        justify-content: flex-end;
+        border-top: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+        padding: .45rem 0;
+    }
 }
 
 /* Account forms inherit the active theme's typography and colors. */

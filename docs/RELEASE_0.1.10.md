@@ -6,6 +6,7 @@
 
 - Redesigned the user account dashboard: separate compact identity header, unified responsive workspace for profile and security, clearer buttons, removal of duplicate logout/navigation elements and invalid nested form markup.
 - When the Orders service is enabled, the account dashboard shows the user's latest **three** orders and a direct link to the complete order history. Queries enforce the logged-in user's ID; no Orders tables are accessed if the module is disabled. Account and password forms retain CSRF, validation and existing server endpoints.
+- Fixed mobile site header spacing when signed-in account links and the theme navigation compete for width.
 - Added theme-independent responsive styling shared across all bundled themes and standalone layouts; account CSS URLs now include the Core version to prevent stale browser caches.
 - Documented **Nginx + PHP-FPM, Caddy + PHP-FPM, Apache without mod_rewrite, and LiteSpeed/OpenLiteSpeed** in full Russian and English administrator guides. The web-server requirement is front-controller routing and protected private files, **not Apache/mod_rewrite specifically**. Media URLs must be forwarded to the PHP controller even though CSS/JS is served statically.
 
