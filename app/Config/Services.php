@@ -65,6 +65,7 @@ class Services extends BaseService
         $registry->addMenu('settings', '@MCMS.nav.settings', '/admin/settings', 'ti ti-settings', 'core.settings', 70, group: 'administration', section: 'configuration');
         $registry->addMenu('system', '@MCMS.nav.system', '/admin/system', 'ti ti-activity', 'core.system', 90, group: 'administration', section: 'maintenance');
         $registry->addMenu('backups', '@MCMS.backups.title', '/admin/backups', 'ti ti-database-export', 'core.backups', 95, group: 'administration', section: 'maintenance');
+        $registry->addMenu('updates', '@Updates.title', '/admin/updates', 'ti ti-refresh', 'core.system', 94, group: 'administration', section: 'maintenance');
 
         $registry->addSettings('general', '@Settings.general', '/admin/settings', 'ti ti-settings', 'core.settings', 'general');
         $registry->addSettings('themes', '@MCMS.nav.themes', '/admin/themes', 'ti ti-palette', 'core.themes', 'appearance');
@@ -133,6 +134,33 @@ class Services extends BaseService
         return new \MCMS\Core\Packages\ExtensionCatalog(WRITEPATH . 'modules-data/catalog', WRITEPATH . 'modules-data',
             WRITEPATH . 'themes-data', static::mcmsModules(), static::mcmsThemes(), static::mcmsModulePackages(),
             static::mcmsThemePackages(), static::mcmsModuleUpdates(), static::mcmsThemeUpdates());
+    }
+
+    public static function mcmsUpdatePolicy(bool $getShared = true): \MCMS\Core\Updates\UpdatePolicy
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsUpdatePolicy');
+        }
+        return new \MCMS\Core\Updates\UpdatePolicy(WRITEPATH . 'modules-data/auto-updates');
+    }
+
+    public static function mcmsAutoUpdater(bool $getShared = true): \MCMS\Core\Updates\AutoUpdater
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsAutoUpdater');
+        }
+        return new \MCMS\Core\Updates\AutoUpdater(
+            static::mcmsUpdatePolicy(), static::mcmsExtensionCatalog(), static::mcmsModules(),
+            static::mcmsModuleUpdates(), static::mcmsThemeUpdates(), static::mcmsBackups()
+        );
+    }
+
+    public static function mcmsCoreUpdater(bool $getShared = true): \MCMS\Core\Updates\CoreUpdater
+    {
+        if ($getShared) {
+            return static::getSharedInstance('mcmsCoreUpdater');
+        }
+        return new \MCMS\Core\Updates\CoreUpdater(static::mcmsUpdatePolicy(), static::mcmsBackups());
     }
 
     public static function mcmsExtensionRemoval(bool $getShared = true): \MCMS\Core\Packages\ExtensionRemoval

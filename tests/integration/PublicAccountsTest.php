@@ -128,7 +128,9 @@ final class PublicAccountsTest extends CIUnitTestCase
             ->get()->getRowArray();
         self::assertNotNull($record);
         $answer = null;
-        for ($n = 2; $n <= 5; $n++) {
+        // Easy CAPTCHA now produces answers through 9 (and other policies use
+        // different ranges). Do not make registration depend on a random 2..5.
+        for ($n = 0; $n <= 20; $n++) {
             if (hash_equals($record['answer_hash'], hash('sha256', $record['salt'] . ':' . $n))) {
                 $answer = (string) $n;
                 break;

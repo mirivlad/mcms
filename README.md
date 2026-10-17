@@ -118,6 +118,16 @@ See [catalog format, PR publication, cleanup contracts and recovery](docs/EXTENS
 
 All extensions use two shared Docker volumes: `modules_data` (module packages, uploaded files, generated data and Core files) and `themes_data` (theme packages and theme data). Module-specific volumes are not supported. See [the storage contract](docs/STORAGE.md).
 
+## Automatic updates
+
+Administration → **Updates** configures optional Core/third-party module/theme
+auto-updates independently. All switches are **off by default**. A small
+unprivileged updater Compose service checks packages periodically; no host cron,
+Docker socket mount or external update service is required. Core patch releases
+require portainer-release-stack.yml, GitHub Release images and an explicitly
+configured HTTPS Portainer API integration. Module migrations and dependent-module
+shutdowns remain manual. Read [docs/UPDATES.md](docs/UPDATES.md) before enabling.
+
 ## Backups
 
 Create, download and restore full-site ZIP archives from **Administration → Backups**, or schedule `php spark mcms:backup:create --keep=7` from cron. The separately mounted `backup_data` volume holds completed ZIPs, while each archive includes a transaction-consistent MariaDB SQL dump and both CMS data volumes. See [docs/BACKUPS.md](docs/BACKUPS.md).

@@ -16,12 +16,14 @@ RUN composer install --no-dev --prefer-dist --no-interaction --no-progress --no-
 
 COPY . ./
 COPY docker/app/start.sh /usr/local/bin/mcms-start
+COPY docker/app/updater.sh /usr/local/bin/mcms-updater
+COPY docker/app/opcache-updates.ini /usr/local/etc/php/conf.d/mcms-opcache-updates.ini
 COPY docker/app/uploads.ini /usr/local/etc/php/conf.d/mcms-uploads.ini
 
 RUN composer dump-autoload --no-dev --classmap-authoritative \
     && mkdir -p writable/cache writable/logs writable/session writable/backups writable/modules-data/installed writable/modules-data/pending writable/modules-data/data writable/modules-data/core writable/themes-data/installed writable/themes-data/pending writable/themes-data/data \
     && chown -R www-data:www-data writable \
-    && chmod 0755 /usr/local/bin/mcms-start
+    && chmod 0755 /usr/local/bin/mcms-start /usr/local/bin/mcms-updater
 
 USER www-data
 CMD ["/usr/local/bin/mcms-start"]
