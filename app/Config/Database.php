@@ -52,7 +52,7 @@ class Database extends Config
         $this->default['port'] = (int) (getenv('MCMS_DB_PORT') ?: 3306);
         $this->default['database'] = getenv('MCMS_DB_NAME') ?: 'mcms';
         $this->default['username'] = getenv('MCMS_DB_USER') ?: 'mcms';
-        $this->default['password'] = getenv('MCMS_DB_PASSWORD') ?: '';
+        $this->default['password'] = \MCMS\Core\Install\SharedHostSetup::databasePassword();
 
         if (ENVIRONMENT === 'testing') {
             $this->defaultGroup = 'tests';

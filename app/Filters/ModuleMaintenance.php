@@ -12,9 +12,24 @@ final class ModuleMaintenance implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        if (is_file(WRITEPATH . 'backups/shared-core-updates/active.json')) {
+            $path = trim($request->getUri()->getPath(), '/');
+            $method = strtoupper($request->getMethod());
+            if (!(($method === 'GET' && in_array($path, [
+                    'admin/updates/shared-core/finish', 'admin/updates', 'login',
+                ], true)) || ($method === 'POST' && $path === 'login'))) {
+                return service('response')->setStatusCode(503)->setHeader('Retry-After', '10')
+                    ->setHeader('Cache-Control', 'no-store')->setBody(view('maintenance'));
+            }
+        }
         // Full-site restore blocks the entire app, including the API. This flag
         // lives on backup_data and survives replacement of modules_data.
         if (is_file(WRITEPATH . 'backups/restore-active.json')) {
+            // Shared hosts may kill a long PHP request. If no worker holds the
+            // restore lock, roll back using the independently stored safety ZIP.
+            if (\MCMS\Core\Install\SharedHostSetup::enabled()) {
+                service('mcmsBackupRestore')->recoverInterrupted();
+            }
             if (trim($request->getUri()->getPath(), '/') === '_health') {
                 return null;
             }
@@ -35,7 +50,9 @@ final class ModuleMaintenance implements FilterInterface
         if (($method === 'GET' && in_array($path, ['_health', 'admin/modules', 'admin/extensions/recovery', 'login', 'logout'], true))
             || ($method === 'POST' && in_array($path, ['login', 'admin/extensions/recovery'], true))
             || ($method === 'GET' && in_array($path, ['admin/modules/' . $id . '/update', 'admin/modules/' . $id . '/update/snapshot'], true))
-            || ($method === 'POST' && $path === 'admin/modules/' . $id . '/update/restore')) {
+            || ($method === 'POST' && $path === 'admin/modules/' . $id . '/update/restore')
+            || (\MCMS\Core\Install\SharedHostSetup::enabled() && str_starts_with($path, 'admin/backups')
+                && ($method === 'GET' || $method === 'POST'))) {
             return null;
         }
         if (str_starts_with($path, 'api/v1/')) {

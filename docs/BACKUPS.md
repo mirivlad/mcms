@@ -1,4 +1,10 @@
-# Full-site backups (mCMS 0.1.7 development)
+# Full-site backups (mCMS 0.1.x)
+
+For complete operator procedures in both deployment modes see
+[Русский](guide/ru/recovery.md) or [English](guide/en/recovery.md). The
+remainder of this document covers the Docker/CLI backup format; the standalone
+PHP logical database format is intentionally different and not directly
+importable from Docker backups through the shared-host web restore wizard.
 
 ## In administration
 

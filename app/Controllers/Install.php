@@ -6,11 +6,23 @@ namespace App\Controllers;
 
 use CodeIgniter\HTTP\RedirectResponse;
 use RuntimeException;
+use MCMS\Core\Install\SharedHostSetup;
 
 final class Install extends BaseController
 {
     public function index(): string|RedirectResponse
     {
+        if (SharedHostSetup::enabled()) {
+            if (! SharedHostSetup::configured()) {
+                return $this->databaseSetup();
+            }
+            try {
+                SharedHostSetup::migrate();
+            } catch (\Throwable $e) {
+                log_message('error', 'Shared setup migration failed: {error}', ['error' => $e->getMessage()]);
+                return view('install/shared_error', ['error' => 'Database initialization failed. Check PHP error logs and database permissions.']);
+            }
+        }
         $installer = service('mcmsInstaller');
 
         if ($installer->isInstalled()) {
@@ -97,4 +109,31 @@ final class Install extends BaseController
 
         return view('install/index');
     }
+    private function databaseSetup(): string|RedirectResponse
+    {
+        $errors = SharedHostSetup::requirements();
+        if ($this->request->getMethod() === 'POST' && $errors === []) {
+            try {
+                SharedHostSetup::configure([
+                    'host' => $this->request->getPost('db_host'),
+                    'port' => $this->request->getPost('db_port'),
+                    'database' => $this->request->getPost('db_name'),
+                    'username' => $this->request->getPost('db_user'),
+                    'password' => $this->request->getPost('db_password'),
+                    'smtp_host' => $this->request->getPost('smtp_host'),
+                    'smtp_port' => $this->request->getPost('smtp_port'),
+                    'smtp_sender' => $this->request->getPost('smtp_sender'),
+                    'smtp_user' => $this->request->getPost('smtp_user'),
+                    'smtp_password' => $this->request->getPost('smtp_password'),
+                    'smtp_crypto' => $this->request->getPost('smtp_crypto'),
+                ]);
+                return redirect()->to('/install');
+            } catch (RuntimeException $e) {
+                $errors['database'] = $e->getMessage();
+            }
+        }
+        $this->response->setHeader('Cache-Control', 'no-store');
+        return view('install/shared_database', ['errors' => $errors]);
+    }
+
 }

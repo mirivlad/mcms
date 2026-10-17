@@ -101,6 +101,39 @@
 See [extension lifecycle and catalog publication](EXTENSIONS.md) for contracts,
 operational recovery, scheduling and supported limitations.
 
+## Stage 6 — ordinary shared-hosting installation (approved 2026-10-17)
+
+**Objective:** same Core/modules/themes on standard Apache + PHP + MySQL hosting,
+without Docker, SSH, Composer or a shell for the person installing the CMS.
+See [Shared hosting design and deployment](SHARED_HOSTING.md).
+
+- [x] Document host requirements, web-root boundary and staged acceptance criteria.
+- [x] Build a complete ZIP containing Composer vendor and built frontend assets,
+  with the private code outside `public_html`.
+- [x] Browser preflight and database credentials before the existing superadmin wizard;
+  run scoped migrations in web mode with retry/lock safety.
+- [x] Apache-compatible safe delivery of Media uploads, while keeping PHP and
+  internal writable files inaccessible.
+- [x] Test from extracted ZIP with PHP runtime and real Apache 2.4: installer,
+  paths, media and packaging integrity; disposable MySQL test database.
+- [x] Add PHP database export/import without `mariadb-dump`, `mariadb` or
+  `proc_open`, with checksum validation, safety ZIP and interrupted recovery.
+  Large sites still require adequate hosting quotas and tested recovery.
+- [x] Web-host module and theme update paths without CLI process spawning;
+  use a recovery journal and preserve previous package snapshots.
+- [x] Same-minor Core patch ZIP updates with file hashes, data backup,
+  staged code switch and pre-bootstrap recovery (no Portainer API).
+- [x] Manual admin operations on shared hosting; CLI cron remains optional
+  where supported. Public site traffic never triggers automatic upgrades.
+- [x] Shared-host mail delivery configured with provider SMTP credentials.
+- [x] Document managed PHP-host limitations, independent backups and differing
+  Docker vs PHP database formats, in Russian and English user manuals.
+
+Production operators must still verify that their provider's PHP timeouts,
+account filesystem permissions, MySQL capabilities and quotas fit their site's
+size. No application can guarantee recovery from inaccessible disks/databases.
+
+
 ## Reference policy
 
 Ferma is a functional reference only.

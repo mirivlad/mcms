@@ -12,6 +12,12 @@ final class SiteLocale implements FilterInterface
 {
     public function before(RequestInterface $request, $arguments = null)
     {
+        // An unconfigured shared installation must not attempt Docker's default
+        // database hostname on every anonymous request to the setup wizard.
+        if (\MCMS\Core\Install\SharedHostSetup::enabled()
+            && ! \MCMS\Core\Install\SharedHostSetup::configured()) {
+            return null;
+        }
         try {
             if (! service('mcmsInstaller')->isInstalled()) {
                 return null;

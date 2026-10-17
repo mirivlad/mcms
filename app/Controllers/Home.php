@@ -6,11 +6,15 @@ namespace App\Controllers;
 
 use CodeIgniter\HTTP\RedirectResponse;
 use MCMS\Core\Themes\HomePageProviderInterface;
+use MCMS\Core\Install\SharedHostSetup;
 
 class Home extends BaseController
 {
     public function index(): string|RedirectResponse
     {
+        if (SharedHostSetup::enabled() && ! SharedHostSetup::configured()) {
+            return redirect()->to('/install');
+        }
         if (! service('mcmsInstaller')->isInstalled()) {
             return redirect()->to('/install');
         }

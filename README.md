@@ -6,6 +6,13 @@ The Core is intentionally small: framework runtime, authentication/authorization
 administration, settings, module lifecycle, hooks, storage contracts and system
 maintenance. Content and business features are installed as modules.
 
+## Installation / Documentation
+
+- **Русское руководство:** [установка и администрирование](docs/guide/ru/README.md).
+- **English guide:** [installation and administration](docs/guide/en/README.md).
+- **Standalone hosting:** download the complete shared-hosting ZIP from [Releases](https://github.com/mirivlad/mcms/releases), not GitHub's source ZIP. PHP 8.2+, Apache and MySQL are required; private code must be outside DocumentRoot.
+- **Docker / Portainer:** Git stack uses `portainer-stack.yml`, with source-built app/web/updater and persistent volumes.
+
 ## Core stack
 
 - PHP 8.4 target;
@@ -147,3 +154,8 @@ mCMS code, including its first-party modules and themes, is licensed under the
 Third-party dependencies and bundled assets retain their respective licenses.
 See [third-party notices](THIRD_PARTY_NOTICES.md) and the license files shipped
 with those components. External modules and themes may use their own licenses.
+
+
+### Standalone / shared-hosting support
+
+Use the full ZIP from GitHub Releases and follow the [Russian](docs/guide/ru/installation.md) or [English](docs/guide/en/installation.md) instructions. Composer dependencies, CSS/JS and manuals are bundled. An embedded installer sets up a fresh MySQL database, and private Core data remains outside `public_html`. See the [hosting requirements and limits](docs/SHARED_HOSTING.md), especially PHP quotas and recovery compatibility.

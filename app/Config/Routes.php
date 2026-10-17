@@ -5,6 +5,8 @@ use CodeIgniter\Router\RouteCollection;
 /** @var RouteCollection $routes */
 $routes->setPrioritize();
 $routes->get('theme-assets/(:segment)/(:segment)/(:any)', 'ThemeAssets::show/$1/$2/$3');
+// On Apache this falls through to PHP. nginx serves the same path by alias.
+$routes->get('assets/uploads/media/(:any)', 'PublicMedia::show/$1');
 
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']);
@@ -37,6 +39,9 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->post('updates', 'Admin\Updates::save');
     $routes->post('updates/check', 'Admin\Updates::check');
     $routes->post('updates/core/reset', 'Admin\Updates::resetCorePending');
+    $routes->post('updates/shared-core/prepare', 'Admin\Updates::prepareSharedCore');
+    $routes->post('updates/shared-core/apply', 'Admin\Updates::applySharedCore');
+    $routes->get('updates/shared-core/finish', 'Admin\Updates::finishSharedCore');
     $routes->get('extensions', 'Admin\ExtensionCatalog::index');
     $routes->get('extensions/check', 'Admin\ExtensionCatalog::refresh');
     $routes->post('extensions/refresh', 'Admin\ExtensionCatalog::refresh');
@@ -91,13 +96,18 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
 $moduleManager = service('mcmsModules');
 // Applying a replacement must not load old module PHP into the parent request.
 // The fresh worker owns target execution; normal requests drain through shutdown.
-$coreUpdateRequest = ! is_cli() && preg_match(
+$requestPath = trim(service('request')->getUri()->getPath(), '/');
+$coreUpdateRequest = ! is_cli() && (preg_match(
     '#^admin/(modules/[^/]+/update/(apply|restore)|extensions/[^/]+/[^/]+/remove|extensions/recovery)$#D',
-    trim(service('request')->getUri()->getPath(), '/'),
-) === 1;
+    $requestPath,
+) === 1 || (\MCMS\Core\Install\SharedHostSetup::enabled()
+    && $requestPath === 'admin/backups/restore/apply'));
 // Unattended CLI must not boot the old module providers before replacing code.
 $unattendedUpdateRequest = is_cli() && in_array('mcms:updates:run', $_SERVER['argv'] ?? [], true);
-if (! $coreUpdateRequest && ! $unattendedUpdateRequest && ! is_file(WRITEPATH . 'backups/restore-active.json')) {
+if (! $coreUpdateRequest && ! $unattendedUpdateRequest
+    && ! (\MCMS\Core\Install\SharedHostSetup::enabled() && ! \MCMS\Core\Install\SharedHostSetup::configured())
+    && ! is_file(WRITEPATH . 'backups/restore-active.json')
+    && ! is_file(WRITEPATH . 'backups/shared-core-updates/active.json')) {
     $moduleManager->bootEnabled();
     $moduleManager->registerRoutes($routes);
 }

@@ -257,6 +257,10 @@ final class BackupManager
 
     private function dumpDatabase(string $destination): void
     {
+        if ($this->dump === null && \MCMS\Core\Install\SharedHostSetup::enabled()) {
+            PhpDatabaseTransfer::dump($destination);
+            return;
+        }
         if ($this->dump !== null) {
             ($this->dump)($destination);
             if (! is_file($destination)) {
@@ -268,7 +272,7 @@ final class BackupManager
         $port = (string) (getenv('MCMS_DB_PORT') ?: '3306');
         $db = getenv('MCMS_DB_NAME') ?: 'mcms';
         $user = getenv('MCMS_DB_USER') ?: 'mcms';
-        $pass = getenv('MCMS_DB_PASSWORD');
+        $pass = \MCMS\Core\Install\SharedHostSetup::databasePassword();
         if (! is_string($pass) || $pass === '') {
             throw new RuntimeException('Database password is not configured.');
         }

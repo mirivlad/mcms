@@ -1,0 +1,42 @@
+name: mCMS shared-hosting ZIP
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: curl, gd, intl, mbstring, mysqli, zip
+          tools: composer:v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify release tag matches source version
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, re
+          text = pathlib.Path('src/Core/Version.php').read_text()
+          match = re.search(r"const VERSION\s*=\s*'([^']+)'", text)
+          if not match or os.environ["RELEASE_TAG"] != "v" + match.group(1):
+              raise SystemExit("Release tag does not match Core Version::VERSION")
+          PY
+      - name: Build complete PHP and frontend package
+        run: python3 scripts/build-shared-package.py --output dist
+      - name: Verify ZIP security and required assets
+        run: python3 scripts/check-shared-package.py dist/mcms-*-shared-hosting.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mcms-shared-hosting
+          path: dist/*-shared-hosting.zip
+          retention-days: 7
