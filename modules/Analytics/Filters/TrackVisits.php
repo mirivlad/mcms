@@ -8,6 +8,7 @@ use CodeIgniter\Filters\FilterInterface;
 use CodeIgniter\HTTP\IncomingRequest;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
+use MCMS\Modules\Analytics\Privacy\Consent;
 
 final class TrackVisits implements FilterInterface
 {
@@ -32,12 +33,22 @@ final class TrackVisits implements FilterInterface
         $first = strtolower(rawurldecode(explode('/', ltrim($path, '/'))[0]));
         if (strlen($path) > 500 || in_array($first, [
             'admin', 'account', 'login', 'logout', 'register', 'auth', 'install', '_health',
-            'assets', 'theme-assets', 'api', 'cart', 'checkout', 'captcha',
+            'assets', 'theme-assets', 'api', 'cart', 'checkout', 'captcha', 'analytics',
         ], true)) {
             return;
         }
         $agent = $request->getHeaderLine('User-Agent');
         if ($agent === '' || preg_match('/bot|spider|crawler|slurp|headless|preview|curl|wget|python|monitor|healthcheck/i', $agent)) {
+            return;
+        }
+
+        // No identifier, analytics row or tracking cookie is created before a
+        // visitor explicitly opts in. Existing DNT/GPC exclusions stay in force.
+        $choice = $request->getCookie(Consent::COOKIE);
+        if (! Consent::permitted($choice)) {
+            if (Consent::undecided($choice)) {
+                $this->appendPrivacyNotice($response);
+            }
             return;
         }
 
@@ -63,6 +74,26 @@ final class TrackVisits implements FilterInterface
         } catch (\Throwable $e) {
             // Statistics must never prevent a public page from being served.
             log_message('error', 'Analytics recording failed: {message}', ['message' => $e->getMessage()]);
+        }
+    }
+
+    private function appendPrivacyNotice(ResponseInterface $response): void
+    {
+        $body = $response->getBody();
+        if (! is_string($body) || strlen($body) > 2_000_000 || stripos($body, '</body>') === false) {
+            return;
+        }
+        $text = esc(lang('Analytics.privacyNotice'));
+        $label = esc(lang('Analytics.privacySettings'));
+        $url = esc(site_url('analytics/privacy'), 'attr');
+        $notice = '<aside role="region" aria-label="' . $label
+            . '" style="position:fixed;z-index:10000;bottom:1rem;left:1rem;right:1rem;'
+            . 'max-width:48rem;margin:auto;padding:.8rem 1rem;border:1px solid #aaa;'
+            . 'border-radius:.6rem;background:#fff;color:#222;box-shadow:0 4px 16px #0003">'
+            . $text . ' <a href="' . $url . '">' . $label . '</a></aside>';
+        $updated = preg_replace('~</body>~i', $notice . '</body>', $body, 1);
+        if (is_string($updated)) {
+            $response->setBody($updated)->setHeader('Cache-Control', 'private, no-store');
         }
     }
 }
