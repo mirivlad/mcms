@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow">
     <title><?= esc($metaTitle ?? ($siteName ?? 'mCMS')) ?></title>
     <link rel="stylesheet" href="<?= site_url('assets/vendor/bootstrap/css/bootstrap.min.css') ?>">
-    <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css') ?>">
+    <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css?v=' . \MCMS\Core\Version::VERSION) ?>">
 </head>
 <body>
     <header class="container py-3">

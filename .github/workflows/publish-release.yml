@@ -47,7 +47,7 @@ jobs:
         run: |
           gh release create "$TAG_NAME" dist/*-shared-hosting.zip dist/SHA256SUMS \
             --title "mCMS $TAG_NAME — Docker and shared hosting" \
-            --notes-file docs/RELEASE_0.1.9.md \
+            --notes-file docs/RELEASE_0.1.10.md \
             --verify-tag
 
   images:

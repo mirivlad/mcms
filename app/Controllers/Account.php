@@ -19,9 +19,12 @@ final class Account extends BaseController
     public function index(): string
     {
         $user = auth()->user();
+        $ordersEnabled = service('mcmsModuleServices')->has('orders.orders');
         return $this->renderAccountPage('account', [
             'user' => $user,
             'profile' => $this->profile((int) $user->id),
+            'ordersEnabled' => $ordersEnabled,
+            'recentOrders' => $ordersEnabled ? $this->userOrders(3) : [],
         ]);
     }
 
@@ -93,13 +96,7 @@ final class Account extends BaseController
 
     public function orders(): string
     {
-        $orders = [];
-        if (service('mcmsModuleServices')->has('orders.orders')) {
-            $orders = db_connect()->table('orders')
-                ->select('id, status, created_at, total_minor, currency')
-                ->where('customer_user_id', (int) auth()->id())
-                ->orderBy('id', 'DESC')->limit(100)->get()->getResultArray();
-        }
+        $orders = service('mcmsModuleServices')->has('orders.orders') ? $this->userOrders(100) : [];
         return $this->renderAccountPage('orders', ['orders' => $orders]);
     }
 
@@ -130,10 +127,22 @@ final class Account extends BaseController
         $title = lang('MCMS.account.' . $key);
         return service('mcmsThemes')->render('account.' . $page, [
             ...$data,
+            // CodeIgniter view services may retain prior view data between requests.
+            'accountDashboard' => $page === 'account',
             'accountPageTitle' => $title,
             'metaTitle' => $title . ' · ' . (string) (setting('Core.siteName') ?? 'mCMS'),
             'metaRobots' => 'noindex, nofollow',
         ], 'auth/' . $page);
+    }
+
+    /** @return list<array<string,mixed>> */
+    private function userOrders(int $limit): array
+    {
+        // Customer ownership is enforced by SQL, including dashboard previews.
+        return db_connect()->table('orders')
+            ->select('id, status, created_at, total_minor, currency')
+            ->where('customer_user_id', (int) auth()->id())
+            ->orderBy('id', 'DESC')->limit($limit)->get()->getResultArray();
     }
 
     /** @return array{full_name:string,phone:string} */

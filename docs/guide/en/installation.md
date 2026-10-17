@@ -46,7 +46,7 @@ Actual names may carry your Compose project prefix. Keep the same stack/project 
 
 ## Option B: Standalone / shared hosting
 
-**Requirements:** PHP 8.2+ with mysqli, intl, mbstring, gd, curl, zip, fileinfo and CodeIgniter requirements; Apache 2.4 with `mod_rewrite` and `.htaccess`; a MySQL/MariaDB database with CREATE/ALTER privileges; PHP write access to private `writable`; ability to place source files **outside the site's DocumentRoot**. PHP execution/upload limits must be sufficient for your actual site. Low-cost hosts may impose limits that prevent backups/restores of larger sites.
+**Requirements:** PHP 8.2+ with mysqli, intl, mbstring, gd, curl, zip, fileinfo and CodeIgniter requirements; a PHP-capable web server (Apache, Nginx + PHP-FPM, Caddy + PHP-FPM, LiteSpeed/LSAPI) with correct front-controller routing; a MySQL/MariaDB database with CREATE/ALTER privileges; PHP write access to private `writable`; ability to place source files **outside the site's DocumentRoot**. PHP execution/upload limits must be sufficient for your actual site. Low-cost hosts may impose limits that prevent backups/restores of larger sites.
 
 1. Download **`mcms-X.Y.Z-shared-hosting.zip`** from an official [GitHub Release](https://github.com/mirivlad/mcms/releases). Do **not** upload GitHub's auto-generated “Source code ZIP” — that lacks Composer dependencies and built assets.
 2. Create a new, **empty** MySQL/MariaDB database and database user in your hosting control panel. Enable HTTPS; select PHP 8.3/8.4 where available.
@@ -63,6 +63,8 @@ Actual names may carry your Compose project prefix. Keep the same stack/project 
    ```
 4. Open the domain over **HTTPS**. The `/install` wizard checks extensions, filesystem safety and write access. Enter database hostname, port (usually 3306), database name, username and password. SMTP settings are optional.
 5. Confirm; Core creates tables, then asks for your first administrator. Finish and log in. No `spark`, Composer, server shell or SQL import is necessary.
+
+**[Web server configuration examples: Apache, Nginx, Caddy and LiteSpeed](webservers.md).** Neither Apache nor `mod_rewrite` is mandatory: correct front-controller routing and private-file isolation are required.
 
 **Never** put `app`, `vendor`, `src`, `writable`, backups or `.env` under an accessible `public_html`. If your provider cannot isolate the DocumentRoot, change hosting plan/provider. Do not bypass the preflight. Protect `.env` with private file permissions.
 

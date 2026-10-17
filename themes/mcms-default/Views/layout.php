@@ -33,7 +33,7 @@ $menuUrl = static function (?string $url): ?string {
     <?php if (! empty($metaKeywords)): ?><meta name="keywords" content="<?= esc((string) $metaKeywords, 'attr') ?>"><?php endif ?>
     <?php if (! empty($metaRobots)): ?><meta name="robots" content="<?= esc($metaRobots, 'attr') ?>"><?php endif ?>
     <?php if (! empty($isPreview)): ?><meta name="robots" content="noindex, nofollow, noarchive"><?php endif ?>
-    <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css') ?>">
+    <link rel="stylesheet" href="<?= site_url('assets/css/account-nav.css?v=' . \MCMS\Core\Version::VERSION) ?>">
     <?= view('themes/appearance_head') ?>
     <?= view('themes/content_assets') ?>
 </head>
