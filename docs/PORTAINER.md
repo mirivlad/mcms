@@ -186,6 +186,10 @@ catalog-managed external packages (only when enabled in Administration → Updat
 without Docker socket, browser visits, or host cron. It uses the existing
 persistent volumes. MCMS_UPDATE_INTERVAL_SECONDS defaults to 21600 (6 hours).
 
+For a step-by-step operator guide, including the Portainer API token,
+Stack/Environment IDs, MariaDB digest pinning, and safe existing-stack conversion:
+[English](guide/en/portainer-auto-updates.md) · [Русский](guide/ru/portainer-auto-updates.md).
+
 For **Core image** auto-updates, migrate the existing Portainer Git Stack
 carefully to portainer-release-stack.yml, preserving its stack name,
 environment and volume names. Do not create a second stack on the same database

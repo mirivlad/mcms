@@ -8,9 +8,10 @@
 ## Contents
 
 1. [Install with Docker, Portainer or shared hosting](installation.md).
-2. [Operate the site; update Core, modules and themes](operations.md).
-3. [Create and restore backups; recover and roll back](recovery.md).
-4. [Troubleshooting, security and limitations](troubleshooting.md).
+2. [Portainer release-image installation and automatic Core updates](portainer-auto-updates.md).
+3. [Operate the site; update Core, modules and themes](operations.md).
+4. [Create and restore backups; recover and roll back](recovery.md).
+5. [Troubleshooting, security and limitations](troubleshooting.md).
 
 Russian: [Русский](../ru/README.md). Developer references: [Architecture](../../ARCHITECTURE.md), [module API](../../MODULES.md), [theme API](../../THEMES.md), [package lifecycle](../../EXTENSIONS.md).
 

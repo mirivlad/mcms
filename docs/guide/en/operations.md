@@ -14,6 +14,8 @@ Sign in at `/login`, then open `/admin`. The superadmin manages configuration, a
 
 **Compose:** from the existing checkout run `git pull --ff-only` followed by `docker compose up -d --build`. Preserve the original Compose configuration and a known-good image/tag.
 
+**Full Portainer auto-update setup:** [fresh installation, existing Stack conversion, API key, Stack/Environment IDs and verification](portainer-auto-updates.md).
+
 **GHCR release stack:** if you deliberately use `portainer-release-stack.yml`, make sure app/web versioned release images exist, change `MCMS_IMAGE_TAG` to the appropriate tag and redeploy. Optional Core auto-updates through Portainer API require dedicated API settings and digest-pinned MariaDB; **do not turn this on without reviewing the full contract**. They do not guarantee automatic image/database rollback. All automatic-update switches start disabled.
 
 ## Upgrading Core — standalone/shared hosting

@@ -2,6 +2,8 @@
 
 mCMS 0.1.x supports a separate, **opt-in** update policy for Core, catalog-managed ZIP modules and catalog-managed ZIP themes. The background worker lives in the Compose `updater` service. It uses only the existing `modules_data`, `themes_data` and `backup_data` volumes. No host cron or Docker socket mount is required.
 
+For detailed first-time and migration setup of **automatic Core updates via Portainer**, see [English](guide/en/portainer-auto-updates.md) or [Русский](guide/ru/portainer-auto-updates.md).
+
 For non-CLI shared hosting, use the trusted release ZIP Core updater in
 `/admin/updates`; it does not use Portainer API. Full bilingual operator
 procedures: [English](guide/en/operations.md) · [Русский](guide/ru/operations.md).
@@ -26,7 +28,7 @@ The automatic updater accepts compatible versions **only if** there are no new/m
 
 Normal `portainer-stack.yml` builds from Git and does not automatically update the Core when a new Git commit appears. For published stable releases, deploy a Git-backed Portainer **Docker Standalone** stack with `portainer-release-stack.yml`. This uses `ghcr.io/mirivlad/mcms-app:stable` and `ghcr.io/mirivlad/mcms-web:stable` images instead of building from Git. GHCR packages must be publicly readable or the Docker environment must be logged in to GHCR.
 
-1. Release maintainer: publish a GitHub Release tagged `v<Core\Version::VERSION>` (for example `v0.1.9`). The `release-images.yml` workflow builds versioned plus stable app/web images and uploads `mcms-images-ready.json` **only after both images build successfully**. The Core updater ignores a release without this ready asset.
+1. Release maintainer: publish a GitHub Release tagged `v<Core\Version::VERSION>` (for example `v0.1.9`). The `publish-release.yml` tag workflow builds versioned plus stable app/web images and uploads `mcms-images-ready.json` **only after both images build successfully**. The Core updater ignores a release without this ready asset.
 2. In Portainer, configure the Git stack to reference `main` and Compose path `portainer-release-stack.yml`. Turn off competing GitOps polling/forced redeploy (the update worker, not arbitrary Git commits, must decide when to redeploy). Set `MCMS_IMAGE_TAG=stable` explicitly in the stack environment.
 3. **Pin MariaDB** with `MCMS_DB_IMAGE=mariadb:11.4@sha256:<full-existing-image-digest>`. Find the trusted manifest digest of the MariaDB version you intend to run in the Docker/Portainer image details. The Core updater refuses to redeploy a stack whose MariaDB image is floating: Portainer's pull/redeploy may otherwise upgrade the database as an unintended side effect. Postfix is already digest-pinned by the stack.
 4. Create a Portainer API key for an account authorized to manage only the intended stack if your Portainer edition/configuration permits. Populate **only the updater service** environment with `MCMS_PORTAINER_URL=https://your-portainer-host`, `MCMS_PORTAINER_API_KEY=ptr_...`, `MCMS_PORTAINER_STACK_ID=<numeric id>`, `MCMS_PORTAINER_ENDPOINT_ID=<numeric environment id>`. Keep the key secret. HTTPS with a valid certificate is required. The browser-facing PHP-FPM service does not receive the API key.
