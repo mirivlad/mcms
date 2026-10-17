@@ -11,11 +11,16 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.2', '8.3', '8.4']
+    name: Validation (PHP ${{ matrix.php }})
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: ${{ matrix.php }}
           extensions: curl, gd, intl, mbstring, mysqli, pdo_mysql, sqlite3, zip
           tools: composer:v2
       - name: Validate Composer manifest
@@ -59,3 +64,4 @@ jobs:
           # web and updater must NEVER be resolved as images from Docker Hub,
           # even when Portainer requests a forced pull.
           docker compose -f portainer-stack.yml pull --dry-run --policy always app web updater
+

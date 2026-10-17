@@ -1,0 +1,39 @@
+name: Bug report
+description: Report a reproducible mCMS bug (do not disclose security issues here)
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: "For security vulnerabilities, use private reporting described in SECURITY.md."
+  - type: input
+    id: version
+    attributes:
+      label: mCMS version / commit
+      placeholder: "v0.1.10 or commit SHA"
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Installation
+      options: ["Docker Compose", "Portainer", "Shared hosting", "Other"]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant redacted logs
+      description: "Remove tokens, passwords, IPs, cookies and personal data."
