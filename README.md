@@ -1,10 +1,23 @@
 # mCMS
 
-mCMS is a modular, self-hosted CMS platform built on CodeIgniter 4.
+**Modular, self-hosted CMS and e-commerce platform built on CodeIgniter 4.**
+Manage websites and shops on your own infrastructure, with optional modules,
+installable themes, and no required external service.
 
-The Core is intentionally small: framework runtime, authentication/authorization,
-administration, settings, module lifecycle, hooks, storage contracts and system
-maintenance. Content and business features are installed as modules.
+[![CI: PHP 8.2–8.4](https://github.com/mirivlad/mcms/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mirivlad/mcms/actions/workflows/ci.yml)
+[![Clean install](https://github.com/mirivlad/mcms/actions/workflows/clean-install.yml/badge.svg?branch=main)](https://github.com/mirivlad/mcms/actions/workflows/clean-install.yml)
+[![Latest release](https://img.shields.io/github/v/release/mirivlad/mcms)](https://github.com/mirivlad/mcms/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+**[Project website](https://mirv.top/public_projects/mcms/)** ·
+**[Releases & downloads](https://github.com/mirivlad/mcms/releases/latest)** ·
+**[Русское руководство](docs/guide/ru/README.md)** ·
+**[English guide](docs/guide/en/README.md)**
+
+Pages, news, galleries, SEO and commerce are separate modules. The Core handles
+users, permissions, themes, extension lifecycle, updates and backups. Deploy with
+**Docker Compose / Portainer** or install the **complete ZIP** on conventional
+PHP hosting (PHP 8.2+, supported web server and MySQL/MariaDB).
 
 ## Preview
 
