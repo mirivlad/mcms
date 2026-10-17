@@ -193,3 +193,14 @@ volumes or run down -v. Follow [the release/update contract](UPDATES.md).
 The Core mode requires GHCR image releases, Portainer HTTPS API settings,
 explicit stable channel and a digest-pinned MariaDB image. Without those inputs
 it cannot redeploy the application. All update switches default to disabled.
+
+### Git Stack Re-pull / Redeploy
+
+The Git-based `portainer-stack.yml` deliberately contains **no `image:`**
+for `app`, `web` or `updater`: all three build locally from the fetched
+repository. Portainer may run `compose pull --policy always` before its
+Compose build stage; attaching a non-published dev image (such as `mcms:dev`)
+would make this pull fail. The application and updater share the same Dockerfile
+but use separately named local build results. A Git redeploy should fetch
+`main` and rebuild all three services. Only MariaDB and Postfix are pulled
+from external registries by the Git Stack.

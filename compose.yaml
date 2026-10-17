@@ -22,7 +22,7 @@ services:
     build:
       context: .
       dockerfile: docker/app/Dockerfile
-    image: ${MCMS_APP_IMAGE:-mcms:dev}
+    pull_policy: build
     restart: unless-stopped
     environment: *app-env
     depends_on:
@@ -34,7 +34,10 @@ services:
       - backup_data:/var/www/html/writable/backups
 
   updater:
-    image: ${MCMS_APP_IMAGE:-mcms:dev}
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    pull_policy: build
     command: ["/usr/local/bin/mcms-updater"]
     restart: unless-stopped
     depends_on:
@@ -63,7 +66,7 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
-    image: ${MCMS_WEB_IMAGE:-mcms-web:dev}
+    pull_policy: build
     restart: unless-stopped
     depends_on:
       - app

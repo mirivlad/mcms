@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/app/Dockerfile
-    image: ${MCMS_APP_IMAGE:-mcms:dev}
+    pull_policy: build
     restart: unless-stopped
     environment:
       CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
@@ -30,7 +30,10 @@ services:
       - backup_data:/var/www/html/writable/backups
 
   updater:
-    image: ${MCMS_APP_IMAGE:-mcms:dev}
+    build:
+      context: .
+      dockerfile: docker/app/Dockerfile
+    pull_policy: build
     command: ["/usr/local/bin/mcms-updater"]
     restart: unless-stopped
     depends_on:
@@ -59,6 +62,7 @@ services:
     build:
       context: .
       dockerfile: docker/nginx/Dockerfile
+    pull_policy: build
     restart: unless-stopped
     depends_on:
       - app
