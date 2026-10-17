@@ -653,7 +653,9 @@ jobs:
           curl -fsS -c /tmp/backups.cookies http://127.0.0.1:8080/login -o /tmp/backups-login.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-login.html)"
           curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies -L --data-urlencode "csrf_test_name=$csrf" --data-urlencode 'email=admin@example.test' --data-urlencode 'password=Correct-Horse-Battery-Staple-42!' http://127.0.0.1:8080/login -o /tmp/backups-admin.html
-          grep -q 'class="admin-navigation' /tmp/backups-admin.html
+          # Public login redirects to /account even for administrators. Verify
+          # the actual protected backup endpoint rather than an admin navbar on
+          # the account page.
           curl -fsS -b /tmp/backups.cookies -c /tmp/backups.cookies             http://127.0.0.1:8080/admin/backups -o /tmp/backups-page.html
           grep -q 'Create backup' /tmp/backups-page.html
           csrf="$(python3 .github/scripts/extract-csrf.py /tmp/backups-page.html)"
