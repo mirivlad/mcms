@@ -25,6 +25,14 @@ PHP hosting (PHP 8.2+, supported web server and MySQL/MariaDB).
 
 The screenshot shows one of four bundled themes; the administration interface is independent of the public theme.
 
+
+### Administration
+
+![mCMS administration — editing a content page](docs/screenshots/admin-editor.png)
+
+*Example of the administration page editor captured during development;
+the current interface has since evolved.*
+
 ## Installation / Documentation
 
 - **Русское руководство:** [установка и администрирование](docs/guide/ru/README.md).
