@@ -332,7 +332,7 @@ final class RestoreManager
         $port = (int) (getenv('MCMS_DB_PORT') ?: '3306');
         $name = getenv('MCMS_DB_NAME') ?: 'mcms';
         $user = getenv('MCMS_DB_USER') ?: 'mcms';
-        $password = getenv('MCMS_DB_PASSWORD');
+        $password = \MCMS\Core\Install\SharedHostSetup::databasePassword();
         if (! is_string($password) || $password === '') {
             throw new RuntimeException('Database credentials not configured.');
         }

@@ -147,3 +147,14 @@ mCMS code, including its first-party modules and themes, is licensed under the
 Third-party dependencies and bundled assets retain their respective licenses.
 See [third-party notices](THIRD_PARTY_NOTICES.md) and the license files shipped
 with those components. External modules and themes may use their own licenses.
+
+
+### Conventional PHP shared hosting (in progress)
+
+The project also has a staged
+[shared-hosting installer and release design](docs/SHARED_HOSTING.md).
+A dedicated ZIP builder bundles Composer dependencies and frontend assets;
+the site owner's Apache DocumentRoot must point at `public_html` with the
+private code outside it. Browser database setup/migrations are supported in
+this mode, but PHP-only backups, module update recovery and Core ZIP upgrades
+still need completion before production shared-hosting support is claimed.

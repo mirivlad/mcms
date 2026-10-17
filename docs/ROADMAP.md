@@ -108,11 +108,11 @@ without Docker, SSH, Composer or a shell for the person installing the CMS.
 See [Shared hosting design and deployment](SHARED_HOSTING.md).
 
 - [x] Document host requirements, web-root boundary and staged acceptance criteria.
-- [ ] Publish a complete ZIP containing Composer vendor and built frontend assets,
+- [x] Build a complete ZIP containing Composer vendor and built frontend assets,
   with the private code outside `public_html`.
-- [ ] Browser preflight and database credentials before the existing superadmin wizard;
+- [x] Browser preflight and database credentials before the existing superadmin wizard;
   run scoped migrations in web mode with retry/lock safety.
-- [ ] Apache-compatible safe delivery of Media uploads, while keeping PHP and
+- [x] Apache-compatible safe delivery of Media uploads, while keeping PHP and
   internal writable files inaccessible.
 - [ ] First-install smoke in a non-container PHP runtime with Apache-compatible
   paths, externally supplied MySQL, plus a packaging integrity check.

@@ -268,7 +268,7 @@ final class BackupManager
         $port = (string) (getenv('MCMS_DB_PORT') ?: '3306');
         $db = getenv('MCMS_DB_NAME') ?: 'mcms';
         $user = getenv('MCMS_DB_USER') ?: 'mcms';
-        $pass = getenv('MCMS_DB_PASSWORD');
+        $pass = \MCMS\Core\Install\SharedHostSetup::databasePassword();
         if (! is_string($pass) || $pass === '') {
             throw new RuntimeException('Database password is not configured.');
         }

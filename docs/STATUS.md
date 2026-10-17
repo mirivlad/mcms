@@ -591,3 +591,27 @@ form/navigation checks including a 390px viewport without horizontal overflow.
 - This is local rebuild/recreation and exact-version ZIP recovery evidence.
   Production deployment, prior-release migration, scheduled/off-host backup jobs,
   and real SMTP/proxy/DNS/TLS checks are outside this rehearsal.
+
+## Shared-hosting installation — 2026-10-17 (first implementation, not released)
+
+- Documented Stage 6 acceptance checks, including PHP-only backup/restore,
+  module recovery, core ZIP updater, background jobs and SMTP. Full support is
+  **not yet claimed**; existing Docker deployment remains unchanged.
+- Added shared-hosting ZIP builder and GitHub Release packaging workflow.
+  Bundles locked Composer dependencies, vendor assets and theme resources,
+  with only `public_html` public and private data/config outside DocumentRoot.
+- Added browser-first DB setup, environment and filesystem preflight,
+  MySQL connectivity check on empty DB, atomic private `.env` write,
+  locked namespace-scoped migrations, then existing superadmin setup.
+- Added Apache media fallback route with canonical upload-name restriction,
+  directory traversal protections and MIME limits.
+- Local builder produced a 21.7 MB ZIP; archive verifier passed with 2,331
+  file/directory entries, including previously omitted empty writable dirs.
+- Disposable PHP 8.3 HTTP server and separate temporary MariaDB tested first-run
+  DB setup and initial migrations, and returned the superadmin wizard. A second
+  extracted package loaded the same DB via the new base64 password setting.
+  Static Bootstrap resource resolved 200 through an Apache-like router; a
+  valid media URL resolved 200 and absent media resolved 404. The full Apache
+  rewrite rules, admin form submission, backup/restore, new core ZIP update,
+  SMTP and shared-host external module lifecycle have **not** been tested.
+- Focused PHPUnit: 3 tests, 20 assertions; PHP syntax checks passed.

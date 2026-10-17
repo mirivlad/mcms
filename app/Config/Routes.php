@@ -5,6 +5,8 @@ use CodeIgniter\Router\RouteCollection;
 /** @var RouteCollection $routes */
 $routes->setPrioritize();
 $routes->get('theme-assets/(:segment)/(:segment)/(:any)', 'ThemeAssets::show/$1/$2/$3');
+// On Apache this falls through to PHP. nginx serves the same path by alias.
+$routes->get('assets/uploads/media/(:any)', 'PublicMedia::show/$1');
 
 $routes->get('/', 'Home::index');
 $routes->match(['get', 'post'], 'install', 'Install::index', ['as' => 'install']);
@@ -97,7 +99,9 @@ $coreUpdateRequest = ! is_cli() && preg_match(
 ) === 1;
 // Unattended CLI must not boot the old module providers before replacing code.
 $unattendedUpdateRequest = is_cli() && in_array('mcms:updates:run', $_SERVER['argv'] ?? [], true);
-if (! $coreUpdateRequest && ! $unattendedUpdateRequest && ! is_file(WRITEPATH . 'backups/restore-active.json')) {
+if (! $coreUpdateRequest && ! $unattendedUpdateRequest
+    && ! (\MCMS\Core\Install\SharedHostSetup::enabled() && ! \MCMS\Core\Install\SharedHostSetup::configured())
+    && ! is_file(WRITEPATH . 'backups/restore-active.json')) {
     $moduleManager->bootEnabled();
     $moduleManager->registerRoutes($routes);
 }

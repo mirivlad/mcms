@@ -16,6 +16,21 @@ edition. This is a staged implementation: see [roadmap](ROADMAP.md).
 - Sufficient PHP memory, upload size, execution limits and disk quota for the
   site, imports and extensions. Some low-cost hosts won't meet these limits.
 
+## Packaging
+
+The maintainer builds a complete release on CI with
+`python3 scripts/build-shared-package.py --output dist`; the builder uses
+Composer and Node **on the build machine**, not on shared hosting. The ZIP
+includes the exact Composer lockfile libraries, Tabler, Bootstrap and built-in
+theme assets. `python3 scripts/check-shared-package.py dist/*.zip` validates
+required files, empty writable directories and web-root isolation.
+The `shared-hosting-release.yml` workflow uploads this ZIP on a matching
+GitHub Release tag (and supports a manual artifact-only run). Preview ZIPs
+from an unmerged development branch are **not production releases**.
+
+A successful build is a preview of installation support, not evidence that
+backup/restore, background jobs and module updates work on all shared hosts.
+
 ## Distribution layout
 
 ```text
@@ -42,7 +57,10 @@ the installation must stop. Protect the site with TLS before entering passwords.
    rewrite behavior and access to writable storage.
 4. Enter the MySQL host, port, database, username and password. The installer
    saves these **outside** the webroot, applies scoped Core/Shield/Settings
-   migrations and resumes the existing admin account wizard.
+   migrations and resumes the existing admin account wizard. Database
+   credentials are stored in `.env`; the password is base64-encoded for
+   reliable configuration parsing, **not encrypted**. File protection
+   depends on filesystem permissions and the private directory boundary.
 5. Finish initial site setup at `/install` and visit the administration area.
 
 Web-side database setup is closed after configuration and must never allow
