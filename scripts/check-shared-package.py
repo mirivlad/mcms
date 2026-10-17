@@ -20,7 +20,7 @@ def check(path: str) -> None:
             "public_html/assets/vendor/bootstrap/js/bootstrap.bundle.min.js",
             "vendor/autoload.php", "app/Controllers/Install.php", "shared-core-rescue.php", "shared-release.json",
             "src/Core/Install/SharedHostSetup.php", ".env",
-            "README-SHARED-HOSTING.md", "public_html/assets/themes/mcms-default/css/theme.css",
+            "README-SHARED-HOSTING.md", "manual/en/README.md", "manual/ru/README.md", "manual/reference/ARCHITECTURE.md", "public_html/assets/themes/mcms-default/css/theme.css",
         }
         missing = required - members
         if missing:

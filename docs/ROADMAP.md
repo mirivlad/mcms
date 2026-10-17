@@ -114,22 +114,25 @@ See [Shared hosting design and deployment](SHARED_HOSTING.md).
   run scoped migrations in web mode with retry/lock safety.
 - [x] Apache-compatible safe delivery of Media uploads, while keeping PHP and
   internal writable files inaccessible.
-- [ ] First-install smoke in a non-container PHP runtime with Apache-compatible
-  paths, externally supplied MySQL, plus a packaging integrity check.
-- [ ] Web-safe database export/import on restricted hosts without
-  `mariadb-dump`, `mariadb` or `proc_open`; bounded execution/recovery.
-- [ ] Web-safe module update workflow and recovery without CLI process spawning.
-- [ ] Hosting-mode core ZIP update with integrity, backup, atomic switch
-  and an explicit rollback path (not Portainer API).
-- [ ] Background jobs using hosting cron if available; manual admin actions
-  otherwise. No implicit updates triggered by public site traffic.
-- [ ] Shared-host mail delivery through host SMTP credentials.
-- [ ] Document and test managed PHP hosting limitations and upgrade/restore
-  compatibility before claiming full support.
+- [x] Test from extracted ZIP with PHP runtime and real Apache 2.4: installer,
+  paths, media and packaging integrity; disposable MySQL test database.
+- [x] Add PHP database export/import without `mariadb-dump`, `mariadb` or
+  `proc_open`, with checksum validation, safety ZIP and interrupted recovery.
+  Large sites still require adequate hosting quotas and tested recovery.
+- [x] Web-host module and theme update paths without CLI process spawning;
+  use a recovery journal and preserve previous package snapshots.
+- [x] Same-minor Core patch ZIP updates with file hashes, data backup,
+  staged code switch and pre-bootstrap recovery (no Portainer API).
+- [x] Manual admin operations on shared hosting; CLI cron remains optional
+  where supported. Public site traffic never triggers automatic upgrades.
+- [x] Shared-host mail delivery configured with provider SMTP credentials.
+- [x] Document managed PHP-host limitations, independent backups and differing
+  Docker vs PHP database formats, in Russian and English user manuals.
 
-The checklist deliberately does **not** equate a successful installation
-with production-ready shared-hosting operation: backup/restore, module updates,
-and safe core upgrades remain release blockers.
+Production operators must still verify that their provider's PHP timeouts,
+account filesystem permissions, MySQL capabilities and quotas fit their site's
+size. No application can guarantee recovery from inaccessible disks/databases.
+
 
 ## Reference policy
 

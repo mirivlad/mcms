@@ -1,9 +1,9 @@
-# Shared-hosting distribution (work in progress)
+# Shared-hosting distribution — mCMS 0.1.9
 
-mCMS will support conventional Apache/PHP/MySQL hosting **without** Docker,
+mCMS supports conventional Apache/PHP/MySQL hosting **without** Docker,
 Portainer, SSH, Composer or a PHP CLI for the **site owner**. Docker remains
 supported separately. There is one Core and extension API, not a reduced
-edition. This is a staged implementation: see [roadmap](ROADMAP.md).
+edition. For operational procedures consult [English](guide/en/README.md) or [Русский](guide/ru/README.md). Hosting limits are listed below.
 
 ## Required hosting conditions
 
@@ -28,8 +28,11 @@ The `shared-hosting-release.yml` workflow uploads this ZIP on a matching
 GitHub Release tag (and supports a manual artifact-only run). Preview ZIPs
 from an unmerged development branch are **not production releases**.
 
-A successful build is a preview of installation support, not evidence that
-backup/restore, background jobs and module updates work on all shared hosts.
+The ZIP includes both administrator manuals in the private `manual/` directory.
+Normal shared-hosting sites can use PHP-only backups, restoration and manual
+extension updates. Host storage and execution quotas still limit how large a
+site can be maintained safely; schedule an independent off-host backup and
+verify full recovery before relying on automated safety mechanisms.
 
 ## Distribution layout
 
@@ -67,12 +70,24 @@ Web-side database setup is closed after configuration and must never allow
 replacing credentials on a live or already-installed site. Failure recovery
 must not expose passwords in messages or logs.
 
-## Not yet guaranteed
+## Limits and differences from Docker
 
-The current Docker flow uses `mariadb-dump` and an external PHP CLI worker
-for some backup/restore and module-update operations. Shared hosting must have
-tested PHP-only alternatives before it is treated as production-supported.
-The current Docker core auto-updater uses Portainer API and is not valid for
-shared hosting. No unattended updater should be run from a public request.
-Shared hosting SMTP must use the provider's settings rather than the Docker
-Postfix hostname `mail`.
+Docker still uses `mariadb-dump` and an independent CLI restoration worker.
+Shared hosting uses a **different logical export format** processed by PHP and
+synchronous worker requests; a Docker backup cannot be imported into the
+restricted shared-host restore wizard without conversion. The Core ZIP upgrader
+supports newer **patch releases only** within the same minor series, with
+unchanged bootstrap entry files, and creates a safety backup before swapping
+code. It cannot guarantee rollback after total disk failure, MySQL downtime or
+prolonged provider-enforced PHP timeouts.
+
+Core unattended updates in Docker use Portainer API; **this is not used** on
+shared hosting. In shared hosting, manually upload trusted official ZIP files.
+Package hashes are not a publisher signature. Host SMTP credentials can be
+entered in the installation wizard; no Docker Postfix service is required.
+Cron, where available, can run supported CLI commands; public page requests
+never launch unattended upgrades.
+
+Only a single web-instance with local locks is supported, not multiple FPM
+instances on different machines with separate storage. Upgrade and backup large
+sites through a managed VPS if your PHP host limits are insufficient.

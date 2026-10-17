@@ -2,6 +2,10 @@
 
 mCMS 0.1.x supports a separate, **opt-in** update policy for Core, catalog-managed ZIP modules and catalog-managed ZIP themes. The background worker lives in the Compose `updater` service. It uses only the existing `modules_data`, `themes_data` and `backup_data` volumes. No host cron or Docker socket mount is required.
 
+For non-CLI shared hosting, use the trusted release ZIP Core updater in
+`/admin/updates`; it does not use Portainer API. Full bilingual operator
+procedures: [English](guide/en/operations.md) · [Русский](guide/ru/operations.md).
+
 ## Settings
 
 Administration → Updates (`/admin/updates`, requires `core.system`) controls three switches. **All are disabled by default.** You can exclude individual installed catalog packages. The worker checks on start and every 6 hours by default (`MCMS_UPDATE_INTERVAL_SECONDS=21600`). The browser `Check now` button only refreshes the extension catalog, it does **not** perform installations or trigger Core redeploy.

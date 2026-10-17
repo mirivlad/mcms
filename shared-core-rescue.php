@@ -9,7 +9,7 @@ declare(strict_types=1);
  */
 final class MCMSSharedCoreRescue
 {
-    private const ROOTS = ['app', 'src', 'modules', 'themes', 'catalog', 'vendor', 'public_html/assets'];
+    private const ROOTS = ['app', 'src', 'modules', 'themes', 'catalog', 'vendor', 'manual', 'public_html/assets'];
 
     public static function gate(string $root): void
     {

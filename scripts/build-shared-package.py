@@ -47,6 +47,27 @@ def build(output: Path) -> Path:
             shutil.copy2(REPO / name, stage / name)
         shutil.copytree(REPO / "public", stage / "public_html")
         shutil.copy2(REPO / "docs/SHARED_HOSTING.md", stage / "README-SHARED-HOSTING.md")
+        shutil.copytree(REPO / "docs/guide", stage / "manual")
+        # Keep developer reference links usable when the manuals are opened
+        # offline, without relying on files in the Git source checkout.
+        reference = stage / "manual/reference"
+        reference.mkdir()
+        for name in ("ARCHITECTURE.md", "MODULES.md", "THEMES.md", "EXTENSIONS.md"):
+            shutil.copy2(REPO / "docs" / name, reference / name)
+        for lang in ("en", "ru"):
+            index = stage / "manual" / lang / "README.md"
+            index.write_text(index.read_text(encoding="utf-8").replace(
+                "../../ARCHITECTURE.md", "../reference/ARCHITECTURE.md"
+            ).replace("../../MODULES.md", "../reference/MODULES.md")
+             .replace("../../THEMES.md", "../reference/THEMES.md")
+             .replace("../../EXTENSIONS.md", "../reference/EXTENSIONS.md"), encoding="utf-8")
+        readme = stage / "README-SHARED-HOSTING.md"
+        readme.write_text(
+            "# mCMS standalone installation\n\n"
+            "English instructions: [Administrator guide](manual/en/README.md).\n\n"
+            "Русская инструкция: [Руководство администратора](manual/ru/README.md).\n\n"
+            + readme.read_text(encoding="utf-8"), encoding="utf-8",
+        )
         (stage / ".env").write_text(
             "CI_ENVIRONMENT = production\nMCMS_INSTALL_MODE = shared\n",
             encoding="utf-8",
@@ -101,7 +122,7 @@ def build(output: Path) -> Path:
         # Hash every executable/static Core file as an immutable release unit.
         # The installer verifies this before entering maintenance. The admin
         # still has to trust the package publisher (hashes are not signatures).
-        core_roots = ("app/", "src/", "modules/", "themes/", "catalog/", "vendor/", "public_html/assets/")
+        core_roots = ("app/", "src/", "modules/", "themes/", "catalog/", "vendor/", "manual/", "public_html/assets/")
         release_files = {}
         for file in sorted(stage.rglob("*")):
             if file.is_file():

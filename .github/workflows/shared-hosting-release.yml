@@ -2,11 +2,9 @@ name: mCMS shared-hosting ZIP
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   package:
@@ -42,9 +40,3 @@ jobs:
           name: mcms-shared-hosting
           path: dist/*-shared-hosting.zip
           retention-days: 7
-      - name: Publish ZIP with release
-        if: github.event_name == 'release'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: gh release upload "$RELEASE_TAG" dist/*-shared-hosting.zip --clobber

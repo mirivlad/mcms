@@ -14,7 +14,7 @@ use ZipArchive;
 /** ZIP-only code activation, with a standalone pre-bootstrap crash recovery gate. */
 final class SharedCoreUpdater
 {
-    public const ROOTS = ['app', 'src', 'modules', 'themes', 'catalog', 'vendor', 'public_html/assets'];
+    public const ROOTS = ['app', 'src', 'modules', 'themes', 'catalog', 'vendor', 'manual', 'public_html/assets'];
     private const MAX_ZIP = 120 * 1024 * 1024;
     private const MAX_UNPACKED = 450 * 1024 * 1024;
     private const MAX_FILES = 16000;
@@ -161,9 +161,20 @@ final class SharedCoreUpdater
                 throw new RuntimeException('Core ZIP metadata and PHP Version::VERSION disagree.');
             }
             foreach (['app/Config/Paths.php', 'src/Core/Version.php', 'vendor/autoload.php',
+                'manual/en/README.md', 'manual/ru/README.md',
                 'public_html/assets/vendor/bootstrap/css/bootstrap.min.css'] as $required) {
                 if (! isset($present[$required])) {
                     throw new RuntimeException('Core release is incomplete: ' . $required);
+                }
+            }
+            // Entry-point and pre-bootstrap rescue code live outside the
+            // switched directories. Refuse release packages that would leave
+            // those three files at incompatible versions.
+            foreach (['public_html/index.php', 'public_html/.htaccess', 'shared-core-rescue.php'] as $stable) {
+                $source = $zip->getFromName($stable);
+                if (! is_string($source) || ! is_file(ROOTPATH . $stable)
+                    || ! hash_equals((string) hash_file('sha256', ROOTPATH . $stable), hash('sha256', $source))) {
+                    throw new RuntimeException('Core release changes a non-swappable bootstrap file: ' . $stable . '. Use a supervised manual upgrade.');
                 }
             }
             return $version;
@@ -271,7 +282,7 @@ final class SharedCoreUpdater
         }
         try {
             foreach (self::ROOTS as $relative) {
-                mkdir($stage . '/' . $relative, 0700, true);
+                mkdir($stage . '/' . $relative, 0755, true);
             }
             for ($i = 0; $i < $zip->numFiles; $i++) {
                 $name = $zip->getNameIndex($i);
@@ -280,7 +291,7 @@ final class SharedCoreUpdater
                 }
                 $dest = $stage . '/' . $name;
                 $parent = dirname($dest);
-                if (! is_dir($parent) && ! mkdir($parent, 0700, true)) {
+                if (! is_dir($parent) && ! mkdir($parent, 0755, true)) {
                     throw new RuntimeException('Cannot create Core staging directory.');
                 }
                 $in = $zip->getStream($name);
@@ -295,6 +306,9 @@ final class SharedCoreUpdater
                 } finally {
                     fclose($in);
                     fclose($out);
+                }
+                if (! chmod($dest, 0644)) {
+                    throw new RuntimeException('Cannot set deployed Core file permissions.');
                 }
                 if (str_ends_with($name, '.php')) {
                     try {
