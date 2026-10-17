@@ -38,9 +38,29 @@ than summing daily unique counts.
 This version uses the existing schema and collection flow. It adds no UTM,
 conversion events, browser tracker, long-term aggregates or new retention policy.
 
+## Visitor choice and privacy
+
+**Privacy-first default (0.2.1+):** enabling Analytics does **not** track a
+visitor until they explicitly allow analytics. A compact notice on public HTML
+pages links to \`/analytics/privacy\`, where the visitor can allow or decline
+tracking using CSRF-protected POST forms. The same URL allows opt-out later.
+Until consent, neither analytics identifiers nor pageview rows are created.
+Declining also expires the visitor/visit cookies. The preference cookie stores
+only \`yes\`/\`no\` for one year and exists solely to remember the choice.
+DNT=1 and Sec-GPC=1 continue to override an affirmative choice.
+
+The privacy page/notice is served **only while Analytics is enabled**.
+The default privacy link is independently accessible at \`/analytics/privacy\`;
+site owners should also link it from their privacy policy/footer and translate
+or adapt legal notices to their jurisdiction. This is not a legal compliance
+guarantee; evaluate consent, privacy notice, retention and access requirements
+under applicable GDPR/ePrivacy or other local rules. Disabling the module stops
+collection; data already stored is retained until cleanup after re-enabling or
+a separately performed deletion.
+
 ## Collection and identifiers
 
-An enabled module registers an HTTP after-filter. It counts successful GET HTML
+An enabled module registers an HTTP after-filter. With explicit consent it counts successful GET HTML
 responses, independently of the public theme. Reloads count as views. There is no
 public ingestion endpoint and no client-side code to insert into themes.
 
