@@ -127,7 +127,14 @@ final class AtelierPublicAccountThemeTest extends CIUnitTestCase
             $html = (string) $response->response()->getBody();
             self::assertStringContainsString('data-theme="mcms-atelier"', $html);
             self::assertStringContainsString('site-footer', $html);
-            self::assertStringContainsString('mcms-account-card', $html);
+            if ($path === 'account') {
+                self::assertStringContainsString('mcms-account-dashboard-shell', $html);
+                self::assertStringContainsString('mcms-account-form-grid', $html);
+                self::assertStringNotContainsString('<div class="mcms-account-card">', $html);
+                self::assertStringContainsString('name="current_password"', $html);
+            } else {
+                self::assertStringContainsString('mcms-account-card', $html);
+            }
             self::assertStringContainsString('/account', $html);
             self::assertStringContainsString('/logout', $html);
             self::assertStringNotContainsString('site standalone', $html);

@@ -1,4 +1,4 @@
-# Shared-hosting distribution — mCMS 0.1.9
+# Shared-hosting distribution — mCMS 0.1.10
 
 mCMS supports conventional Apache/PHP/MySQL hosting **without** Docker,
 Portainer, SSH, Composer or a PHP CLI for the **site owner**. Docker remains
@@ -10,7 +10,7 @@ edition. For operational procedures consult [English](guide/en/README.md) or [Р
 - PHP 8.2+ with mysqli, intl, mbstring, gd, curl, zip, fileinfo, XML,
   and other CodeIgniter/Composer platform requirements.
 - A MySQL or MariaDB database and a user allowed to create/alter tables.
-- Apache with `mod_rewrite`, `.htaccess` support and writable PHP storage.
+- A web server capable of routing application URLs to `public_html/index.php`: Apache (with rewrite or fallback), Nginx + PHP-FPM, Caddy + PHP-FPM, or LiteSpeed/LSAPI. See [English](guide/en/webservers.md) and [Русский](guide/ru/webservers.md) for tested routing patterns and Media URL handling.
 - Account access to the directory **above** `public_html`. The distribution
   must be extracted there, not entirely inside a web-accessible directory.
 - Sufficient PHP memory, upload size, execution limits and disk quota for the
@@ -40,8 +40,8 @@ verify full recovery before relying on automated safety mechanisms.
 hosting-account/
   app/ src/ modules/ themes/ catalog/ vendor/ writable/
   .env                    # host-only credentials, not web accessible
-  public_html/            # Apache DocumentRoot (the sole public directory)
-    .htaccess
+  public_html/            # DocumentRoot for any supported web server
+    .htaccess           # only relevant to Apache/LiteSpeed configurations
     index.php
     assets/
 ```
@@ -57,7 +57,7 @@ the installation must stop. Protect the site with TLS before entering passwords.
 2. Extract the **shared-hosting release ZIP** into the account home, merging
    its `public_html` subtree with the hosting document root.
 3. Open the site and let preflight verify PHP/extensions, filesystem layout,
-   rewrite behavior and access to writable storage.
+   front-controller routing and access to writable storage.
 4. Enter the MySQL host, port, database, username and password. The installer
    saves these **outside** the webroot, applies scoped Core/Shield/Settings
    migrations and resumes the existing admin account wizard. Database

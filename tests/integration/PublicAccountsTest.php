@@ -151,7 +151,16 @@ final class PublicAccountsTest extends CIUnitTestCase
             ->where('group', 'user')->countAllResults());
         $account = $this->get('/account');
         $account->assertOK();
-        self::assertStringContainsString('visitor01', (string) $account->response()->getBody());
+        $accountHtml = (string) $account->response()->getBody();
+        self::assertStringContainsString('visitor01', $accountHtml);
+        self::assertStringContainsString('mcms-account-dashboard-shell', $accountHtml);
+        self::assertStringContainsString('mcms-account-workspace', $accountHtml);
+        self::assertStringContainsString('mcms-account-form-grid', $accountHtml);
+        self::assertStringContainsString('name="current_password"', $accountHtml);
+        self::assertStringContainsString('action="' . site_url('account/profile') . '"', $accountHtml);
+        self::assertStringContainsString('action="' . site_url('account/password') . '"', $accountHtml);
+        self::assertStringNotContainsString('mcms-account-orders-overview', $accountHtml);
+        self::assertStringNotContainsString('<p class="d-flex gap-3 flex-wrap">', $accountHtml);
         $admin = $this->get('/admin');
         $admin->assertRedirect();
         $orders = $this->get('/account/orders');

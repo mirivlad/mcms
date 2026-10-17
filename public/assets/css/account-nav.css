@@ -31,7 +31,23 @@
     outline-offset: 4px;
 }
 @media (max-width: 767px) {
-    .mcms-account-access { width: 100%; justify-content: flex-end; }
+    /* Two deliberate header rows prevent the brand from being crushed
+       between mobile navigation and account links. */
+    .site-header-inner:has(> .mcms-account-access),
+    .sig-header-inner:has(> .mcms-account-access) {
+        flex-wrap: wrap;
+        row-gap: .25rem;
+        padding-block: .5rem;
+    }
+    .site-header-inner > .site-brand,
+    .sig-header-inner > .sig-brand { flex-shrink: 0; white-space: nowrap; }
+    .mcms-account-access {
+        flex: 0 0 100%;
+        width: 100%;
+        justify-content: flex-end;
+        border-top: 1px solid color-mix(in srgb, currentColor 13%, transparent);
+        padding: .45rem 0;
+    }
 }
 
 /* Account forms inherit the active theme's typography and colors. */
@@ -57,4 +73,145 @@
 @media (max-width: 480px) {
     .mcms-account-page { width: calc(100% - 1.25rem); }
     .mcms-account-card { padding: 1rem; }
+}
+
+/* Profile dashboard: a single workspace, not cards nested inside cards. */
+.mcms-account-page--dashboard {
+    width: min(100% - 2.5rem, 1120px);
+}
+.mcms-account-page--dashboard .mcms-account-content {
+    max-width: none;
+}
+.mcms-account-dashboard-shell { color: inherit; }
+.mcms-account-hero {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 2.5vw, 1.5rem);
+    margin: 0 0 1.75rem;
+}
+.mcms-account-avatar {
+    display: grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: clamp(3.5rem, 6vw, 4.5rem);
+    height: clamp(3.5rem, 6vw, 4.5rem);
+    border-radius: 1.2rem;
+    background: color-mix(in srgb, var(--bs-primary, currentColor) 17%, transparent);
+    border: 1px solid color-mix(in srgb, var(--bs-primary, currentColor) 25%, transparent);
+    color: inherit;
+    font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+    font-weight: 650;
+    line-height: 1;
+}
+.mcms-account-identity { min-width: 0; flex: 1 1 auto; }
+.mcms-account-eyebrow {
+    margin: 0 0 .3rem;
+    font-size: .78rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .66;
+}
+.mcms-account-name {
+    margin: 0;
+    font-size: clamp(1.45rem, 2.7vw, 2rem);
+    font-weight: 650;
+    line-height: 1.22;
+    overflow-wrap: anywhere;
+}
+.mcms-account-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .3rem .65rem;
+    margin: .5rem 0 0;
+    font-size: .9rem;
+    opacity: .77;
+    overflow-wrap: anywhere;
+}
+.mcms-account-meta-separator { opacity: .55; }
+.mcms-account-actions {
+    display: flex;
+    flex: 0 0 auto;
+    flex-wrap: wrap;
+    gap: .6rem;
+}
+.mcms-account-workspace {
+    border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+    background: color-mix(in srgb, currentColor 2.5%, transparent);
+    border-radius: 1rem;
+    overflow: hidden;
+}
+.mcms-account-form-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.mcms-account-section {
+    padding: clamp(1.3rem, 3vw, 2.25rem);
+    min-width: 0;
+}
+.mcms-account-section + .mcms-account-section {
+    border-left: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+.mcms-account-section h2,
+.mcms-account-orders-overview h2 {
+    font-size: clamp(1.05rem, 2vw, 1.3rem);
+    line-height: 1.3;
+    font-weight: 650;
+    margin: 0 0 .4rem;
+}
+.mcms-account-section-intro {
+    opacity: .68;
+    font-size: .9rem;
+    margin: 0 0 1.6rem;
+}
+.mcms-account-section .form-control { width: 100%; min-width: 0; }
+.mcms-account-section .form-label { color: inherit; }
+.mcms-account-section .btn { max-width: 100%; white-space: normal; }
+.mcms-account-orders-overview {
+    padding: clamp(1.3rem, 3vw, 2.25rem);
+    border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+.mcms-account-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .75rem 1.5rem;
+}
+.mcms-account-section-header .mcms-account-section-intro { margin-bottom: 1rem; }
+.mcms-account-all-orders {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    text-underline-offset: .2em;
+    white-space: nowrap;
+    font-size: .91rem;
+}
+.mcms-account-orders-empty {
+    color: inherit;
+    opacity: .72;
+    font-size: .94rem;
+    margin: 0;
+}
+.mcms-account-orders-table { color: inherit; margin-bottom: 0; }
+.mcms-account-orders-table > :not(caption) > * > * { background: transparent; color: inherit; }
+.mcms-account-dashboard-shell :is(a, button, input):focus-visible {
+    outline: 2px solid var(--bs-primary, currentColor);
+    outline-offset: 3px;
+}
+@media (max-width: 800px) {
+    .mcms-account-form-grid { grid-template-columns: 1fr; }
+    .mcms-account-section + .mcms-account-section {
+        border-left: 0;
+        border-top: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+    }
+}
+@media (max-width: 560px) {
+    .mcms-account-page--dashboard { width: calc(100% - 1.25rem); }
+    .mcms-account-hero { align-items: flex-start; flex-wrap: wrap; gap: .85rem; }
+    .mcms-account-identity { flex-basis: calc(100% - 5rem); }
+    .mcms-account-actions { width: 100%; padding-left: 0; }
+    .mcms-account-meta-separator { display: none; }
+    .mcms-account-meta { flex-direction: column; align-items: flex-start; gap: .2rem; }
+    .mcms-account-section, .mcms-account-orders-overview { padding: 1.2rem; }
 }
