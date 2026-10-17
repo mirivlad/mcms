@@ -16,7 +16,7 @@ The screenshot shows one of four bundled themes; the administration interface is
 
 - **Русское руководство:** [установка и администрирование](docs/guide/ru/README.md).
 - **English guide:** [installation and administration](docs/guide/en/README.md).
-- **Standalone hosting:** download the complete shared-hosting ZIP from [Releases](https://github.com/mirivlad/mcms/releases), not GitHub's source ZIP. PHP 8.2+, Apache and MySQL are required; private code must be outside DocumentRoot.
+- **Standalone hosting:** download the complete shared-hosting ZIP from [Releases](https://github.com/mirivlad/mcms/releases), not GitHub's source ZIP. PHP 8.2+, a supported PHP web server and MySQL/MariaDB are required; private code must be outside DocumentRoot.
 - **Docker / Portainer:** Git stack uses `portainer-stack.yml`, with source-built app/web/updater and persistent volumes. For hands-off Core patch updates with published GHCR images, see the [English](docs/guide/en/portainer-auto-updates.md) or [Russian](docs/guide/ru/portainer-auto-updates.md) Portainer setup guide.
 
 ## Core stack

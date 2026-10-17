@@ -3,7 +3,7 @@
 **Версия:** серия 0.1.x. Два официальных варианта установки используют одну и ту же CMS, модули и темы:
 
 - **Docker / Portainer** — готовый набор PHP-FPM, Nginx, MariaDB, почты и службы проверки обновлений.
-- **Standalone / shared hosting** — PHP 8.2+, Apache и MySQL/MariaDB. На хостинге не требуются Docker, SSH, Composer или Node: используется готовый ZIP-релиз.
+- **Standalone / shared hosting** — PHP 8.2+, корректно настроенный PHP-веб-сервер и MySQL/MariaDB. На хостинге не требуются Docker, SSH, Composer или Node: используется готовый ZIP-релиз.
 
 ## Содержание
 

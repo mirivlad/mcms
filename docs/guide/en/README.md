@@ -3,7 +3,7 @@
 **Release line:** 0.1.x. Two installation methods use the **same Core, themes and modules**:
 
 - **Docker / Portainer:** PHP-FPM, Nginx, MariaDB, mail and optional update checker services.
-- **Standalone / shared hosting:** PHP 8.2+, Apache and MySQL/MariaDB, installed from a self-contained ZIP. No SSH, Composer, Node or Docker is required for the site owner.
+- **Standalone / shared hosting:** PHP 8.2+, a supported PHP web server and MySQL/MariaDB, installed from a self-contained ZIP. No SSH, Composer, Node or Docker is required for the site owner.
 
 ## Contents
 
