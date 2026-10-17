@@ -6,6 +6,12 @@ The Core is intentionally small: framework runtime, authentication/authorization
 administration, settings, module lifecycle, hooks, storage contracts and system
 maintenance. Content and business features are installed as modules.
 
+## Preview
+
+![mCMS — public site using the built-in Depth theme](themes/mcms-depth/assets/screenshot.webp)
+
+The screenshot shows one of four bundled themes; the administration interface is independent of the public theme.
+
 ## Installation / Documentation
 
 - **Русское руководство:** [установка и администрирование](docs/guide/ru/README.md).
