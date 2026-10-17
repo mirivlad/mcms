@@ -101,6 +101,36 @@
 See [extension lifecycle and catalog publication](EXTENSIONS.md) for contracts,
 operational recovery, scheduling and supported limitations.
 
+## Stage 6 — ordinary shared-hosting installation (approved 2026-10-17)
+
+**Objective:** same Core/modules/themes on standard Apache + PHP + MySQL hosting,
+without Docker, SSH, Composer or a shell for the person installing the CMS.
+See [Shared hosting design and deployment](SHARED_HOSTING.md).
+
+- [x] Document host requirements, web-root boundary and staged acceptance criteria.
+- [ ] Publish a complete ZIP containing Composer vendor and built frontend assets,
+  with the private code outside `public_html`.
+- [ ] Browser preflight and database credentials before the existing superadmin wizard;
+  run scoped migrations in web mode with retry/lock safety.
+- [ ] Apache-compatible safe delivery of Media uploads, while keeping PHP and
+  internal writable files inaccessible.
+- [ ] First-install smoke in a non-container PHP runtime with Apache-compatible
+  paths, externally supplied MySQL, plus a packaging integrity check.
+- [ ] Web-safe database export/import on restricted hosts without
+  `mariadb-dump`, `mariadb` or `proc_open`; bounded execution/recovery.
+- [ ] Web-safe module update workflow and recovery without CLI process spawning.
+- [ ] Hosting-mode core ZIP update with integrity, backup, atomic switch
+  and an explicit rollback path (not Portainer API).
+- [ ] Background jobs using hosting cron if available; manual admin actions
+  otherwise. No implicit updates triggered by public site traffic.
+- [ ] Shared-host mail delivery through host SMTP credentials.
+- [ ] Document and test managed PHP hosting limitations and upgrade/restore
+  compatibility before claiming full support.
+
+The checklist deliberately does **not** equate a successful installation
+with production-ready shared-hosting operation: backup/restore, module updates,
+and safe core upgrades remain release blockers.
+
 ## Reference policy
 
 Ferma is a functional reference only.
