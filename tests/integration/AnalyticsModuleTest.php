@@ -125,10 +125,11 @@ final class AnalyticsModuleTest extends CIUnitTestCase
             (new TrackVisits())->after($request, $response);
             self::assertSame([], $response->getCookies());
             self::assertSame(0, $this->db->table('analytics_pageviews')->countAllResults());
+            $html = html_entity_decode($response->getBody(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
             if ($cookies === [] || $cookies['mcms_analytics_consent'] === 'invalid') {
-                self::assertStringContainsString('analytics/privacy', $response->getBody());
+                self::assertStringContainsString('analytics/privacy', $html);
             } else {
-                self::assertStringNotContainsString('analytics/privacy', $response->getBody());
+                self::assertStringNotContainsString('analytics/privacy', $html);
             }
         }
     }
