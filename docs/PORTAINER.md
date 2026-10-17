@@ -176,3 +176,20 @@ For this first real-module acceptance test, check:
 Site ZIP backup creation, download and restoration are available in **Administration → Backups**.
 The archives remain in the `backup_data` volume through container recreation.
 See [Backup management](BACKUPS.md) for cron, off-host copies, and restore.
+
+
+## Optional unattended update manager
+
+The standard portainer-stack.yml now includes an unprivileged updater
+container built from the same PHP source as app. It checks eligible
+catalog-managed external packages (only when enabled in Administration → Updates)
+without Docker socket, browser visits, or host cron. It uses the existing
+persistent volumes. MCMS_UPDATE_INTERVAL_SECONDS defaults to 21600 (6 hours).
+
+For **Core image** auto-updates, migrate the existing Portainer Git Stack
+carefully to portainer-release-stack.yml, preserving its stack name,
+environment and volume names. Do not create a second stack on the same database
+volumes or run down -v. Follow [the release/update contract](UPDATES.md).
+The Core mode requires GHCR image releases, Portainer HTTPS API settings,
+explicit stable channel and a digest-pinned MariaDB image. Without those inputs
+it cannot redeploy the application. All update switches default to disabled.

@@ -33,6 +33,10 @@ $routes->group('admin', ['filter' => 'session'], static function (RouteCollectio
     $routes->get('access', 'Admin\Access::index', ['as' => 'admin.access']);
     $routes->post('access/group', 'Admin\Access::saveGroup');
     $routes->post('access/group/delete', 'Admin\Access::deleteGroup');
+    $routes->get('updates', 'Admin\Updates::index');
+    $routes->post('updates', 'Admin\Updates::save');
+    $routes->post('updates/check', 'Admin\Updates::check');
+    $routes->post('updates/core/reset', 'Admin\Updates::resetCorePending');
     $routes->get('extensions', 'Admin\ExtensionCatalog::index');
     $routes->get('extensions/check', 'Admin\ExtensionCatalog::refresh');
     $routes->post('extensions/refresh', 'Admin\ExtensionCatalog::refresh');
@@ -91,7 +95,9 @@ $coreUpdateRequest = ! is_cli() && preg_match(
     '#^admin/(modules/[^/]+/update/(apply|restore)|extensions/[^/]+/[^/]+/remove|extensions/recovery)$#D',
     trim(service('request')->getUri()->getPath(), '/'),
 ) === 1;
-if (! $coreUpdateRequest && ! is_file(WRITEPATH . 'backups/restore-active.json')) {
+// Unattended CLI must not boot the old module providers before replacing code.
+$unattendedUpdateRequest = is_cli() && in_array('mcms:updates:run', $_SERVER['argv'] ?? [], true);
+if (! $coreUpdateRequest && ! $unattendedUpdateRequest && ! is_file(WRITEPATH . 'backups/restore-active.json')) {
     $moduleManager->bootEnabled();
     $moduleManager->registerRoutes($routes);
 }

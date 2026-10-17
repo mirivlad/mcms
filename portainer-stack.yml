@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/app/Dockerfile
+    image: ${MCMS_APP_IMAGE:-mcms:dev}
     restart: unless-stopped
     environment:
       CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
@@ -23,6 +24,32 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - modules_data:/var/www/html/writable/modules-data
+      - themes_data:/var/www/html/writable/themes-data
+      - backup_data:/var/www/html/writable/backups
+
+  updater:
+    image: ${MCMS_APP_IMAGE:-mcms:dev}
+    command: ["/usr/local/bin/mcms-updater"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+    environment:
+      CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
+      MCMS_DB_HOST: db
+      MCMS_DB_PORT: 3306
+      MCMS_DB_NAME: ${MCMS_DB_NAME:-mcms}
+      MCMS_DB_USER: ${MCMS_DB_USER:-mcms}
+      MCMS_DB_PASSWORD: ${MCMS_DB_PASSWORD:?set MCMS_DB_PASSWORD}
+      MCMS_UPDATE_INTERVAL_SECONDS: ${MCMS_UPDATE_INTERVAL_SECONDS:-21600}
+      MCMS_PORTAINER_URL: ${MCMS_PORTAINER_URL:-}
+      MCMS_PORTAINER_API_KEY: ${MCMS_PORTAINER_API_KEY:-}
+      MCMS_PORTAINER_STACK_ID: ${MCMS_PORTAINER_STACK_ID:-}
+      MCMS_PORTAINER_ENDPOINT_ID: ${MCMS_PORTAINER_ENDPOINT_ID:-}
     volumes:
       - modules_data:/var/www/html/writable/modules-data
       - themes_data:/var/www/html/writable/themes-data

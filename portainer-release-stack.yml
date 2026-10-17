@@ -1,0 +1,104 @@
+services:
+  app:
+    image: ghcr.io/mirivlad/mcms-app:${MCMS_IMAGE_TAG:-stable}
+    restart: unless-stopped
+    environment:
+      CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
+      MCMS_BASE_URL: ${MCMS_BASE_URL:-}
+      MCMS_TIMEZONE: ${MCMS_TIMEZONE:-UTC}
+      MCMS_DEMO_SEED: ${MCMS_DEMO_SEED:-0}
+      MCMS_COOKIE_SECURE: ${MCMS_COOKIE_SECURE:-}
+      MCMS_TRUSTED_PROXIES: ${MCMS_TRUSTED_PROXIES:-10.0.0.0/8,172.16.0.0/12,192.168.0.0/16}
+      MCMS_DB_HOST: db
+      MCMS_DB_PORT: 3306
+      MCMS_DB_NAME: ${MCMS_DB_NAME:-mcms}
+      MCMS_DB_USER: ${MCMS_DB_USER:-mcms}
+      MCMS_DB_PASSWORD: ${MCMS_DB_PASSWORD}
+      MCMS_MAIL_HOST: mail
+      MCMS_MAIL_PORT: 587
+      MCMS_MAIL_FROM: ${MCMS_MAIL_FROM:-noreply@example.test}
+      MCMS_MAIL_FROM_NAME: ${MCMS_MAIL_FROM_NAME:-mCMS}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - modules_data:/var/www/html/writable/modules-data
+      - themes_data:/var/www/html/writable/themes-data
+      - backup_data:/var/www/html/writable/backups
+
+  updater:
+    image: ghcr.io/mirivlad/mcms-app:${MCMS_IMAGE_TAG:-stable}
+    command: ["/usr/local/bin/mcms-updater"]
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_started
+    environment:
+      CI_ENVIRONMENT: ${CI_ENVIRONMENT:-production}
+      MCMS_DB_HOST: db
+      MCMS_DB_PORT: 3306
+      MCMS_DB_NAME: ${MCMS_DB_NAME:-mcms}
+      MCMS_DB_USER: ${MCMS_DB_USER:-mcms}
+      MCMS_DB_PASSWORD: ${MCMS_DB_PASSWORD:?set MCMS_DB_PASSWORD}
+      MCMS_UPDATE_INTERVAL_SECONDS: ${MCMS_UPDATE_INTERVAL_SECONDS:-21600}
+      MCMS_PORTAINER_URL: ${MCMS_PORTAINER_URL:-}
+      MCMS_PORTAINER_API_KEY: ${MCMS_PORTAINER_API_KEY:-}
+      MCMS_PORTAINER_STACK_ID: ${MCMS_PORTAINER_STACK_ID:-}
+      MCMS_PORTAINER_ENDPOINT_ID: ${MCMS_PORTAINER_ENDPOINT_ID:-}
+    volumes:
+      - modules_data:/var/www/html/writable/modules-data
+      - themes_data:/var/www/html/writable/themes-data
+      - backup_data:/var/www/html/writable/backups
+
+  web:
+    image: ghcr.io/mirivlad/mcms-web:${MCMS_IMAGE_TAG:-stable}
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "${MCMS_BIND_ADDRESS:-127.0.0.1}:${MCMS_HTTP_PORT:-8188}:80"
+    volumes:
+      - modules_data:/var/www/html/writable/modules-data:ro
+
+  db:
+    image: ${MCMS_DB_IMAGE:-mariadb:11.4}
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${MCMS_DB_NAME:-mcms}
+      MARIADB_USER: ${MCMS_DB_USER:-mcms}
+      MARIADB_PASSWORD: ${MCMS_DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${MCMS_DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  mail:
+    image: boky/postfix:5.1.0@sha256:aafc772384232497bed875e1eb66b4d3e54ba1ebc86e2e185a6dc1dbc48182ef
+    restart: unless-stopped
+    environment:
+      ALLOWED_SENDER_DOMAINS: ${MCMS_MAIL_DOMAIN:-example.test}
+      POSTFIX_myhostname: ${MCMS_MAIL_HOSTNAME:-mail.example.test}
+      RELAYHOST: ${MCMS_SMTP_RELAYHOST:-}
+      RELAYHOST_USERNAME: ${MCMS_SMTP_RELAY_USER:-}
+      RELAYHOST_PASSWORD: ${MCMS_SMTP_RELAY_PASSWORD:-}
+      DKIM_AUTOGENERATE: ${MCMS_DKIM_AUTOGENERATE:-1}
+      DKIM_SELECTOR: ${MCMS_DKIM_SELECTOR:-mail}
+    expose:
+      - "587"
+    volumes:
+      - mail_queue:/var/spool/postfix
+      - dkim_data:/etc/opendkim/keys
+
+volumes:
+  db_data:
+  modules_data:
+  themes_data:
+  backup_data:
+  mail_queue:
+  dkim_data:
