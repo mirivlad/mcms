@@ -1,0 +1,20 @@
+name: Feature request
+description: Propose a change to mCMS
+title: "[Feature] "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Problem or use case
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: Expected behaviour and module boundaries
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered

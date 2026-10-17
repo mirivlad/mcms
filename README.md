@@ -6,16 +6,23 @@ The Core is intentionally small: framework runtime, authentication/authorization
 administration, settings, module lifecycle, hooks, storage contracts and system
 maintenance. Content and business features are installed as modules.
 
+## Preview
+
+![mCMS — public site using the built-in Depth theme](themes/mcms-depth/assets/screenshot.webp)
+
+The screenshot shows one of four bundled themes; the administration interface is independent of the public theme.
+
 ## Installation / Documentation
 
 - **Русское руководство:** [установка и администрирование](docs/guide/ru/README.md).
 - **English guide:** [installation and administration](docs/guide/en/README.md).
-- **Standalone hosting:** download the complete shared-hosting ZIP from [Releases](https://github.com/mirivlad/mcms/releases), not GitHub's source ZIP. PHP 8.2+, Apache and MySQL are required; private code must be outside DocumentRoot.
+- **Standalone hosting:** download the complete shared-hosting ZIP from [Releases](https://github.com/mirivlad/mcms/releases), not GitHub's source ZIP. PHP 8.2+, a supported PHP web server and MySQL/MariaDB are required; private code must be outside DocumentRoot.
 - **Docker / Portainer:** Git stack uses `portainer-stack.yml`, with source-built app/web/updater and persistent volumes. For hands-off Core patch updates with published GHCR images, see the [English](docs/guide/en/portainer-auto-updates.md) or [Russian](docs/guide/ru/portainer-auto-updates.md) Portainer setup guide.
 
 ## Core stack
 
-- PHP 8.4 target;
+- PHP 8.2+ declared for standalone hosting (8.4 in Docker images);
+  CI validates each supported PHP minor version;
 - CodeIgniter 4.7.4;
 - CodeIgniter Shield 1.4.x;
 - CodeIgniter Settings 2.4.x;
@@ -55,7 +62,8 @@ See [docs/MODULES.md](docs/MODULES.md) and [docs/ARCHITECTURE.md](docs/ARCHITECT
 
 ## Development status
 
-The 2026-10-15 baseline is recorded in [docs/STATUS.md](docs/STATUS.md).
+The current source-tree status is in [docs/STATUS.md](docs/STATUS.md);
+released changes are in [CHANGELOG.md](CHANGELOG.md).
 Media, Pages, Menus, News, Galleries, Feedback, SEO, ProductImages, Catalogue, Stock, Cart, Orders and Delivery are implemented as reusable modules and covered by
 module/integration checks.
 
@@ -141,6 +149,13 @@ Run `python3 .github/scripts/verify-deployment.py` to build an isolated test sit
 check container recreation and restore its downloaded backup into a second fresh
 instance. The command produces a JSON report and cleans up its temporary Docker
 stacks without GitHub Actions or manual setup. See [the verification scope](docs/VERIFICATION.md).
+
+See [HTTP header and proxy hardening](docs/SECURITY_HEADERS.md) for deployment security.
+
+## Community and security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md), [AGENTS.md](AGENTS.md) and
+[SECURITY.md](SECURITY.md) before submitting code, extensions or reports.
 
 ## License
 

@@ -111,9 +111,27 @@ final class AnalyticsModuleTest extends CIUnitTestCase
         self::assertSame('Lax', $visitor->getSameSite());
         self::assertSame(hash('sha256', $visitor->getValue()), $visit['visitor']);
         $next = $this->request('/');
-        $next->setGlobal('cookie', ['mcms_analytics_visitor' => $visitor->getValue(), 'mcms_analytics_visit' => $visitCookie->getValue()]);
+        $next->setGlobal('cookie', ['mcms_analytics_visitor' => $visitor->getValue(), 'mcms_analytics_visit' => $visitCookie->getValue(), 'mcms_analytics_consent' => 'yes']);
         (new TrackVisits())->after($next, $this->response());
         self::assertSame(['views' => 2, 'visits' => 1, 'visitors' => 1], $this->analytics->report(gmdate('Y-m-d'), gmdate('Y-m-d'))['totals']);
+    }
+
+    public function testNoTrackingCookiesOrRowsWithoutExplicitConsent(): void
+    {
+        foreach ([[], ['mcms_analytics_consent' => 'no'], ['mcms_analytics_consent' => 'invalid']] as $cookies) {
+            $request = $this->request('/');
+            $request->setGlobal('cookie', $cookies);
+            $response = $this->response()->setBody('<html><body><p>Page</p></body></html>');
+            (new TrackVisits())->after($request, $response);
+            self::assertSame([], $response->getCookies());
+            self::assertSame(0, $this->db->table('analytics_pageviews')->countAllResults());
+            $html = html_entity_decode($response->getBody(), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            if ($cookies === [] || $cookies['mcms_analytics_consent'] === 'invalid') {
+                self::assertStringContainsString('analytics/privacy', $html);
+            } else {
+                self::assertStringNotContainsString('analytics/privacy', $html);
+            }
+        }
     }
 
     public function testSystemPathsBotsOptOutAndNonPageRequestsAreExcluded(): void
@@ -147,7 +165,7 @@ final class AnalyticsModuleTest extends CIUnitTestCase
         $app->baseURL = 'http://example.com/cms/';
         try {
             $request = $this->request('/cms/news');
-            $request->setGlobal('cookie', ['mcms_analytics_visitor' => ['bad'], 'mcms_analytics_visit' => 'invalid']);
+            $request->setGlobal('cookie', ['mcms_analytics_visitor' => ['bad'], 'mcms_analytics_visit' => 'invalid', 'mcms_analytics_consent' => 'yes']);
             $response = $this->response();
             (new TrackVisits())->after($request, $response);
             self::assertSame('/cms/', $response->getCookie('mcms_analytics_visitor')->getPath());
@@ -312,7 +330,7 @@ final class AnalyticsModuleTest extends CIUnitTestCase
         $request = new IncomingRequest(config('App'), new URI('http://example.com' . $path), null, new UserAgent());
         $request->setMethod('GET');
         $request->setHeader('User-Agent', 'Mozilla/5.0 Firefox/130');
-        $request->setGlobal('cookie', []);
+        $request->setGlobal('cookie', ['mcms_analytics_consent' => 'yes']);
         return $request;
     }
 

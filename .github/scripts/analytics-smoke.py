@@ -56,17 +56,24 @@ segment_query = '&path=%2F&source=search.example&device=desktop&prefix=/&group=h
 segment_before = page(report_path + segment_query)[1]
 guest = new_browser()
 headers = {'User-Agent': browser_agent, 'Referer': 'https://search.example/private?q=secret'}
+response, notice = page('/', guest, headers)
+assert not any('mcms_analytics_visitor=' in cookie for cookie in (response.headers.get_all('Set-Cookie') or []))
+assert 'analytics/privacy' in html.unescape(notice)
+assert totals()[0] == before, 'Pageview recorded before explicit consent'
+post('/analytics/privacy', {'choice': 'yes'}, '/analytics/privacy', guest)
 response, _ = page('/?private_query=secret', guest, headers)
 cookies = response.headers.get_all('Set-Cookie')
 assert any('mcms_analytics_visitor=' in value and 'HttpOnly' in value and 'SameSite=Lax' in value for value in cookies)
 assert 'private' in response.headers['Cache-Control'] and 'no-store' in response.headers['Cache-Control']
 page('/', guest, {'User-Agent': browser_agent})
-page('/', new_browser(), {'User-Agent': browser_agent, 'DNT': '1'})
-page('/', new_browser(), {'User-Agent': browser_agent, 'Sec-GPC': '1'})
+opted_browser = new_browser()
+post('/analytics/privacy', {'choice': 'yes'}, '/analytics/privacy', opted_browser)
+page('/', opted_browser, {'User-Agent': browser_agent, 'DNT': '1'})
+page('/', opted_browser, {'User-Agent': browser_agent, 'Sec-GPC': '1'})
 page('/', new_browser(), {'User-Agent': 'Googlebot'})
-page('/', new_browser(), {'User-Agent': browser_agent, 'Purpose': 'prefetch'})
-page('/login', new_browser(), {'User-Agent': browser_agent})
-page('/', new_browser(), {'User-Agent': browser_agent})
+page('/', opted_browser, {'User-Agent': browser_agent, 'Purpose': 'prefetch'})
+page('/login', opted_browser, {'User-Agent': browser_agent})
+page('/', opted_browser, {'User-Agent': browser_agent})
 after, source = totals()
 assert {key: after[key] - before[key] for key in before} == {'views': 3, 'visits': 2, 'visitors': 2}, (before, after)
 assert 'search.example' in source and 'private_query' not in source and '?q=secret' not in source
@@ -105,6 +112,12 @@ assert page(report_path, reader)[0].url == base + '/'
 post(access, [('permissions[]', 'core.admin'), ('permissions[]', 'analytics.view')], access)
 assert 'data-analytics-total="views"' in page(report_path, reader)[1]
 
+# An explicit opt-out clears tracking cookies and prevents future page views.
+post('/analytics/privacy', {'choice': 'no'}, '/analytics/privacy', guest)
+response, _ = page('/', guest, {'User-Agent': browser_agent})
+assert not any('mcms_analytics_visitor=' in value for value in (response.headers.get_all('Set-Cookie') or []))
+assert totals()[0] == after, 'Pageview recorded after opting out'
+
 # Disabling removes collection and routes, and re-enable keeps prior statistics.
 saved, _ = totals()
 post('/admin/modules/analytics/disable', {}, '/admin/modules')
@@ -115,6 +128,11 @@ try:
     raise AssertionError('Disabled analytics route still works')
 except urllib.error.HTTPError as error:
     assert error.code == 404
+try:
+    page('/analytics/privacy')
+    raise AssertionError('Disabled Analytics privacy route still works')
+except urllib.error.HTTPError as error:
+    assert error.code == 404
 post('/admin/modules/analytics/enable', {}, '/admin/modules')
 assert totals()[0] == saved
-print('Analytics HTTP smoke passed: views/cookies, exclusions, comparison, combined filters, hourly charts, page details, validation, permissions and lifecycle persistence.')
+print('Analytics HTTP smoke passed: consent/opt-out, views/cookies, exclusions, comparison, combined filters, hourly charts, page details, validation, permissions and lifecycle persistence.')

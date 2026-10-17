@@ -24,5 +24,7 @@ final class Module implements ModuleProviderInterface
     public function routes(RouteCollection $routes): void
     {
         $routes->get('admin/analytics', '\\MCMS\\Modules\\Analytics\\Controllers\\Admin::index', ['filter' => 'session']);
+        $routes->get('analytics/privacy', '\\MCMS\\Modules\\Analytics\\Controllers\\Privacy::index');
+        $routes->post('analytics/privacy', '\\MCMS\\Modules\\Analytics\\Controllers\\Privacy::save');
     }
 }
