@@ -55,7 +55,7 @@ final class UserManagementTest extends CIUnitTestCase
         $response = $this->actingAs($owner)->withSession()->get('/admin/users?per_page=10&username=visible');
         $response->assertOK();
         $html = (string) $response->response()->getBody();
-        foreach (['name="email"', 'name="group"', 'Registered', 'Last activity', 'assets/admin/users.js', 'visibleuser'] as $term) {
+        foreach (['name="email"', 'name="group"', 'Registered', 'Last activity', 'assets/admin/users.js', 'users-directory-table', 'visibleuser'] as $term) {
             self::assertStringContainsString($term, $html);
         }
         $response = $this->withSession()->get('/admin/users/2/edit');

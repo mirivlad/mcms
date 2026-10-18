@@ -119,3 +119,76 @@
         height: 2.75rem;
     }
 }
+
+/* User directory: keep account, access and timestamps together without a wide table. */
+.users-directory-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.users-directory-table th,
+.users-directory-table td {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.users-directory-table .users-directory-select { width: 3rem; }
+.users-directory-table .users-directory-role { width: 21%; }
+.users-directory-table .users-directory-status { width: 10.5rem; }
+.users-directory-table .users-directory-dates { width: 14.5rem; }
+.users-directory-table .users-directory-actions { width: 11.5rem; }
+.users-directory-table .users-directory-email { overflow-wrap: anywhere; }
+.users-directory-table .users-directory-date { display: flex; flex-direction: column; gap: .1rem; }
+.users-directory-table .users-directory-permissions summary { cursor: pointer; color: var(--tblr-primary); }
+.users-directory-table .users-directory-permissions > div { margin-top: .25rem; overflow-wrap: anywhere; }
+.users-directory-table .users-directory-actions .btn-list { gap: .35rem; }
+.users-directory-table .users-directory-status .badge { white-space: normal; text-align: left; }
+
+/* Below large desktop width, rows become accessible cards instead of scrolling sideways. */
+@media (max-width: 1399.98px) {
+    .users-directory-table,
+    .users-directory-table tbody { display: block; width: 100%; }
+    .users-directory-table thead { display: none; }
+    .users-directory-table tbody tr {
+        display: grid;
+        grid-template-columns: 2.25rem minmax(0, 1.3fr) minmax(0, 1fr);
+        grid-template-areas:
+            "selection person role"
+            "selection dates status"
+            "selection actions actions";
+        gap: .5rem 1rem;
+        padding: .9rem 1rem;
+        border-bottom: 1px solid var(--tblr-border-color);
+    }
+    .users-directory-table tbody tr:last-child { border-bottom: 0; }
+    .users-directory-table tbody td {
+        display: block;
+        width: auto !important;
+        min-width: 0;
+        padding: 0 !important;
+        border: 0;
+        white-space: normal;
+    }
+    .users-directory-table .users-directory-select { grid-area: selection; align-self: start; padding-top: .3rem !important; }
+    .users-directory-table .users-directory-person { grid-area: person; }
+    .users-directory-table .users-directory-role { grid-area: role; }
+    .users-directory-table .users-directory-status { grid-area: status; }
+    .users-directory-table .users-directory-dates { grid-area: dates; }
+    .users-directory-table .users-directory-actions { grid-area: actions; }
+    .users-directory-table .users-directory-date { flex-direction: row; flex-wrap: wrap; gap: .25rem; }
+    .users-directory-table .users-directory-actions .btn-list { flex-wrap: wrap !important; }
+    .users-directory-table .users-directory-empty { display: block; }
+}
+
+@media (max-width: 767.98px) {
+    .users-directory-table tbody tr {
+        grid-template-columns: 2rem minmax(0, 1fr);
+        grid-template-areas:
+            "selection person"
+            "selection role"
+            "selection status"
+            "selection dates"
+            "selection actions";
+        gap: .6rem .65rem;
+    }
+}

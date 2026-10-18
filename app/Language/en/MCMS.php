@@ -407,6 +407,7 @@ return [
         'mediaDescription' => 'Shared media library for images and documents.',
     ],
     'users' => [
+        'activityDates' => 'Dates',
         'blocked' => 'Blocked',
         'unblocked' => 'Not blocked',
         'accountInactive' => 'This account has been deactivated. Contact the administrator.',

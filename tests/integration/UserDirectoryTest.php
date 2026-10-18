@@ -70,19 +70,22 @@ final class UserDirectoryTest extends CIUnitTestCase
         $first->assertOK();
         $html = (string) $first->response()->getBody();
         self::assertStringContainsString('member034', $html);
-        self::assertStringNotContainsString('<td>member000</td>', $html);
+        self::assertStringNotContainsString('<div class="fw-semibold">member000</div>', $html);
         self::assertStringContainsString('page=2', html_entity_decode($html, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
         self::assertStringContainsString('name="q"', $html);
+        self::assertStringContainsString('users-directory-table', $html);
+        self::assertStringNotContainsString('class="table-responsive"', $html);
+        self::assertStringContainsString('id="users-select-all"', $html);
 
         $last = $this->withSession()->get('/admin/users?page=2');
         $last->assertOK();
-        self::assertStringContainsString('<td>member000</td>', (string) $last->response()->getBody());
+        self::assertStringContainsString('<div class="fw-semibold">member000</div>', (string) $last->response()->getBody());
 
         $filtered = $this->withSession()->get('/admin/users?q=member011');
         $filtered->assertOK();
         $filteredHtml = (string) $filtered->response()->getBody();
-        self::assertStringContainsString('<td>member011</td>', $filteredHtml);
-        self::assertStringNotContainsString('<td>member012</td>', $filteredHtml);
+        self::assertStringContainsString('<div class="fw-semibold">member011</div>', $filteredHtml);
+        self::assertStringNotContainsString('<div class="fw-semibold">member012</div>', $filteredHtml);
     }
 
     private function seedUsers(int $count): void
