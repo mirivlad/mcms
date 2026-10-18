@@ -12,6 +12,16 @@ use CodeIgniter\Shield\Controllers\LoginController;
  */
 final class Login extends LoginController
 {
+    public function loginAction(): RedirectResponse
+    {
+        $result = parent::loginAction();
+        if (auth('session')->loggedIn() && auth('session')->user()->isBanned()) {
+            auth('session')->logout();
+            return redirect()->to('/login')->with('error', lang('MCMS.users.accountInactive'));
+        }
+        return $result;
+    }
+
     public function loginView(): string|RedirectResponse
     {
         if (auth()->loggedIn()) {

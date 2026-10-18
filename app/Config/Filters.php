@@ -28,11 +28,13 @@ class Filters extends BaseFilters
         'performance'   => PerformanceMetrics::class,
         'siteLocale'    => SiteLocale::class,
         'moduleMaintenance' => \App\Filters\ModuleMaintenance::class,
+        'accountActive' => \App\Filters\AccountActive::class,
     ];
 
     public array $required = [
         'before' => [
             'moduleMaintenance',
+            'accountActive',
             'forcehttps',
             'pagecache',
         ],

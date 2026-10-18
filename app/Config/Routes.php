@@ -30,6 +30,9 @@ $routes->group('account', ['filter' => 'session'], static function (RouteCollect
 $routes->group('admin', ['filter' => 'session'], static function (RouteCollection $routes): void {
     $routes->get('/', 'Admin\Dashboard::index', ['as' => 'admin.dashboard']);
     $routes->get('users', 'Admin\Users::index', ['as' => 'admin.users']);
+    $routes->post('users/bulk', 'Admin\Users::bulk');
+    $routes->match(['get', 'post'], 'users/(:num)/edit', 'Admin\Users::edit/$1');
+    $routes->post('users/(:num)/action', 'Admin\Users::action/$1');
     $routes->match(['get', 'post'], 'users/create', 'Admin\Users::create', ['as' => 'admin.users.create']);
     $routes->match(['get', 'post'], 'users/(:num)/access', 'Admin\Users::access/$1', ['as' => 'admin.users.access']);
     $routes->get('access', 'Admin\Access::index', ['as' => 'admin.access']);
