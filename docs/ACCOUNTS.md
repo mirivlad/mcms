@@ -45,9 +45,28 @@ The account UI is distinct from the administration UI: ordinary users have no co
 
 ### Administrator user directory (0.2.0 development)
 
-The core-owned `/admin/users` list now uses 25-user pages, stable newest-ID-first
-ordering and a search by username or email. Both search and page selection are
-read-only GET parameters; no identities/permissions are hydrated until the bounded
-matching user IDs have been fetched. Filtered results cannot bypass the existing
-`core.users` permission, and access management still needs `core.access`.
-This is the first 0.2.0 development change; the complete release is not yet published.
+The Core-owned `/admin/users` supports live server-side filtered searches by
+username, email, optional global query, and group; page sizes of 10/25/50/100,
+with stable descending IDs and filters kept when paginating. Search results are
+HTML-rendered on the server and refreshed via a small debounced progressive-enhancement
+script. Without JavaScript the GET filter form and page links work normally.
+
+The list shows registration and last activity (unrecorded activity is `—`).
+`core.users` permits read/profile edit, while `core.access` is required for
+sensitive delete/activate/deactivate, manual password changes and random-password
+resets. These use CSRF-protected POST operations and require explicit selection.
+Access/group editing remains on its separate `core.access` page. Non-superadmins
+cannot change superadmin profiles; self-deactivation/deletion/password reset
+are blocked. At least one active superadmin must remain.
+
+Deletion is Shield soft deletion to retain history and foreign references; it
+is not personal-data erasure. Random password resets show a newly generated
+password **once** in the administrator's authenticated session; the owner must
+transmit it securely. Remember-me tokens are revoked, but existing logged-in
+sessions may not all be forcibly terminated yet; session invalidation and
+verified email recovery require further hardening before release.
+
+Account deactivation uses Shield's native ban/unban state, not the unrelated
+optional email-activation flag. A Core guard blocks already authenticated banned
+sessions; Shield also rejects their new login attempts.
+This is development work under 0.2.0, **not a published release**.

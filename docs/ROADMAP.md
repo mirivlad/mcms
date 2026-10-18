@@ -143,8 +143,14 @@ This is a planned minor release, not a claim that any milestone has shipped.
 - [ ] Public account recovery: single-use expiring email reset token, non-enumerating responses,
       abuse throttling, safe email-change verification, tests for compromised/expired links.
 - [ ] Verify optional admin 2FA recovery and setup UX without weakening Shield authentication.
-- [x] Users: database-backed filtered search by username/email, bounded pagination and
-      stable ordering; retain existing permission boundaries.
+- [ ] Users: full administration lifecycle (work in progress).
+  - [x] Bounded paginated directory and search by username/email, with per-column
+        live type-as-you-search filtering, group filters, and 10/25/50/100 page sizes.
+  - [x] Show registration and last activity, edit profile/email, manual password
+        replacement, random-password reset, account soft deletion and bulk
+        activation/deactivation/deletion (protected/self accounts excluded).
+  - [ ] Complete security review and acceptance: revoked sessions on password reset,
+        on-demand email recovery, and manual browser testing across hosting modes.
 - [ ] Recycle bin for Pages and News: restore content and revisions, protect links/slug
       conflicts, explicit irreversible purge, retention policy and migration tests.
 - [ ] Core audit log for important security/admin changes (actors, object, operation,
