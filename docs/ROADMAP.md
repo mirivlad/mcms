@@ -134,6 +134,107 @@ account filesystem permissions, MySQL capabilities and quotas fit their site's
 size. No application can guarantee recovery from inaccessible disks/databases.
 
 
+
+## Stage 7 — mCMS 0.2.0: reliable day-to-day operations
+
+**Goal:** make routine site administration and recovery safe before expanding the feature set.
+This is a planned minor release, not a claim that any milestone has shipped.
+
+- [ ] Public account recovery: single-use expiring email reset token, non-enumerating responses,
+      abuse throttling, safe email-change verification, tests for compromised/expired links.
+- [ ] Verify optional admin 2FA recovery and setup UX without weakening Shield authentication.
+- [x] Users: database-backed filtered search by username/email, bounded pagination and
+      stable ordering; retain existing permission boundaries.
+- [ ] Recycle bin for Pages and News: restore content and revisions, protect links/slug
+      conflicts, explicit irreversible purge, retention policy and migration tests.
+- [ ] Core audit log for important security/admin changes (actors, object, operation,
+      time and metadata without secrets); permissions, retention and CSV export.
+- [ ] Central job runner contract for maintenance and email retries with CLI cron entry
+      and a safe web-host manual fallback. No hidden public-traffic scheduler.
+- [ ] Expand diagnostics for mail transport, outstanding notification queue,
+      backup age/restore readiness, storage permissions and update recovery status.
+- [ ] Release gates: migrations/rollback rules, RU/EN UI and docs, integration tests,
+      permission checks, clean-install and restore smoke, compatible patch upgrade.
+
+## Stage 8 — mCMS 0.3.0: reusable Forms and Blocks
+
+**Goal:** let site owners assemble common sections without writing a PHP extension.
+
+- [ ] Forms: field schema (text, email, number, choice, date, file where safe),
+      server validation, CAPTCHA, throttles, submissions, privacy and CSV exports.
+- [ ] Embed Forms in Pages/News and render in all bundled themes; existing Feedback
+      remains compatible, with an optional migration/adaptation path.
+- [ ] Blocks: theme-declared placement regions, module-provided block types,
+      configurable instances, visibility conditions, order and caching contract.
+- [ ] Provide blocks for text, menu, gallery, recent articles and a Form; graceful
+      behavior when supplying modules are disabled.
+- [ ] Guard admin editing and public rendering by permissions and published state;
+      prevent unsafe arbitrary PHP templates supplied by content authors.
+- [ ] Acceptance: independent modules, extensible manifests/services, accessible
+      mobile UI, clean install, third-party theme compatibility and integration tests.
+
+## Stage 9 — mCMS 0.4.0: editorial content and discovery
+
+**Goal:** improve publication control and content navigation.
+
+- [ ] Draft edits to already published Pages/News without affecting the live content;
+      explicit review, approval and scheduled publication/unpublication options.
+- [ ] Hierarchical Pages with route collision and redirect protection, parent reordering,
+      breadcrumbs and existing flat-URL compatibility/migration.
+- [ ] SEO enhancements: canonical, Open Graph/social preview images, robots.txt,
+      schema.org/JSON-LD, hreflang-ready metadata contract and large sitemap indexes.
+- [ ] Public search: cross-provider ranking with normalized scoring/pagination,
+      content-type filters, scalable full-text strategy and publication safeguards.
+- [ ] Media enhancements: folders/collections, bulk metadata and upload workflows,
+      responsive image derivatives and preservation of originals.
+- [ ] Acceptance: correct preview/live separation, URL stability, SEO test fixtures,
+      accessibility and backward compatibility for existing modules/themes.
+
+## Stage 10 — mCMS 0.5.0: integrations and commerce growth
+
+**Goal:** connect shops to payment, delivery and business systems without coupling Core.
+
+- [ ] Webhooks: subscribed outgoing events, signed payloads, delivery outbox,
+      bounded retry/diagnostic history, replay protection and credential rotation.
+- [ ] Customer Notifications: order receipt and status emails with verified addresses,
+      templates and clear consent/opt-out rules for non-transactional messages.
+- [ ] Payments: pluggable adapters, manual payment method, payment ledger/status
+      distinct from order state, partial payments, refunds, verified callbacks.
+- [ ] Discounts: optional promotions/coupons with immutable checkout snapshots,
+      conflict policies and testable calculation boundaries.
+- [ ] Customer delivery addresses, delivery zones/price rules and tracking history;
+      optional refund/returns workflow with stock/accounting consistency.
+- [ ] Optional CSV/XLSX catalogue import with dry-run and stable SKU mapping;
+      1C integration adapter using the existing versioned API (no Core 1C dependency).
+- [ ] Acceptance: payment/webhook idempotency, no trust in browser amounts, precise
+      arithmetic, secrets handling, rollback/replay tests and optional-module isolation.
+
+## Stage 11 — mCMS 0.6.0: multilingual content and structured fields
+
+**Goal:** provide future-proof content modeling without expanding the Core into a monolith.
+
+- [ ] Multilingual content contract: stable resource identity, localized variants,
+      per-locale publication, translated slugs, URL/redirect policy and language switcher.
+- [ ] Locale-aware SEO: canonical/hreflang/sitemap, safe fallback and separate
+      localization of navigation, Pages, News, categories and products.
+- [ ] Custom Fields: typed field definitions and validation for existing resource
+      providers, media/reference fields, access control, API contracts and search.
+- [ ] Theme API extensions for translated resources and typed fields; migration path
+      for existing content and compatibility for extensions that ignore these features.
+- [ ] Acceptance: independent install/disable semantics, stable URLs, content migration,
+      storage ownership, safe rendering and RU/EN guides.
+
+### Versioning and release rules for Stages 7–11
+
+Each numbered stage targets **one minor release**: `0.2.0`, `0.3.0`, `0.4.0`,
+`0.5.0`, `0.6.0`, in that order. These are targets, not published releases.
+Development takes place on feature branches with CI and reviews; only tag a version
+after its release gates pass. Fixes during development may be merged incrementally,
+without advertising an unfinished stage as released. Patch releases retain the
+usual `0.x.y` convention. Existing 0.1.x sites must have a documented upgrade and
+recovery path before each minor release.
+
+
 ## Feature design policy
 
 Define features from mCMS requirements and implement them against its public Core and module contracts. Keep application-specific data models, routes and deployment assumptions out of reusable modules unless the mCMS design explicitly requires them.

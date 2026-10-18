@@ -8,6 +8,7 @@ use CodeIgniter\Events\Events;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\Shield\Entities\User;
 use MCMS\Core\Events\CoreEvents;
+use MCMS\Core\Auth\UserDirectory;
 use RuntimeException;
 
 final class Users extends BaseAdminController
@@ -18,17 +19,34 @@ final class Users extends BaseAdminController
             return $redirect;
         }
 
-        $users = auth()->getProvider()
-            ->withIdentities()
-            ->withGroups()
-            ->withPermissions()
-            ->findAll(100);
+        $search = $this->request->getGet('q');
+        $directory = (new UserDirectory(db_connect()))->page(
+            is_string($search) ? $search : '',
+            filter_var($this->request->getGet('page'), FILTER_VALIDATE_INT) ?: 1
+        );
+
+        // Shield owns identities, groups and direct permission hydration.
+        $users = [];
+        if ($directory['ids'] !== []) {
+            $provider = auth()->getProvider();
+            $found = $provider->withIdentities()->withGroups()->withPermissions()->find($directory['ids']);
+            $byId = [];
+            foreach ($found as $entry) {
+                $byId[(int) $entry->id] = $entry;
+            }
+            foreach ($directory['ids'] as $id) {
+                if (isset($byId[$id])) {
+                    $users[] = $byId[$id];
+                }
+            }
+        }
 
         return view('admin/users/index', [
             'adminMenu' => $this->adminMenu(),
             'users'     => $users,
             'user'      => auth()->user(),
             'canAccess' => $this->can('core.access'),
+            ...$directory,
         ]);
     }
 

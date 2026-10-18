@@ -408,6 +408,9 @@ return [
     ],
     'users' => [
         'title' => 'Users',
+        'searchPlaceholder' => 'Search by username or email',
+        'count' => 'Users found: %d',
+        'empty' => 'No users found.',
         'create' => 'Create user',
         'email' => 'Email',
         'username' => 'Username',

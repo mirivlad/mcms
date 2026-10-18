@@ -42,3 +42,12 @@ The built-in themes mcms-default, mcms-depth, mcms-focus and mcms-signature incl
 Comments and Ratings use Shield user IDs as before. Guest comments (when allowed), guest carts and guest checkouts remain available. Logged-in purchasers' orders are linked to their identity through customer_user_id, and checkout pre-populates stored name, phone and email. Previously placed guest orders are not claimed by email, to prevent unauthorized account linking.
 
 The account UI is distinct from the administration UI: ordinary users have no core.admin permission. CSRF applies to all public account mutations.
+
+### Administrator user directory (0.2.0 development)
+
+The core-owned `/admin/users` list now uses 25-user pages, stable newest-ID-first
+ordering and a search by username or email. Both search and page selection are
+read-only GET parameters; no identities/permissions are hydrated until the bounded
+matching user IDs have been fetched. Filtered results cannot bypass the existing
+`core.users` permission, and access management still needs `core.access`.
+This is the first 0.2.0 development change; the complete release is not yet published.
