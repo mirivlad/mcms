@@ -1,4 +1,4 @@
-FROM php:8.4-fpm-bookworm
+FROM php:8.4.27-fpm-bookworm
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -7,6 +7,9 @@ RUN apt-get update \
     && docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j"$(nproc)" curl dom exif gd intl mbstring mysqli opcache pdo_mysql simplexml xml xmlreader xmlwriter zip \
     && rm -rf /var/lib/apt/lists/*
+
+# PHP2Shell: prevent publication with vulnerable PHP (CVE-2026-109618/109619).
+RUN php -r 'exit(version_compare(PHP_VERSION, "8.4.27", ">=") ? 0 : 1);'
 
 COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 
