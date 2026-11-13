@@ -29,7 +29,7 @@ final class Categories
     /** Categories in tree order, with their depth and full readable path. */
     public function list(bool $publishedOnly = false): array
     {
-        $rows = $this->db->table('catalogue_categories')->orderBy('name')->get()->getResultArray();
+        $rows = $this->db->table('catalogue_categories')->orderBy('position')->orderBy('name')->orderBy('id')->get()->getResultArray();
         $result = [];
         $walk = function (?int $parent, int $depth, string $path) use (&$walk, &$result, $rows): void {
             foreach ($rows as $row) {
@@ -113,7 +113,10 @@ final class Categories
         if ($type === 'image' && $image === null) {
             throw new InvalidArgumentException(lang('Catalogue.categoryImageRequired'));
         }
-        $record = ['name' => $name, 'slug' => $slug, 'parent_id' => $parentId, 'icon_type' => $type,
+        $position = $current !== null && $current['parent_id'] === $parentId
+            ? $current['position']
+            : $this->nextPosition($parentId);
+        $record = ['name' => $name, 'slug' => $slug, 'parent_id' => $parentId, 'position' => $position, 'icon_type' => $type,
             'icon' => $icon, 'icon_color' => $color, 'image' => $image, 'updated_at' => date('Y-m-d H:i:s')];
         $this->db->transBegin();
         try {
@@ -145,6 +148,83 @@ final class Categories
         return $saved;
     }
 
+    /**
+     * @param list<array{id:int|string,parent_id:int|string|null}> $entries
+     * Reorder the complete category tree, preserving sibling order only within each parent.
+     */
+    public function reorder(array $entries): void
+    {
+        $existing = array_map('intval', array_column(
+            $this->db->table('catalogue_categories')->select('id')->get()->getResultArray(), 'id'
+        ));
+        if (count($entries) !== count($existing)) {
+            throw new InvalidArgumentException(lang('Catalogue.invalidCategoryOrder'));
+        }
+        $parents = [];
+        foreach ($entries as $entry) {
+            if (! is_array($entry) || ! isset($entry['id'])
+                || ! is_scalar($entry['id'])
+                || preg_match('/^[1-9][0-9]*$/', (string) $entry['id']) !== 1) {
+                throw new InvalidArgumentException(lang('Catalogue.invalidCategoryOrder'));
+            }
+            $id = (int) $entry['id'];
+            $parent = $entry['parent_id'] ?? null;
+            if ($parent !== null && (! is_scalar($parent)
+                || preg_match('/^[1-9][0-9]*$/', (string) $parent) !== 1)) {
+                throw new InvalidArgumentException(lang('Catalogue.invalidCategoryOrder'));
+            }
+            if (array_key_exists($id, $parents)) {
+                throw new InvalidArgumentException(lang('Catalogue.invalidCategoryOrder'));
+            }
+            $parents[$id] = $parent === null ? null : (int) $parent;
+        }
+        $provided = array_keys($parents);
+        sort($provided);
+        sort($existing);
+        if ($provided !== $existing) {
+            throw new InvalidArgumentException(lang('Catalogue.invalidCategoryOrder'));
+        }
+        foreach ($parents as $id => $parent) {
+            $visited = [$id => true];
+            while ($parent !== null) {
+                if (! array_key_exists($parent, $parents) || isset($visited[$parent])) {
+                    throw new InvalidArgumentException(lang('Catalogue.categoryCycle'));
+                }
+                $visited[$parent] = true;
+                $parent = $parents[$parent];
+            }
+        }
+        $counter = [];
+        $this->db->transBegin();
+        try {
+            foreach ($entries as $entry) {
+                $id = (int) $entry['id'];
+                $parent = $parents[$id];
+                $key = $parent ?? 0;
+                $counter[$key] = ($counter[$key] ?? 0) + 1;
+                $this->db->table('catalogue_categories')->where('id', $id)->update([
+                    'parent_id' => $parent,
+                    'position' => $counter[$key] * 10,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
+            if (! $this->db->transStatus()) {
+                throw new RuntimeException(lang('Catalogue.saveFailed'));
+            }
+            $this->db->transCommit();
+        } catch (Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
+    }
+
+    private function nextPosition(?int $parent): int
+    {
+        $query = $this->db->table('catalogue_categories')->selectMax('position');
+        $query->where('parent_id', $parent);
+        return min(2_000_000_000, (int) ($query->get()->getRow('position') ?? 0) + 10);
+    }
+
     public function delete(int $id): void
     {
         $category = $this->find($id) ?? throw new RuntimeException(lang('Catalogue.categoryNotFound'));
@@ -172,6 +252,7 @@ final class Categories
     {
         $row['id'] = (int) $row['id'];
         $row['parent_id'] = $row['parent_id'] === null ? null : (int) $row['parent_id'];
+        $row['position'] = (int) $row['position'];
         $row['url'] = '/shop/category/' . $row['slug'];
         $row['image_url'] = $row['image'] === null ? null : '/shop/category-icons/' . $row['id'] . '?v=' . substr($row['image'], 0, 32);
         return $row;
