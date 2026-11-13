@@ -54,11 +54,6 @@ $value = static function (string $name, mixed $default = '') use ($method): mixe
                         <span class="input-group-text">₽</span>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="delivery-position"><?= esc(lang('Delivery.position')) ?></label>
-                    <input id="delivery-position" class="form-control" type="number" min="0" max="2000000000"
-                           name="position" required value="<?= esc((string) $value('position', 100), 'attr') ?>">
-                </div>
             </div>
 
             <label class="form-check form-switch mt-4">
