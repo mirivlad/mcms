@@ -192,3 +192,10 @@
         gap: .6rem .65rem;
     }
 }
+
+/* Shared sortable list controls, including mouse, keyboard and touch fallback buttons. */
+.drag-sort-handle { display:inline-flex; align-items:center; justify-content:center; cursor:grab; color:var(--tblr-secondary); touch-action:none; }
+.drag-sort-handle:active { cursor:grabbing; }
+.drag-sort-handle:focus-visible { outline:2px solid var(--tblr-primary); outline-offset:3px; border-radius:.25rem; }
+[data-sort-item].is-sorting { opacity:.55; }
+[data-sort-item] [data-sort-up], [data-sort-item] [data-sort-down] { padding-inline:.35rem; }
