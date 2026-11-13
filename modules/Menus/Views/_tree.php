@@ -1,10 +1,10 @@
 <?php $isRoot = $isRoot ?? false; ?>
 <ul class="menu-tree-list <?= $isRoot ? 'menu-tree-root' : '' ?>" <?= $isRoot ? 'data-menu-tree-root' : '' ?>>
     <?php foreach ($nodes as $item): ?>
-        <li class="menu-tree-item" data-id="<?= (int) $item['id'] ?>" <?= $canManage ? 'draggable="true"' : '' ?>>
+        <li class="menu-tree-item" data-id="<?= (int) $item['id'] ?>">
             <div class="menu-tree-row">
                 <?php if ($canManage): ?>
-                    <span class="menu-drag-handle" title="<?= esc(lang('Menus.Admin.structureHelp'), 'attr') ?>">
+                    <span class="menu-drag-handle" draggable="true" tabindex="0" title="<?= esc(lang('Menus.Admin.structureHelp'), 'attr') ?>" aria-label="<?= esc(lang('Menus.Admin.structureHelp'), 'attr') ?>">
                         <i class="ti ti-grip-vertical"></i>
                     </span>
                 <?php endif ?>
@@ -32,7 +32,10 @@
                     </div>
                 </div>
                 <?php if ($canManage): ?>
-                    <div class="d-flex gap-1 ms-2">
+                    <div class="d-flex gap-1 flex-wrap ms-2">
+                        <?php foreach (['up' => ['arrow-up', 'moveUp'], 'down' => ['arrow-down', 'moveDown'], 'nest' => ['indent-increase', 'nest'], 'unnest' => ['indent-decrease', 'unnest']] as $action => [$icon, $label]): ?>
+                            <button class="btn btn-sm btn-icon btn-ghost-secondary admin-icon-action" type="button" data-menu-move="<?= esc($action, 'attr') ?>" title="<?= esc(lang('Menus.Admin.' . $label), 'attr') ?>" aria-label="<?= esc(lang('Menus.Admin.' . $label), 'attr') ?>"><i class="ti ti-<?= esc($icon, 'attr') ?>" aria-hidden="true"></i></button>
+                        <?php endforeach ?>
                         <a class="btn btn-icon btn-ghost-secondary btn-sm admin-icon-action" href="<?= site_url('admin/menus/' . $menuId . '/edit?item=' . $item['id']) ?>#menu-item-form" title="<?= esc(lang('Menus.Admin.editAction'), 'attr') ?>" aria-label="<?= esc(lang('Menus.Admin.editAction'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body">
                             <i aria-hidden="true" class="ti ti-pencil"></i>
                         </a>
