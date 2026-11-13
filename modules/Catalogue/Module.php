@@ -41,6 +41,7 @@ final class Module implements ModuleProviderInterface
             $routes->match(['get', 'post'], 'settings', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::settings');
             $routes->get('products', '\\MCMS\\Modules\\Catalogue\\Controllers\\Admin::index');
             $routes->get('categories', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::index');
+            $routes->post('categories/order', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::order');
             $routes->match(['get', 'post'], 'categories/create', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::create');
             $routes->match(['get', 'post'], 'categories/(:num)/edit', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::edit/$1');
             $routes->post('categories/(:num)/delete', '\\MCMS\\Modules\\Catalogue\\Controllers\\CategoryAdmin::delete/$1');
