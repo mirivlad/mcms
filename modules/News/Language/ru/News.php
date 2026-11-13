@@ -2,6 +2,11 @@
 
 return [
     'Admin' => [
+        'reorderCategories' => 'Изменить порядок',
+        'categoryDragHint' => 'Перетащите маркер для сортировки категорий.',
+        'categoryMoveUp' => 'Выше',
+        'categoryMoveDown' => 'Ниже',
+        'saveCategoryOrder' => 'Сохранить порядок',
         'categories' => 'Категории новостей',
         'category' => 'Категория',
         'noCategory' => 'Без категории',
@@ -90,12 +95,14 @@ return [
     ],
     'Messages' => [
         'categorySaved' => 'Категория сохранена.',
+        'categoryOrderSaved' => 'Порядок категорий сохранён.',
         'categoryDeleted' => 'Категория удалена.',
         'created' => 'Новостная публикация создана.',
         'updated' => 'Новостная публикация сохранена.',
         'deleted' => 'Новостная публикация удалена.',
     ],
     'Errors' => [
+        'invalidCategoryOrder' => 'Некорректный порядок категорий.',
         'categoryName' => 'Название категории должно содержать от 1 до 120 символов.',
         'categoryNotFound' => 'Категория не найдена.',
         'categoryDuplicate' => 'Категория с таким slug уже существует.',
