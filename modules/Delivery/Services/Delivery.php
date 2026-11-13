@@ -61,7 +61,9 @@ final class Delivery implements DeliveryInterface
         $name = trim((string) ($data['name'] ?? ''));
         $type = trim((string) ($data['type'] ?? ''));
         $priceMinor = self::priceMinor((string) ($data['price'] ?? ''));
-        $position = filter_var($data['position'] ?? null, FILTER_VALIDATE_INT);
+        $current = $id === null ? null : $this->find($id);
+        $next = (int) ($this->db->table('delivery_methods')->selectMax('position')->get()->getRow('position') ?? 0) + 10;
+        $position = filter_var($data['position'] ?? ($current['position'] ?? $next), FILTER_VALIDATE_INT);
 
         if ($name === '' || mb_strlen($name) > 190) {
             throw new InvalidArgumentException(lang('Delivery.invalidName'));
@@ -128,6 +130,44 @@ final class Delivery implements DeliveryInterface
                 ]);
             }
 
+            if (! $this->db->transStatus()) {
+                throw new InvalidArgumentException(lang('Delivery.saveFailed'));
+            }
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
+    }
+
+    /** Atomically replace the display order, rejecting missing, duplicate or unknown IDs. */
+    public function reorderByIds(array $ids): void
+    {
+        $existing = array_column($this->all(), 'id');
+        $requested = [];
+        foreach ($ids as $id) {
+            if (! is_scalar($id) || preg_match('/^[1-9][0-9]*$/', (string) $id) !== 1) {
+                throw new InvalidArgumentException(lang('Delivery.invalidPosition'));
+            }
+            $requested[] = (int) $id;
+        }
+        if (count($existing) !== count($requested) || count(array_unique($requested)) !== count($requested)) {
+            throw new InvalidArgumentException(lang('Delivery.invalidPosition'));
+        }
+        sort($existing);
+        $sorted = $requested;
+        sort($sorted);
+        if ($existing !== $sorted) {
+            throw new InvalidArgumentException(lang('Delivery.invalidPosition'));
+        }
+        $this->db->transBegin();
+        try {
+            foreach ($requested as $index => $id) {
+                $this->db->table('delivery_methods')->where('id', $id)->update([
+                    'position' => ($index + 1) * 10,
+                    'updated_at' => date('Y-m-d H:i:s'),
+                ]);
+            }
             if (! $this->db->transStatus()) {
                 throw new InvalidArgumentException(lang('Delivery.saveFailed'));
             }
