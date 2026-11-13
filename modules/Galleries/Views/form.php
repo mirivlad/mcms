@@ -24,16 +24,18 @@
         </div>
     </div></div>
     <div class="card mb-3"><div class="card-header"><h3 class="card-title"><?= esc(lang('Galleries.Admin.images')) ?></h3></div><div class="card-body">
-        <p class="text-secondary"><?= esc(lang('Galleries.Admin.orderHint')) ?></p>
+        <p class="text-secondary"><?= esc(lang('Galleries.Admin.dragHint')) ?></p>
         <label class="form-check mb-3"><input type="radio" class="form-check-input" name="cover_media_id" value="0" <?= empty($values['cover_media_id']) ? 'checked' : '' ?>><span class="form-check-label"><?= esc(lang('Galleries.Admin.automaticCover')) ?></span></label>
-        <div id="selected-images" class="row g-3">
+        <div id="selected-images" class="row g-3" data-sortable-list>
             <?php foreach ($selected as $image): ?>
-                <div class="col-sm-6 col-xl-4" data-selected-id="<?= (int) $image['media_id'] ?>"><div class="border rounded p-3 h-100">
+                <div class="col-sm-6 col-xl-4" data-sort-item data-selected-id="<?= (int) $image['media_id'] ?>"><div class="border rounded p-3 h-100">
+                    <div class="d-flex align-items-center gap-2 mb-2"><span class="drag-sort-handle" data-sort-handle draggable="true" tabindex="0" title="<?= esc(lang('Galleries.Admin.dragHint'), 'attr') ?>"><i class="ti ti-grip-vertical" aria-hidden="true"></i></span>
+                    <button type="button" data-sort-up class="btn btn-sm btn-icon" aria-label="<?= esc(lang('Galleries.Admin.moveUp'), 'attr') ?>"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
+                    <button type="button" data-sort-down class="btn btn-sm btn-icon" aria-label="<?= esc(lang('Galleries.Admin.moveDown'), 'attr') ?>"><i class="ti ti-arrow-down" aria-hidden="true"></i></button></div>
                     <?php if ($image['media'] !== null): ?><img class="img-fluid rounded mb-2" style="height:140px;object-fit:contain" src="<?= esc($image['media']['thumbnail_url'], 'attr') ?>" alt="<?= esc($image['media']['alt_text'] ?? '', 'attr') ?>" loading="lazy"><?php endif ?>
                     <p class="text-break"><?= esc($image['media']['title'] ?? $image['media']['original_name'] ?? lang('Galleries.Admin.missing')) ?></p>
                     <input type="hidden" name="media_ids[]" value="<?= (int) $image['media_id'] ?>">
                     <label class="form-label"><?= esc(lang('Galleries.Admin.caption')) ?><input class="form-control mb-2" name="captions[<?= (int) $image['media_id'] ?>]" maxlength="500" value="<?= esc($image['caption'], 'attr') ?>"></label>
-                    <label class="form-label"><?= esc(lang('Galleries.Admin.position')) ?><input class="form-control mb-2" type="number" min="0" name="positions[<?= (int) $image['media_id'] ?>]" value="<?= (int) $image['position'] ?>"></label>
                     <label class="form-check mb-2"><input class="form-check-input" type="radio" name="cover_media_id" value="<?= (int) $image['media_id'] ?>" <?= (int) ($values['cover_media_id'] ?? 0) === (int) $image['media_id'] ? 'checked' : '' ?>><span class="form-check-label"><?= esc(lang('Galleries.Admin.cover')) ?></span></label>
                     <button class="btn btn-outline-danger btn-sm" type="button" data-remove-image><?= esc(lang('Galleries.Admin.remove')) ?></button>
                 </div></div>
@@ -55,7 +57,7 @@
         const mode = ['slider', 'carousel', 'cards'].includes(embedView.value) ? ' view="' + embedView.value + '"' : '';
         shortcode.value = '[gallery id="' + shortcode.dataset.albumId + '"' + mode + ']';
     });
-    const labels = <?= json_encode(array_combine(['caption','position','cover','remove','missing','loading','empty','loadError','add'], array_map(static fn ($key) => lang('Galleries.Admin.' . $key), ['caption','position','cover','remove','missing','loading','empty','loadError','add'])), JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) ?>;
+    const labels = <?= json_encode(array_combine(['caption','cover','remove','missing','loading','empty','loadError','add','dragHint','moveUp','moveDown'], array_map(static fn ($key) => lang('Galleries.Admin.' . $key), ['caption','cover','remove','missing','loading','empty','loadError','add','dragHint','moveUp','moveDown'])), JSON_HEX_TAG | JSON_UNESCAPED_UNICODE) ?>;
     const selected = document.getElementById('selected-images');
     const selectedIds = new Set();
     let page = 1;
@@ -67,8 +69,26 @@
         selectedIds.add(id);
         const column = document.createElement('div');
         column.className = 'col-sm-6 col-xl-4';
+        column.dataset.sortItem = '';
         const card = document.createElement('div');
         card.className = 'border rounded p-3 h-100';
+        const controls = document.createElement('div');
+        controls.className = 'd-flex align-items-center gap-2 mb-2';
+        const handle = document.createElement('span');
+        handle.className = 'drag-sort-handle';
+        handle.dataset.sortHandle = '';
+        handle.draggable = true; handle.tabIndex = 0; handle.title = labels.dragHint;
+        handle.innerHTML = '<i class="ti ti-grip-vertical" aria-hidden="true"></i>';
+        controls.append(handle);
+        for (const [action, icon, text] of [['up','arrow-up',labels.moveUp], ['down','arrow-down',labels.moveDown]]) {
+            const button = document.createElement('button');
+            button.type = 'button'; button.className = 'btn btn-sm btn-icon';
+            button.dataset[action === 'up' ? 'sortUp' : 'sortDown'] = '';
+            button.setAttribute('aria-label', text);
+            button.innerHTML = '<i class="ti ti-' + icon + '" aria-hidden="true"></i>';
+            controls.append(button);
+        }
+        card.append(controls);
         if (item.thumbnail_url || item.url) {
             const img = document.createElement('img');
             img.src = item.thumbnail_url || item.url;
@@ -85,10 +105,10 @@
         card.append(title);
         const hidden = document.createElement('input');
         hidden.type = 'hidden'; hidden.name = 'media_ids[]'; hidden.value = id; card.append(hidden);
-        for (const [key, value, type] of [['captions', caption, 'text'], ['positions', position, 'number']]) {
+        for (const [key, value, type] of [['captions', caption, 'text']]) {
             const label = document.createElement('label');
             label.className = 'form-label';
-            label.textContent = key === 'captions' ? labels.caption : labels.position;
+            label.textContent = labels.caption;
             const input = document.createElement('input');
             input.className = 'form-control mb-2'; input.name = `${key}[${id}]`; input.type = type; input.value = value;
             if (type === 'text') input.maxLength = 500; else input.min = 0;
@@ -104,16 +124,17 @@
         remove.type = 'button'; remove.className = 'btn btn-outline-danger btn-sm'; remove.textContent = labels.remove;
         remove.addEventListener('click', () => {
             if (radio.checked) document.querySelector('[name="cover_media_id"][value="0"]').checked = true;
-            selectedIds.delete(id); column.remove();
+            selectedIds.delete(id); column.remove(); selected.dispatchEvent(new Event('sortable:refresh'));
         });
         card.append(remove); column.append(card); selected.append(column);
+        selected.dispatchEvent(new Event('sortable:refresh'));
     }
     selected.querySelectorAll('[data-selected-id]').forEach(column => {
         const id = Number(column.dataset.selectedId);
         selectedIds.add(id);
         column.querySelector('[data-remove-image]').addEventListener('click', () => {
             if (column.querySelector('[name="cover_media_id"]').checked) document.querySelector('[name="cover_media_id"][value="0"]').checked = true;
-            selectedIds.delete(id); column.remove();
+            selectedIds.delete(id); column.remove(); selected.dispatchEvent(new Event('sortable:refresh'));
         });
     });
     async function load(targetPage) {
@@ -151,4 +172,5 @@
     load(1);
 })();
 </script>
+<script src="<?= site_url('assets/admin/sortable-list.js') ?>?v=1" defer></script>
 <?= $this->endSection() ?>
