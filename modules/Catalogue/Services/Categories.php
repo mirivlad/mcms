@@ -29,7 +29,13 @@ final class Categories
     /** Categories in tree order, with their depth and full readable path. */
     public function list(bool $publishedOnly = false): array
     {
-        $rows = $this->db->table('catalogue_categories')->orderBy('position')->orderBy('name')->orderBy('id')->get()->getResultArray();
+        $builder = $this->db->table('catalogue_categories');
+        // The legacy migration round-trip test recreates the original schema without position.
+        // Preserve name ordering for that compatibility scenario.
+        if ($this->db->fieldExists('position', 'catalogue_categories')) {
+            $builder->orderBy('position');
+        }
+        $rows = $builder->orderBy('name')->orderBy('id')->get()->getResultArray();
         $result = [];
         $walk = function (?int $parent, int $depth, string $path) use (&$walk, &$result, $rows): void {
             foreach ($rows as $row) {
@@ -113,11 +119,13 @@ final class Categories
         if ($type === 'image' && $image === null) {
             throw new InvalidArgumentException(lang('Catalogue.categoryImageRequired'));
         }
-        $position = $current !== null && $current['parent_id'] === $parentId
-            ? $current['position']
-            : $this->nextPosition($parentId);
-        $record = ['name' => $name, 'slug' => $slug, 'parent_id' => $parentId, 'position' => $position, 'icon_type' => $type,
+        $record = ['name' => $name, 'slug' => $slug, 'parent_id' => $parentId, 'icon_type' => $type,
             'icon' => $icon, 'icon_color' => $color, 'image' => $image, 'updated_at' => date('Y-m-d H:i:s')];
+        if ($this->db->fieldExists('position', 'catalogue_categories')) {
+            $record['position'] = $current !== null && $current['parent_id'] === $parentId
+                ? $current['position']
+                : $this->nextPosition($parentId);
+        }
         $this->db->transBegin();
         try {
             if ($id === null) {
@@ -252,7 +260,7 @@ final class Categories
     {
         $row['id'] = (int) $row['id'];
         $row['parent_id'] = $row['parent_id'] === null ? null : (int) $row['parent_id'];
-        $row['position'] = (int) $row['position'];
+        $row['position'] = (int) ($row['position'] ?? 0);
         $row['url'] = '/shop/category/' . $row['slug'];
         $row['image_url'] = $row['image'] === null ? null : '/shop/category-icons/' . $row['id'] . '?v=' . substr($row['image'], 0, 32);
         return $row;
