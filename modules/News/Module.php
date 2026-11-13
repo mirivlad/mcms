@@ -55,6 +55,7 @@ final class Module implements ModuleProviderInterface
             $routes->match(['get', 'post'], 'settings', '\\MCMS\\Modules\\News\\Controllers\\Admin::settings');
             $routes->get('categories', '\\MCMS\\Modules\\News\\Controllers\\Admin::categories');
             $routes->post('categories/save', '\\MCMS\\Modules\\News\\Controllers\\Admin::saveCategory');
+            $routes->post('categories/order', '\\MCMS\\Modules\\News\\Controllers\\Admin::orderCategories');
             $routes->post('categories/delete', '\\MCMS\\Modules\\News\\Controllers\\Admin::deleteCategory');
             $routes->match(['get', 'post'], 'create', '\\MCMS\\Modules\\News\\Controllers\\Admin::create');
             $routes->post('preview', '\\MCMS\\Modules\\News\\Controllers\\Admin::preview');
