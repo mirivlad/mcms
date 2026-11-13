@@ -97,7 +97,7 @@ final class Admin extends BaseAdminController
         try {
             $this->news()->reorderCategoriesByIds((array) $this->request->getPost('ids'));
             return redirect()->to('/admin/news/categories')->with('message', lang('News.Messages.categoryOrderSaved'));
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             return redirect()->to('/admin/news/categories')->with('error', $e->getMessage());
         }
     }
