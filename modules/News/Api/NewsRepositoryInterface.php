@@ -18,6 +18,9 @@ interface NewsRepositoryInterface
 
     public function saveCategory(array $data, ?int $id = null): void;
 
+    /** @param list<int|string> $ids Complete ordered set of category IDs. */
+    public function reorderCategoriesByIds(array $ids): void;
+
     public function deleteCategory(int $id): void;
 
     public function tags(bool $publishedOnly = false): array;

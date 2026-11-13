@@ -5,16 +5,28 @@
     <a class="btn btn-outline-secondary ms-auto" href="<?= site_url('admin/news') ?>"><?= esc(lang('MCMS.common.back')) ?></a>
     <button class="btn btn-primary" type="button" data-category-create><?= esc(lang('News.Admin.createCategory')) ?></button>
 </div>
+<form method="post" action="<?= site_url('admin/news/categories/order') ?>">
+<?= csrf_field() ?>
 <div class="card"><div class="table-responsive"><table class="table card-table table-vcenter">
-    <thead><tr><th><?= esc(lang('MCMS.common.title')) ?></th><th><?= esc(lang('News.Admin.slug')) ?></th><th></th></tr></thead>
-    <tbody><?php if ($categories === []): ?><tr><td colspan="3"><?= esc(lang('News.Admin.noCategories')) ?></td></tr><?php endif ?>
+    <thead><tr><th style="width:9rem"><?= esc(lang('News.Admin.reorderCategories')) ?></th><th><?= esc(lang('MCMS.common.title')) ?></th><th><?= esc(lang('News.Admin.slug')) ?></th><th></th></tr></thead>
+    <tbody data-sortable-list><?php if ($categories === []): ?><tr><td colspan="4"><?= esc(lang('News.Admin.noCategories')) ?></td></tr><?php endif ?>
     <?php foreach ($categories as $category): ?>
-    <tr><td><?= esc($category['name']) ?></td><td><code><?= esc($category['slug']) ?></code></td><td><div class="btn-list flex-nowrap">
+    <tr data-sort-item><td>
+        <input type="hidden" name="ids[]" value="<?= (int) $category['id'] ?>">
+        <div class="d-flex align-items-center gap-1">
+            <span class="drag-sort-handle" data-sort-handle draggable="true" tabindex="0" title="<?= esc(lang('News.Admin.categoryDragHint'), 'attr') ?>" aria-label="<?= esc(lang('News.Admin.categoryDragHint'), 'attr') ?>"><i class="ti ti-grip-vertical" aria-hidden="true"></i></span>
+            <button class="btn btn-sm btn-icon" data-sort-up type="button" aria-label="<?= esc(lang('News.Admin.categoryMoveUp'), 'attr') ?>"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
+            <button class="btn btn-sm btn-icon" data-sort-down type="button" aria-label="<?= esc(lang('News.Admin.categoryMoveDown'), 'attr') ?>"><i class="ti ti-arrow-down" aria-hidden="true"></i></button>
+        </div>
+    </td><td><?= esc($category['name']) ?></td><td><code><?= esc($category['slug']) ?></code></td><td><div class="btn-list flex-nowrap">
         <button class="btn btn-outline-primary btn-sm btn-icon admin-icon-action" type="button" data-category-edit="<?= esc(json_encode($category, JSON_UNESCAPED_UNICODE), 'attr') ?>" aria-label="<?= esc(lang('MCMS.common.edit'), 'attr') ?>" title="<?= esc(lang('MCMS.common.edit'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-pencil" aria-hidden="true"></i></button>
         <button class="btn btn-outline-danger btn-sm btn-icon admin-icon-action" type="button" data-category-delete="<?= (int) $category['id'] ?>" data-category-name="<?= esc($category['name'], 'attr') ?>" aria-label="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" title="<?= esc(lang('MCMS.common.delete'), 'attr') ?>" data-bs-toggle="tooltip" data-bs-container="body"><i class="ti ti-trash" aria-hidden="true"></i></button>
     </div></td></tr>
     <?php endforeach ?></tbody>
-</table></div></div>
+</table></div>
+<div class="card-footer"><button type="submit" class="btn btn-primary" data-save-order disabled><?= esc(lang('News.Admin.saveCategoryOrder')) ?></button></div>
+</div>
+</form>
 <dialog id="category-dialog" aria-labelledby="category-heading" style="width:min(520px,94vw);border:0;border-radius:12px;background:var(--tblr-bg-surface);color:var(--tblr-body-color)">
     <form method="post" action="<?= site_url('admin/news/categories/save') ?>">
         <?= csrf_field() ?><input type="hidden" name="category_form" value="1"><input type="hidden" name="id" value="<?= esc(old('id', ''), 'attr') ?>">
@@ -62,4 +74,5 @@
     <?php if (old('category_form') === '1'): ?>heading(); dialog.showModal();<?php endif ?>
 })();
 </script>
+<script src="<?= site_url('assets/admin/sortable-list.js') ?>?v=1" defer></script>
 <?= $this->endSection() ?>

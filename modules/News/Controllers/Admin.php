@@ -89,6 +89,19 @@ final class Admin extends BaseAdminController
         ]);
     }
 
+    public function orderCategories(): RedirectResponse
+    {
+        if (($redirect = $this->guard('news.edit')) !== null) {
+            return $redirect;
+        }
+        try {
+            $this->news()->reorderCategoriesByIds((array) $this->request->getPost('ids'));
+            return redirect()->to('/admin/news/categories')->with('message', lang('News.Messages.categoryOrderSaved'));
+        } catch (\Throwable $e) {
+            return redirect()->to('/admin/news/categories')->with('error', $e->getMessage());
+        }
+    }
+
     public function saveCategory(): RedirectResponse
     {
         if (($redirect = $this->guard('news.edit')) !== null) {

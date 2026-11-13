@@ -6,6 +6,132 @@
         deleteDialog.querySelector('form').action = button.dataset.deleteCategory;
         deleteDialog.showModal();
     }));
+    const orderForm = document.querySelector('[data-category-order-form]');
+    if (orderForm) {
+        const container = orderForm.querySelector('[data-category-sort-container]');
+        const root = container.querySelector('[data-category-root]');
+        const structure = orderForm.querySelector('[data-category-structure]');
+        const saveOrder = orderForm.querySelector('[data-category-save-order]');
+        const directItems = list => Array.from(list.children).filter(el => el.matches('[data-category-item]'));
+        const childrenOf = item => Array.from(item.children).find(el => el.matches('[data-category-children]'));
+        let dragging = null;
+
+        const refresh = () => {
+            root.querySelectorAll('[data-category-item]').forEach(item => {
+                const list = item.parentElement;
+                const siblings = directItems(list);
+                const index = siblings.indexOf(item);
+                for (const button of item.querySelectorAll(':scope > .mcms-category-sort-row [data-category-move]')) {
+                    const action = button.dataset.categoryMove;
+                    button.disabled = (action === 'up' && index === 0)
+                        || (action === 'down' && index === siblings.length - 1)
+                        || (action === 'nest' && index === 0)
+                        || (action === 'unnest' && list === root);
+                }
+            });
+        };
+
+        const serialize = () => {
+            const items = [];
+            const walk = (list, parentId = null) => {
+                directItems(list).forEach(item => {
+                    const id = Number(item.dataset.id);
+                    items.push({id, parent_id: parentId});
+                    walk(childrenOf(item), id);
+                });
+            };
+            walk(root);
+            structure.value = JSON.stringify(items);
+        };
+        const changed = () => { serialize(); refresh(); saveOrder.disabled = false; };
+
+        container.addEventListener('click', event => {
+            const button = event.target.closest('[data-category-move]');
+            if (!button || !container.contains(button)) return;
+            const item = button.closest('[data-category-item]');
+            const list = item.parentElement;
+            const siblings = directItems(list);
+            const index = siblings.indexOf(item);
+            switch (button.dataset.categoryMove) {
+                case 'up':
+                    if (index === 0) return;
+                    list.insertBefore(item, siblings[index - 1]);
+                    break;
+                case 'down':
+                    if (index === siblings.length - 1) return;
+                    list.insertBefore(siblings[index + 1], item);
+                    break;
+                case 'nest':
+                    if (index === 0) return;
+                    childrenOf(siblings[index - 1]).append(item);
+                    break;
+                case 'unnest': {
+                    const parent = list.closest('[data-category-item]');
+                    if (!parent) return;
+                    parent.parentElement.insertBefore(item, parent.nextElementSibling);
+                    break;
+                }
+                default: return;
+            }
+            changed();
+            button.focus();
+        });
+        container.addEventListener('dragstart', event => {
+            if (!event.target.matches('[data-category-handle]')) return;
+            dragging = event.target.closest('[data-category-item]');
+            if (!dragging) return;
+            dragging.classList.add('is-sorting');
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', dragging.dataset.id);
+        });
+        container.addEventListener('dragover', event => {
+            if (!dragging) return;
+            const zone = event.target.closest('[data-category-root-zone]');
+            if (zone) {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                container.querySelectorAll('.is-drop-target').forEach(el => el.classList.remove('is-drop-target'));
+                zone.classList.add('is-drop-target');
+                const previous = dragging.parentElement;
+                if (zone.dataset.categoryRootZone === 'start') root.prepend(dragging);
+                else root.append(dragging);
+                if (dragging.parentElement !== previous || zone.dataset.categoryRootZone === 'start' || zone.dataset.categoryRootZone === 'end') changed();
+                return;
+            }
+            const target = event.target.closest('[data-category-item]');
+            if (!target || target === dragging || dragging.contains(target)) return;
+            const row = target.querySelector(':scope > .mcms-category-sort-row');
+            const rect = row.getBoundingClientRect();
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            container.querySelectorAll('.is-drop-target').forEach(el => el.classList.remove('is-drop-target'));
+            row.classList.add('is-drop-target');
+            const nest = event.clientX > rect.left + Math.min(180, rect.width * .55);
+            if (nest) {
+                const list = childrenOf(target);
+                if (dragging.parentElement !== list || dragging !== list.lastElementChild) {
+                    list.append(dragging);
+                    changed();
+                }
+                return;
+            }
+            const before = event.clientY < rect.top + rect.height / 2;
+            const reference = before ? target : target.nextElementSibling;
+            if (dragging.parentElement !== target.parentElement || dragging !== reference) {
+                target.parentElement.insertBefore(dragging, reference);
+                changed();
+            }
+        });
+        container.addEventListener('drop', event => { if (dragging) event.preventDefault(); });
+        container.addEventListener('dragend', () => {
+            container.querySelectorAll('.is-drop-target').forEach(el => el.classList.remove('is-drop-target'));
+            if (dragging) dragging.classList.remove('is-sorting');
+            dragging = null;
+        });
+        serialize();
+        refresh();
+    }
+
     const form = document.querySelector('[data-category-form]');
     if (!form) return;
     const type = form.elements.icon_type;

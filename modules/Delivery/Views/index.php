@@ -31,7 +31,7 @@
                 <table class="table table-vcenter card-table">
                     <thead>
                     <tr>
-                        <th style="width:8rem"><?= esc(lang('Delivery.position')) ?></th>
+                        <th style="width:9rem"><?= esc(lang('Delivery.reorder')) ?></th>
                         <th><?= esc(lang('Delivery.name')) ?></th>
                         <th><?= esc(lang('Delivery.typeTitle')) ?></th>
                         <th class="text-end"><?= esc(lang('Delivery.price')) ?></th>
@@ -39,15 +39,17 @@
                         <th class="text-end"><?= esc(lang('Delivery.actions')) ?></th>
                     </tr>
                     </thead>
-                    <tbody>
+                    <tbody data-sortable-list>
                     <?php foreach ($methods as $method): ?>
-                        <tr>
+                        <tr data-sort-item>
                             <td>
                                 <?php if ($canManage): ?>
-                                    <input class="form-control form-control-sm" style="width:6rem" type="number" min="0"
-                                           name="position[<?= (int) $method['id'] ?>]" value="<?= (int) $method['position'] ?>">
-                                <?php else: ?>
-                                    <?= (int) $method['position'] ?>
+                                    <input type="hidden" name="ids[]" value="<?= (int) $method['id'] ?>">
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="drag-sort-handle" data-sort-handle draggable="true" tabindex="0" aria-label="<?= esc(lang('Delivery.dragHint'), 'attr') ?>" title="<?= esc(lang('Delivery.dragHint'), 'attr') ?>"><i class="ti ti-grip-vertical" aria-hidden="true"></i></span>
+                                        <button type="button" class="btn btn-sm btn-icon" data-sort-up aria-label="<?= esc(lang('Delivery.moveUp'), 'attr') ?>" title="<?= esc(lang('Delivery.moveUp'), 'attr') ?>"><i class="ti ti-arrow-up" aria-hidden="true"></i></button>
+                                        <button type="button" class="btn btn-sm btn-icon" data-sort-down aria-label="<?= esc(lang('Delivery.moveDown'), 'attr') ?>" title="<?= esc(lang('Delivery.moveDown'), 'attr') ?>"><i class="ti ti-arrow-down" aria-hidden="true"></i></button>
+                                    </div>
                                 <?php endif ?>
                             </td>
                             <td class="fw-semibold"><?= esc($method['name']) ?></td>
@@ -79,7 +81,7 @@
             </div>
             <?php if ($canManage): ?>
                 <div class="card-footer">
-                    <button class="btn btn-primary" type="submit"><?= esc(lang('Delivery.saveOrder')) ?></button>
+                    <button class="btn btn-primary" type="submit" data-save-order disabled><?= esc(lang('Delivery.saveOrder')) ?></button>
                 </div>
             <?php endif ?>
         </div>
@@ -95,4 +97,5 @@
     <?php endif ?>
 <?php endif ?>
 
+<script src="<?= site_url('assets/admin/sortable-list.js') ?>?v=1" defer></script>
 <?= $this->endSection() ?>

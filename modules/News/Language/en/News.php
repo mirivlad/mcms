@@ -2,6 +2,11 @@
 
 return [
     'Admin' => [
+        'reorderCategories' => 'Reorder',
+        'categoryDragHint' => 'Drag the handle to reorder categories.',
+        'categoryMoveUp' => 'Move up',
+        'categoryMoveDown' => 'Move down',
+        'saveCategoryOrder' => 'Save order',
         'categories' => 'News categories',
         'category' => 'Category',
         'noCategory' => 'No category',
@@ -90,12 +95,14 @@ return [
     ],
     'Messages' => [
         'categorySaved' => 'Category saved.',
+        'categoryOrderSaved' => 'Category order saved.',
         'categoryDeleted' => 'Category deleted.',
         'created' => 'News article created.',
         'updated' => 'News article saved.',
         'deleted' => 'News article deleted.',
     ],
     'Errors' => [
+        'invalidCategoryOrder' => 'Invalid category order.',
         'categoryName' => 'Category name must contain 1 to 120 characters.',
         'categoryNotFound' => 'Category not found.',
         'categoryDuplicate' => 'A category with this slug already exists.',

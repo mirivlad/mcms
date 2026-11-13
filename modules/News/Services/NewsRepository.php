@@ -257,7 +257,7 @@ final class NewsRepository implements NewsRepositoryInterface
 
     public function categories(bool $publishedOnly = false): array
     {
-        $builder = $this->db->table('news_categories')->orderBy('name');
+        $builder = $this->db->table('news_categories')->orderBy('position')->orderBy('name')->orderBy('id');
         if ($publishedOnly) {
             $ids = $this->publishedBuilder()->select('category_id')->where('category_id IS NOT NULL', null, false)->get()->getResultArray();
             $ids = array_unique(array_column($ids, 'category_id'));
@@ -292,11 +292,47 @@ final class NewsRepository implements NewsRepositoryInterface
         }
         $this->workflow()->transaction(function () use ($id, $name, $slug): void {
             if ($id === null) {
-                $this->db->table('news_categories')->insert(['name' => $name, 'slug' => $slug]);
+                $next = (int) ($this->db->table('news_categories')->selectMax('position')->get()->getRow('position') ?? 0) + 10;
+                $this->db->table('news_categories')->insert(['name' => $name, 'slug' => $slug, 'position' => $next]);
             } else {
                 $this->db->table('news_categories')->where('id', $id)->update(['name' => $name, 'slug' => $slug]);
             }
         });
+    }
+
+    /** @param list<int|string> $ids */
+    public function reorderCategoriesByIds(array $ids): void
+    {
+        $existing = array_map('intval', array_column($this->categories(), 'id'));
+        $requested = [];
+        foreach ($ids as $id) {
+            if (! is_scalar($id) || preg_match('/^[1-9][0-9]*$/', (string) $id) !== 1) {
+                throw new InvalidArgumentException(lang('News.Errors.invalidCategoryOrder'));
+            }
+            $requested[] = (int) $id;
+        }
+        if (count($requested) !== count($existing) || count(array_unique($requested)) !== count($requested)) {
+            throw new InvalidArgumentException(lang('News.Errors.invalidCategoryOrder'));
+        }
+        $requestedCopy = $requested;
+        sort($requestedCopy);
+        sort($existing);
+        if ($requestedCopy !== $existing) {
+            throw new InvalidArgumentException(lang('News.Errors.invalidCategoryOrder'));
+        }
+        $this->db->transBegin();
+        try {
+            foreach ($requested as $index => $id) {
+                $this->db->table('news_categories')->where('id', $id)->update(['position' => ($index + 1) * 10]);
+            }
+            if (! $this->db->transStatus()) {
+                throw new RuntimeException(lang('News.Errors.invalidCategoryOrder'));
+            }
+            $this->db->transCommit();
+        } catch (\Throwable $e) {
+            $this->db->transRollback();
+            throw $e;
+        }
     }
 
     public function deleteCategory(int $id): void

@@ -128,6 +128,16 @@ final class DeliveryModuleTest extends CIUnitTestCase
         self::assertSame(10000, $all[1]['price_minor']);
     }
 
+    public function testDragOrderValidatesExactIdPermutation(): void
+    {
+        $first = $this->delivery->save(null, ['name' => 'Courier', 'type' => 'delivery', 'price' => '10', 'enabled' => '1']);
+        $second = $this->delivery->save(null, ['name' => 'Pickup', 'type' => 'pickup', 'price' => '0', 'enabled' => '1']);
+        $this->delivery->reorderByIds([(string) $second['id'], (string) $first['id']]);
+        self::assertSame([$second['id'], $first['id']], array_column($this->delivery->all(), 'id'));
+        $this->expectException(InvalidArgumentException::class);
+        $this->delivery->reorderByIds([$first['id'], $first['id']]);
+    }
+
     public function testPriceParserRejectsFloatsBeyondTwoDecimals(): void
     {
         self::assertSame(12345, Delivery::priceMinor('123,45'));

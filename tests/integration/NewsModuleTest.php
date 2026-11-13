@@ -115,6 +115,25 @@ final class NewsModuleTest extends CIUnitTestCase
         self::assertSame(2, $this->db->table('news_articles')->countAllResults());
     }
 
+    public function testNewsCategoriesCanBeReorderedButNotDuplicated(): void
+    {
+        service('language')->setLocale('en');
+        $services = new ModuleServiceRegistry();
+        $manager = new ModuleManager($this->db, new AdminRegistry(), $services, ROOTPATH . 'modules');
+        $manager->enable('news');
+        $manager->bootEnabled();
+        $repository = $services->get('news.repository');
+
+        $repository->saveCategory(['name' => 'Zulu', 'slug' => 'zulu']);
+        $repository->saveCategory(['name' => 'Alpha', 'slug' => 'alpha']);
+        $ids = array_map('intval', array_column($repository->categories(), 'id'));
+        $repository->reorderCategoriesByIds(array_reverse($ids));
+        self::assertSame(array_reverse($ids), array_map('intval', array_column($repository->categories(), 'id')));
+
+        $this->expectException(InvalidArgumentException::class);
+        $repository->reorderCategoriesByIds([$ids[0], $ids[0]]);
+    }
+
     public function testMediaCannotBeDisabledWhileNewsDependsOnIt(): void
     {
         $manager = new ModuleManager(

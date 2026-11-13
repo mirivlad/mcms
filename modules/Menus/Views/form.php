@@ -73,11 +73,11 @@
     }
     .menu-tree-row {
         align-items: flex-start;
-    }
-    .menu-drag-handle {
-        display: none;
+        flex-wrap: wrap;
     }
 }
+ .menu-root-drop {padding:.6rem;margin:.4rem 0;text-align:center;border:2px dashed var(--tblr-border-color);border-radius:var(--tblr-border-radius);background:var(--tblr-bg-surface-secondary);color:var(--tblr-body-color)}
+.menu-root-drop.is-drop-target {border-color:var(--tblr-primary);background:var(--tblr-bg-surface)}
 </style>
 
 <div class="page-header d-print-none mb-4">
@@ -187,12 +187,14 @@
                             <p class="empty-subtitle text-secondary"><?= esc(lang('Menus.Admin.addItem')) ?></p>
                         </div>
                     <?php else: ?>
+                        <?php if ($canManage): ?><div class="menu-root-drop" data-menu-root-zone="start"><?= esc(lang('Menus.Admin.rootStart')) ?></div><?php endif ?>
                         <?= view('MCMS\\Modules\\Menus\\Views\\_tree', [
                             'nodes' => $tree,
                             'menuId' => $menu['id'],
                             'canManage' => $canManage,
                             'isRoot' => true,
                         ]) ?>
+                        <?php if ($canManage): ?><div class="menu-root-drop" data-menu-root-zone="end"><?= esc(lang('Menus.Admin.rootEnd')) ?></div><?php endif ?>
                     <?php endif ?>
                 </div>
             </div>
@@ -461,12 +463,74 @@
                 value.value = JSON.stringify(entries);
             };
 
+            const refresh = () => {
+                root.querySelectorAll('.menu-tree-item').forEach(item => {
+                    const siblings = directItems(item.parentElement);
+                    const index = siblings.indexOf(item);
+                    for (const button of item.querySelectorAll(':scope > .menu-tree-row [data-menu-move]')) {
+                        const action = button.dataset.menuMove;
+                        button.disabled = (action === 'up' && index === 0)
+                            || (action === 'down' && index === siblings.length - 1)
+                            || (action === 'nest' && index === 0)
+                            || (action === 'unnest' && item.parentElement === root);
+                    }
+                });
+            };
+
             const changed = () => {
                 serialize();
+                refresh();
                 saveButton.disabled = false;
             };
 
+            root.addEventListener('click', event => {
+                const button = event.target.closest('[data-menu-move]');
+                if (!button || !root.contains(button)) return;
+                const item = button.closest('.menu-tree-item');
+                const list = item.parentElement;
+                const siblings = directItems(list);
+                const index = siblings.indexOf(item);
+                switch (button.dataset.menuMove) {
+                    case 'up':
+                        if (index === 0) return;
+                        list.insertBefore(item, siblings[index - 1]);
+                        break;
+                    case 'down':
+                        if (index === siblings.length - 1) return;
+                        list.insertBefore(siblings[index + 1], item);
+                        break;
+                    case 'nest':
+                        if (index === 0) return;
+                        childList(siblings[index - 1]).append(item);
+                        break;
+                    case 'unnest': {
+                        const parent = list.closest('.menu-tree-item');
+                        if (!parent) return;
+                        parent.parentElement.insertBefore(item, parent.nextElementSibling);
+                        break;
+                    }
+                    default: return;
+                }
+                changed();
+                button.focus();
+            });
+
+            const surface = root.parentElement;
+            surface.addEventListener('dragover', event => {
+                const zone = event.target.closest('[data-menu-root-zone]');
+                if (!dragged || !zone) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'move';
+                surface.querySelectorAll('.is-drop-target').forEach(node => node.classList.remove('is-drop-target'));
+                zone.classList.add('is-drop-target');
+                if (zone.dataset.menuRootZone === 'start') root.prepend(dragged);
+                else root.append(dragged);
+                changed();
+            });
+            surface.addEventListener('drop', event => { if (dragged) event.preventDefault(); });
+
             root.addEventListener('dragstart', (event) => {
+                if (!event.target.matches('.menu-drag-handle')) return;
                 const item = event.target.closest('.menu-tree-item');
                 if (!item || !root.contains(item)) {
                     return;
@@ -537,6 +601,7 @@
             });
 
             serialize();
+            refresh();
         })();
         </script>
     <?php endif ?>

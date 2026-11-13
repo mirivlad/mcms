@@ -21,4 +21,7 @@ interface DeliveryInterface
     public function delete(int $id): void;
 
     public function reorder(array $positions): void;
+
+    /** @param list<int|string> $ids Exact ordered set of current method IDs. */
+    public function reorderByIds(array $ids): void;
 }
