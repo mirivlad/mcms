@@ -308,6 +308,35 @@ final class CatalogueModuleTest extends CIUnitTestCase
         self::assertSame($root['id'], $this->categories->find($child['id'])['parent_id']);
     }
 
+    public function testCategoryDragReorderMovesBranchesAndRejectsCycles(): void
+    {
+        $first = $this->category('Alpha', 'alpha');
+        $child = $this->category('Child', 'child', $first['id']);
+        $second = $this->category('Beta', 'beta');
+
+        $this->categories->reorder([
+            ['id' => $second['id'], 'parent_id' => null],
+            ['id' => $child['id'], 'parent_id' => $second['id']],
+            ['id' => $first['id'], 'parent_id' => null],
+        ]);
+        self::assertSame(
+            [$second['id'], $child['id'], $first['id']],
+            array_column($this->categories->list(), 'id'),
+        );
+        self::assertSame('Beta / Child', $this->categories->find($child['id']) === null ? null : $this->categories->list()[1]['path']);
+
+        try {
+            $this->categories->reorder([
+                ['id' => $second['id'], 'parent_id' => $child['id']],
+                ['id' => $child['id'], 'parent_id' => $second['id']],
+                ['id' => $first['id'], 'parent_id' => null],
+            ]);
+            self::fail('Category cycle accepted');
+        } catch (InvalidArgumentException) {
+            self::assertSame($second['id'], $this->categories->find($child['id'])['parent_id']);
+        }
+    }
+
     public function testCategoryValidationCyclesAndDeletionGuards(): void
     {
         $root = $this->category('Drinks', 'drinks');
