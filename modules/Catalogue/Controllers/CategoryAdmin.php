@@ -24,6 +24,23 @@ final class CategoryAdmin extends BaseAdminController
         ]);
     }
 
+    public function order(): RedirectResponse
+    {
+        if (($redirect = $this->guard('catalogue.edit')) !== null) {
+            return $redirect;
+        }
+        try {
+            $structure = json_decode((string) $this->request->getPost('structure'), true, 512, JSON_THROW_ON_ERROR);
+            if (! is_array($structure) || ! array_is_list($structure)) {
+                throw new RuntimeException(lang('Catalogue.invalidCategoryOrder'));
+            }
+            $this->categories()->reorder($structure);
+            return redirect()->to('/admin/catalogue/categories')->with('message', lang('Catalogue.categoryOrderSaved'));
+        } catch (Throwable $e) {
+            return redirect()->to('/admin/catalogue/categories')->with('error', $e->getMessage());
+        }
+    }
+
     public function create(): string|RedirectResponse
     {
         if (($redirect = $this->guard('catalogue.create')) !== null) {
