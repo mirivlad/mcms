@@ -329,7 +329,7 @@ final class NewsRepository implements NewsRepositoryInterface
                 throw new RuntimeException(lang('News.Errors.invalidCategoryOrder'));
             }
             $this->db->transCommit();
-        } catch (\\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->db->transRollback();
             throw $e;
         }
