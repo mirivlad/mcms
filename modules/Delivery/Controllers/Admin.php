@@ -57,7 +57,6 @@ final class Admin extends BaseAdminController
                 'type' => $this->request->getPost('type'),
                 'price' => $this->request->getPost('price'),
                 'enabled' => $this->request->getPost('enabled'),
-                'position' => $this->request->getPost('position'),
             ]);
 
             return redirect()->to($this->settingsPath('/admin/delivery/' . $method['id']))->with('message', lang('Delivery.saved'));
@@ -88,7 +87,7 @@ final class Admin extends BaseAdminController
         }
 
         try {
-            $this->delivery()->reorder((array) $this->request->getPost('position'));
+            $this->delivery()->reorderByIds((array) $this->request->getPost('ids'));
 
             return redirect()->to($this->settingsPath('/admin/delivery'))->with('message', lang('Delivery.orderSaved'));
         } catch (Throwable $e) {
